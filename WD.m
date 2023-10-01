@@ -1879,10 +1879,10 @@ end
 
                   end
 
-MMMM = MMM';
+                  MMMM = MMM';
 
 
-end
+              end
 
 
                  
@@ -1929,7 +1929,182 @@ end
         end
 
        
-       
+        function [R,LC,X,Y,RA,Dec,AirMass,FP,Robust_parameters] = ForcedFlux(obj,Args)
+              %   Soon
+              %   Detrend forced photometry by flux field and not mag field
+              
+              arguments
+                  
+                 obj
+                 Args.Index  = 1;
+                 Args.Find   = false;
+                 Args.XY     = [];
+                 Args.Moving = false; 
+                 
+                 
+              end
+              
+              if Args.Find
+                  
+                  % index argument ISNT handled, need to change
+                   [id,FieldId]  = obj.Coo_to_Subframe(obj.Pathway,obj);
+                   obj           = obj.get_id(id(:,1));
+                   obj           = obj.get_fieldID(FieldId);
+                   fprintf('Found the source in subframe # %d',obj.CropID(Args.Index))
+                  
+              end
+              
+              % First, get the MS object of forced photometry
+
+              AI = [];
+              
+              cd(obj.Pathway)
+              
+              cd ../
+             
+
+              directories = dir;
+              counter = 0 ;
+
+              for i = 3 : length(directories)
+    
+                   cd(directories(i).name)
+    
+    
+                   fn  = FileNames.generateFromFileName('*proc_Image_1.fits');
+                       
+               if ~ ismissing(obj.FieldID(Args.Index)) 
+              
+               
+    
+                    if ~isempty(fn.selectBy('FieldID',char(obj.FieldID(Args.Index))).FieldID)
+        
+        
+                        if obj.CropID(Args.Index) > 0 
+                   
+                            FN  = fn.selectBy('CropID',obj.CropID(Args.Index));
+    
+                            AI  = [AI AstroImage.readFileNamesObj(FN)];
+                       
+                            flag = true;
+                       
+                        else
+                            fprintf('Object dont have a CropID \n')
+                       
+                            flag = flase;
+                            break;
+                       
+                        end
+                    end
+                    
+               else
+                   
+                   fprintf('Object might not be in field \n directory # %s \n',directories(i).name)
+                   %fprintf('RA  %d', obj.RA(Args.Index))
+                   %fprintf('\n Dec %d ', obj.Dec(Args.Index))
+                   flag = false;
+                   counter = counter + 1 ;
+                   %break;
+                   
+               end
+               cd ../
+    
+              end
+              
+              % obs coo :
+              ObsLon = 35.04085833;
+              ObsLat = 30.0530725 ;
+
+              if flag
+                  
+                  
+                  % for forced in XY position and moving
+                  if ~isempty(Args.XY) && Args.Moving
+                      fprintf('\nApplying forced photometry on the target \nWith arguments of X,Y coordinates and moving as true')
+                      tic;
+                      FP     = imProc.sources.forcedPhot(AI,'Coo',Args.XY,'CooUnits','pix','Moving',Args.Moving);
+                      to     = toc;
+                  end
+                  
+                  % for forced in XY and not moving 
+                  if ~isempty(Args.XY) && (Args.Moving == false)
+                      fprintf('\nApplying forced photometry on the target \nWith arguments of X,Y coordinates and moving as false')
+                   
+                      tic;
+                      FP     = imProc.sources.forcedPhot(AI,'Coo',Args.XY,'CooUnits','pix','Moving',false);
+                      to     = toc;
+                  end
+                  
+                  % for forced photometry with ra, dec and moving
+                  if isempty(Args.XY) && Args.Moving
+                      fprintf('\nApplying forced photometry on the target \nWith arguments of RA, Dec coordinates and moving as true')
+                      tic;
+                      FP     = imProc.sources.forcedPhot(AI,'Coo',[obj.RA(Args.Index) obj.Dec(Args.Index)].*ones(numel(AI),1),'Moving',Args.Moving);
+                      to     = toc;
+                  end
+                  
+                  % for forced photometry with ra, dec and not moving
+                  if isempty(Args.XY) && (Args.Moving == false)
+                      
+                      
+                      fprintf('\nApplying forced photometry on the target \nWith arguments of RA, Dec coordinates and moving as false')
+                   
+                      tic;
+                      FP     = imProc.sources.forcedPhot(AI,'Coo',[obj.RA(Args.Index) obj.Dec(Args.Index)]);
+                      to     = toc;
+                      
+                      
+                  end
+                  
+                  
+                  
+                   
+                  
+                  fprintf('\nFinished analyazing WD #%d , %s',Args.Index,obj.Name(Args.Index,:))
+                  fprintf([' \n Only ',num2str(to) ,' s'])
+                  [R,LC] = lcUtil.zp_external(FP);
+                  
+              end
+              
+              if true     
+
+                  
+                  X      = FP.Data.X(:,1);
+                  Y      = FP.Data.Y(:,1);
+                  RA     = FP.Data.RA(:,1);
+                  Dec    = FP.Data.Dec(:,1);
+                        
+                  ObsCoo  = [ObsLon, ObsLat];
+                  [AirMass,~,~] = celestial.coo.airmass(LC(:,1),RA*(pi/180),Dec*(pi/180),ObsCoo*(pi/180)); 
+                  
+                  Median   = median(LC(:,2));
+                  MAD = sort(abs(Median-LC(:,2)));
+                  mid = round(length(MAD)/2);
+                  SDrobust = 1.5*MAD(mid);
+                  
+                  Robust_parameters = [Median ; SDrobust];
+                   
+                  
+              else
+                  
+                 
+                  R   = [nan* ones(counter*20,7)];
+                  LC  = [nan* ones(counter*20,7)];
+                  X   = [nan* ones(counter*20,1)];
+                  Y   = [nan* ones(counter*20,1)];
+                  RA  = [nan* ones(counter*20,1)];
+                  Dec = [nan* ones(counter*20,1)];
+                  
+                  
+                  AirMass  =  [nan* ones(counter*20,1)];
+                  Robust_parameters = [nan ; nan];
+                  
+              end
+
+              
+              
+              
+        end
        
        
             

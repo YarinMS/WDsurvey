@@ -404,6 +404,28 @@ h = plot( P.LC_FP{1}(ind,:),y_arcsec,'.k','Color',[0.1 0.1 0.1])
         lg.Interpreter = 'latex';
 
 % Forced photometry issue
+%% forced flux 
+
+[Rf,LCf,X,Y,RA,Dec,AirMass,FP,Robust_parameters] = P.ForcedFlux(P,'Find',true,'Moving',true)
+
+time     = timeofday(datetime(LC(:,1),'convertfrom','jd'));
+Flux     = LC(:,2);
+Median   = Robust_parameters(1);
+SDrobust = Robust_parameters(2);
+
+
+% Noises:
+
+SourceNoise = sqrt(Median)
+% assuming 20 pix for no reason
+TotalNoise  = sqrt(Median + 20*median(FP.Data.BACK_ANNULUS(:,1)) +20*(3.5*0.75*20 + 20 *0.01)  )
+
+figure(10);
+plot(time,Flux,'k.')
+
+
+
+
 
 % Limiting magnitude VS different parameter
 
@@ -414,6 +436,7 @@ h = plot( P.LC_FP{1}(ind,:),y_arcsec,'.k','Color',[0.1 0.1 0.1])
 
 
 %% Detrend flux
+
 % still a flux problem
 
 [R,LC,X,Y,RA,Dec,AirMass,FP] = P.DetrendFlux(P,'Find',true)
