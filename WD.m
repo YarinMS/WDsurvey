@@ -179,7 +179,40 @@ classdef WD
                Args.Interpreter = 'latex';
                Args.FontSize    = 18;
                Args.YDir        = 'reverse';
+               Args.Ylim        = true;
+               Args.Deltay      = 0.3;
 
+           end
+           
+           if Args.Ylim 
+               % calc y lim 
+               fprintf('\nTrying to find optimal y-axis limits')
+               ymax_psf  = max(obj.LC_psf{2}(Args.id,:));
+               ymin_psf  = min(obj.LC_psf{2}(Args.id,:));
+               ymean_psf  = mean(obj.LC_psf{2}(Args.id,:),'omitnan');
+               
+               ymax_aper = max(obj.LC_aper{2}(Args.id,:));
+               ymin_aper = min(obj.LC_aper{2}(Args.id,:));
+               ymean_aper  = mean(obj.LC_aper{2}(Args.id,:),'omitnan');
+               
+               
+               
+               
+               del_psf   = ymax_psf - ymin_psf;
+               
+               del_aper  = ymax_aper - ymin_aper;
+               
+               if abs(del_psf-del_aper) < 0.6
+                   
+                   delta_y =    Args.Deltay + del_psf./2;
+                   
+               else
+                   
+                  fprintf('\nThe diffrences in the light curve scatter is too big, ploting with LARGE y limits ')
+                  delta_y = 2 + del_psf./2;
+               end
+             
+               
            end
            
            
@@ -190,35 +223,50 @@ classdef WD
            t_aper = datetime(obj.LC_aper{1}(Args.id,:),'convertfrom','jd');
            figure();
            subplot(2,1,1)
-           P               = plot(t_psf,obj.LC_psf{2}(Args.id,:),'k.')
-           px              = xlabel(Args.Xlabel)
+           P               = plot(t_psf,obj.LC_psf{2}(Args.id,:),'k.');
+           px              = xlabel(Args.Xlabel);
            px.Interpreter  = Args.Interpreter;
            px.FontSize     = Args.FontSize  ;
-           py              = ylabel(Args.Ylabel)
+           py              = ylabel(Args.Ylabel);
            py.Interpreter  = Args.Interpreter;
            py.FontSize     = Args.FontSize  ;
-           tit             = title([obj.Name(Args.id,:),' Gaia g mag = ',num2str(obj.Mag(Args.id))])
-           tit.Interpreter = Args.Interpreter
-           lg              = legend(['RMS psf = ',num2str(obj.InfoPsf(Args.id,7))])
-           lg.Interpreter  = Args.Interpreter
+           tit             = title([obj.Name(Args.id,:),' Gaia g mag = ',num2str(obj.Mag(Args.id))]);
+           tit.Interpreter = Args.Interpreter;
+           lg              = legend(['RMS psf = ',num2str(obj.InfoPsf(Args.id,7))]);
+           lg.Interpreter  = Args.Interpreter;
+           
+           
+           if Args.Ylim
+               
+               ylim([ymean_psf - delta_y/2,ymean_psf+delta_y])
+           end
+           
+           
+           
            set(lg,'FontSize',11);
-           set(gca,'YDir',Args.YDir)
-           axis tight
+           set(gca,'YDir',Args.YDir);
+           %axis tight
            
            subplot(2,1,2)
-           P               = plot(t_aper,obj.LC_aper{2}(Args.id,:),'k.')
-           px              = xlabel(Args.Xlabel)
+           P               = plot(t_aper,obj.LC_aper{2}(Args.id,:),'k.');
+           px              = xlabel(Args.Xlabel);
            px.Interpreter  = Args.Interpreter;
            px.FontSize     = Args.FontSize  ;
-           py              = ylabel(Args.Ylabel)
+           py              = ylabel(Args.Ylabel);
            py.Interpreter  = Args.Interpreter;
            py.FontSize     = Args.FontSize  ;
           
-           lg              = legend(['RMS Aper 3 = ',num2str(obj.InfoAper(Args.id,7))])
-           lg.Interpreter  = Args.Interpreter
+           lg              = legend(['RMS Aper 3 = ',num2str(obj.InfoAper(Args.id,7))]);
+           lg.Interpreter  = Args.Interpreter;
+           
+           if Args.Ylim
+               
+               ylim([ymean_aper - delta_y/2,ymean_aper+delta_y])
+           end
+           
            set(lg,'FontSize',11);
            set(gca,'YDir',Args.YDir)
-           axis tight
+           %axis tight
            
            
            
@@ -265,9 +313,9 @@ classdef WD
            py              = ylabel(Args.Ylabel)
            py.Interpreter  = Args.Interpreter;
            py.FontSize     = Args.FontSize  ;
-           tit             = title([Args.Name ,' Gaia g mag = ',num2str(obj.Mag(Args.id))])
+           tit             = title([Args.Name ,' Gaia g mag = ',num2str(obj.Mag(Args.id))]);
            tit.Interpreter = Args.Interpreter
-           lg              = legend(['RMS PSF= ',num2str(obj.InfoPsf(Args.id,7))])
+           lg              = legend(['RMS PSF= ',num2str(obj.InfoPsf(Args.id,7))]);
            lg.Interpreter  = Args.Interpreter
            set(lg,'FontSize',11);
            set(gca,'YDir',Args.YDir)
@@ -1570,31 +1618,322 @@ end
               end
         end
 
-       
-       
-       
-       
-       
-            
-       
-       function CooAirmass(obj,Args)
-           
+% tedrend by flux
+
+        function [R,LC,X,Y,RA,Dec,AirMass,FP] = DetrendFlux(obj,Args)
+              %   Soon
+              %   Detrend forced photometry by flux field and not mag field
+              
               arguments
                   
                  obj
-                 Args.Index = 1;
+                 Args.Index  = 1;
+                 Args.Find   = false;
+                 Args.XY     = [];
+                 Args.Moving = false; 
+                 
+                 
               end
               
+              if Args.Find
+                  
+                  % index argument ISNT handled, need to change
+                   [id,FieldId]  = obj.Coo_to_Subframe(obj.Pathway,obj);
+                   obj           = obj.get_id(id(:,1));
+                   obj           = obj.get_fieldID(FieldId);
+                   fprintf('Found the source in subframe # %d',obj.CropID(Args.Index))
+                  
+              end
               
-              
-              
-              
-              
-              
+              % First, get the MS object of forced photometry
 
+              AI = [];
+              
+              cd(obj.Pathway)
+              
+              cd ../
+             
+
+              directories = dir;
+              counter = 0 ;
+
+              for i = 3 : length(directories)
+    
+                   cd(directories(i).name)
+    
+    
+                   fn  = FileNames.generateFromFileName('*proc_Image_1.fits');
+                       
+               if ~ ismissing(obj.FieldID(Args.Index)) 
+              
+               
+    
+                    if ~isempty(fn.selectBy('FieldID',char(obj.FieldID(Args.Index))).FieldID)
         
+        
+                        if obj.CropID(Args.Index) > 0 
+                   
+                            FN  = fn.selectBy('CropID',obj.CropID(Args.Index));
+    
+                            AI  = [AI AstroImage.readFileNamesObj(FN)];
+                       
+                            flag = true;
+                       
+                        else
+                            fprintf('Object dont have a CropID \n')
+                       
+                            flag = flase;
+                            break;
+                       
+                        end
+                    end
+                    
+               else
+                   
+                   fprintf('Object might not be in field \n directory # %s \n',directories(i).name)
+                   %fprintf('RA  %d', obj.RA(Args.Index))
+                   %fprintf('\n Dec %d ', obj.Dec(Args.Index))
+                   flag = false;
+                   counter = counter + 1 ;
+                   %break;
+                   
+               end
+               cd ../
+    
+              end
+              
+              % obs coo :
+              ObsLon = 35.04085833;
+              ObsLat = 30.0530725 ;
+
+              if flag
+                  
+                  
+                  % for forced in XY position and moving
+                  if ~isempty(Args.XY) && Args.Moving
+                      fprintf('\nApplying forced photometry on the target \nWith arguments of X,Y coordinates and moving as true')
+                      tic;
+                      FP     = imProc.sources.forcedPhot(AI,'Coo',Args.XY,'CooUnits','pix','Moving',Args.Moving);
+                      to     = toc;
+                  end
+                  
+                  % for forced in XY and not moving 
+                  if ~isempty(Args.XY) && (Args.Moving == false)
+                      fprintf('\nApplying forced photometry on the target \nWith arguments of X,Y coordinates and moving as false')
+                   
+                      tic;
+                      FP     = imProc.sources.forcedPhot(AI,'Coo',Args.XY,'CooUnits','pix','Moving',false);
+                      to     = toc;
+                  end
+                  
+                  % for forced photometry with ra, dec and moving
+                  if isempty(Args.XY) && Args.Moving
+                      fprintf('\nApplying forced photometry on the target \nWith arguments of RA, Dec coordinates and moving as true')
+                      tic;
+                      FP     = imProc.sources.forcedPhot(AI,'Coo',[obj.RA(Args.Index) obj.Dec(Args.Index)].*ones(numel(AI),1),'Moving',Args.Moving);
+                      to     = toc;
+                  end
+                  
+                  % for forced photometry with ra, dec and not moving
+                  if isempty(Args.XY) && (Args.Moving == false)
+                      
+                      
+                      fprintf('\nApplying forced photometry on the target \nWith arguments of RA, Dec coordinates and moving as false')
+                   
+                      tic;
+                      FP     = imProc.sources.forcedPhot(AI,'Coo',[obj.RA(Args.Index) obj.Dec(Args.Index)]);
+                      to     = toc;
+                      
+                      
+                  end
+                  
+                  
+                  
+                   
+                  
+                  fprintf('\nFinished analyazing WD #%d , %s',Args.Index,obj.Name(Args.Index,:))
+                  fprintf([' \n Only ',num2str(to) ,' s'])
+                  [R,LC] = lcUtil.zp_external(FP);
+                  
+                  [RefSources,RefIdx] = find(FP.SrcData.phot_g_mean_mag < 15.8)
+                  fprintf('\nTaking %d sources for detrending',length(RefIdx)) 
+                  
+                  % Reference matrix of [frames x sources]
+                  RefMat    = FP.Data.FLUX_PSF(:,RefIdx);
+                  RefMagMat = FP.Data.MAG_PSF(:,RefIdx);
+                  
+                  % Sort by time :
+                
+                  
+                  % Filter by rms 
+                  rms       = obj.calcRMS(RefMagMat)
+                  Idx2      = logical(rms > 0 ) & (rms < 0.1) 
+                  RefIdx    = RefIdx(Idx2) ;
+                  RefMat    = [FP.Data.FLUX_PSF(:,RefIdx) FP.Data.FLUX_PSF(:,1)];
+                  RefMagMat = [FP.Data.MAG_PSF(:,RefIdx) FP.Data.MAG_PSF(:,1)];
+                  rms       = obj.calcRMS(RefMagMat);
+                  
+                  
+                  
+                  
+                  % Sort by time
+                  
+                    
+                  [~,SortInd] = sort(FP.JD);
+                  
+
+                  RefMat = RefMat(SortInd,:);
+                  RefMagMat = RefMagMat(SortInd,:);
+                  
+                  
+                  
+                  
+
+                  
+                  
+                  
+                  
+                  
+                  % From Gaia catalog, take g and b_p-r_p
+                  
+                  gmag = FP.SrcData.phot_g_mean_mag(RefIdx) ;
+                  BpRp = FP.SrcData.phot_bp_mean_mag(RefIdx) - FP.SrcData.phot_rp_mean_mag(RefIdx);
+                  target_color = FP.SrcData.phot_bp_mean_mag(1) - FP.SrcData.phot_rp_mean_mag(1);
+                  
+                  % filter Nans
+                  NewIdx = (~isnan(BpRp) & ~isnan(gmag))
+                  
+                  RefMat    = [RefMat(:,NewIdx) RefMat(:,length(RefMat(1,:)))];
+                  RefMagMat = [RefMagMat(:,NewIdx) RefMagMat(:,length(RefMagMat(1,:)))];
+                 
+                  gmag  = FP.SrcData.phot_g_mean_mag(RefIdx(NewIdx)) ;
+                  BpRp  = FP.SrcData.phot_bp_mean_mag(RefIdx(NewIdx)) - FP.SrcData.phot_rp_mean_mag(RefIdx(NewIdx));
+                  BpRp  = [BpRp 0.5] ;
+                  gmag  = [gmag obj.Mag(Args.Index)];
+                  
+                  
+                  
+                  % model = M_s +ZP + BpRp*beta
+                  % Hx = P
+                  %  x = H \ p
+                  
+                  % H_frame * x  =  |1 ? c1 | | Z_p    |  = | M_i1s1 |
+                  %                 |1 ? c2 | | beta   |  = | M_i1s2 |
+                  %                 |1 ? c3 | | M_s    |  + | M_i1s3 |
+                  %                
+                  %
+                  
+                  % Trend data.
+                  %   solve m_{ij} = M_j + z_i +a*(B_p-R_p)_j
+
+                   
+
+                  p = length(RefMat(:,1)) ; % # of epoches
+                  q = length(RefMat(1,:)) ; % # of sources
+
+% m = zeros(p*q,1) ; % designated m vector
+                  m = [] ; % designated m vector
+
+
+                  for k = 1 : p
+   
+                           m = [ m ; RefMagMat(k,:)'] ;
+
+                  end
+                  
+                  
+
+
+
+                  I = sparse(eye(q)) ; 
+
+                  H = [];
+
+
+
+                  for j = 1 : p
+                      
+                         M = zeros(q,p);
+                         M(:,j) = 1 ;
+                      
+                        
+
+
+                         line_j  = [ sparse(M)  , I , BpRp' ] ;
+  
+
+                         H = [ H ; line_j] ; 
+
+                  end
+
+
+                  b = H \ m ; %-mean(m(logical(~isnan(m)))));
+
+                  MM  = H*b;
+
+                  MMM = [];
+                  MMM = [MM(1:q)'];
+                  for t = 2 : p
+
+                       MMM = [MMM ; MM((t-1)*q+1:t*q)'];
+
+                  end
+
+MMMM = MMM';
+
+
+end
+
+
+                 
+             if true     
+                  
+                
+                  
+                  
+                  
+                  
+                  X      = FP.Data.X(:,1);
+                  Y      = FP.Data.Y(:,1);
+                  RA     = FP.Data.RA(:,1);
+                  Dec    = FP.Data.Dec(:,1);
+                  
+                 
+                  
+                  
+                      
+                   
+                   ObsCoo  = [ObsLon, ObsLat];
+                   [AirMass,~,~] = celestial.coo.airmass(LC(:,1),RA*(pi/180),Dec*(pi/180),ObsCoo*(pi/180));
+                      
+                      
+                      
+                      
+                      
+                 
+              else
+                  
+                 
+                  R   = [nan* ones(counter*20,7)];
+                  LC  = [nan* ones(counter*20,7)];
+                  X   = [nan* ones(counter*20,1)];
+                  Y   = [nan* ones(counter*20,1)];
+                  RA  = [nan* ones(counter*20,1)];
+                  Dec = [nan* ones(counter*20,1)];
+                  
+                  
+                  AirMass  =  [nan* ones(counter*20,1)];
+                  
+                  
+              end
+        end
+
+       
+       
+       
+       
             
-       end
+     
        
 
         
