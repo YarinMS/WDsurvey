@@ -2031,7 +2031,7 @@ end
                       fprintf('\nApplying forced photometry on the target \nWith arguments of X,Y coordinates and moving as false')
                    
                       tic;
-                      FP     = imProc.sources.forcedPhot(AI,'Coo',Args.XY,'CooUnits','pix','Moving',false);
+                      FP     = imProc.sources.forcedPhot(AI,'Coo',Args.XY,'CooUnits','pix','Moving',false,'AddRefStarsDist',0);
                       to     = toc;
                   end
                   
@@ -2075,7 +2075,7 @@ end
                   Dec    = FP.Data.Dec(:,1);
                         
                   ObsCoo  = [ObsLon, ObsLat];
-                  [AirMass,~,~] = celestial.coo.airmass(LC(:,1),RA*(pi/180),Dec*(pi/180),ObsCoo*(pi/180)); 
+                  [AirMass,~,~] = celestial.coo.airmass(FP.JD',RA*(pi/180),Dec*(pi/180),ObsCoo*(pi/180)); 
                   
                   Median   = median(LC(:,2));
                   MAD = sort(abs(Median-LC(:,2)));

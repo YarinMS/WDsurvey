@@ -406,7 +406,31 @@ h = plot( P.LC_FP{1}(ind,:),y_arcsec,'.k','Color',[0.1 0.1 0.1])
 % Forced photometry issue
 %% forced flux 
 
-[Rf,LCf,X,Y,RA,Dec,AirMass,FP,Robust_parameters] = P.ForcedFlux(P,'Find',true,'Moving',true)
+% moving = true
+
+[R,LC,X,Y,RA,Dec,AirMass,FP,Robust_parameters] = P.ForcedFlux(P,'Find',true,'Moving',false)
+
+
+
+% moving = true
+
+[R_mov,LC_mov,X_mov,Y_mov,RA_mov,Dec_mov,AirMass_mov,FP_mov,Robust_parameters_mov] = P.ForcedFlux(P,'Find',true,'Moving',true)
+
+
+
+% moving = false XY coord
+% NOT working talk to Eran
+
+%[R_xy,LC_xy,X_xy,Y_xy,RA_xy,Dec_xy,AirMass_xy,FP_xy,Robust_parameters_xy] = P.ForcedFlux(P,'Find',true,'Moving',false,'XY',[X Y])
+
+
+% moving = true XY coord
+
+%[R_mxy,LC_mxy,X_mxy,Y_mxy,RA_mxy,Dec_mxy,AirMass_mxy,FP_mxy,Robust_parameters_mxy] = P.ForcedFlux(P,'Find',true,'Moving',true,'XY',[X(1) Y(1)])
+
+
+
+
 
 time     = timeofday(datetime(LC(:,1),'convertfrom','jd'));
 Flux     = LC(:,2);
@@ -416,15 +440,20 @@ SDrobust = Robust_parameters(2);
 
 % Noises:
 
-SourceNoise = sqrt(Median)
+SourceNoise = sqrt(Median);
 % assuming 20 pix for no reason
 TotalNoise  = sqrt(Median + 20*median(FP.Data.BACK_ANNULUS(:,1)) +20*(3.5*0.75*20 + 20 *0.01)  )
 
+ind = 1
 figure(10);
 plot(time,Flux,'k.')
+xlabel(['Time '],'Interpreter','latex')
+ylabel('Counts') % Double check
+title(['Forced Photometry for ',P.Name(ind,:)],'Interpreter','latex')
 
-
-
+lg = legend(['Source noise $\approx$ ', num2str(SourceNoise),' Total noise $\approx$ '...
+    ,num2str(TotalNoise),' Robust SD $\approx$ ',num2str(SDrobust)])
+lg.Interpreter = 'latex';
 
 
 % Limiting magnitude VS different parameter
