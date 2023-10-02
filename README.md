@@ -1,7 +1,7 @@
 # WDsurvey
 A repository that contain all the functions used to work with AstroPack for the sake of a WD survey.
 
-Since AstroPack is a great pack and all LAST data is reduced by it. We would like to have a Git repository that concentrate all the functions I use to get the from the AstroPack tools. 
+Since AstroPack is a great pack and all LAST data is reduced by it. We would like to have a Git repository that holds all the functions I use to get the reduced data using the AstroPack tools. 
 * Loading a specific set of data
 * Finding targets in the data
 * Extract photometry,
