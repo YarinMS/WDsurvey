@@ -1193,10 +1193,12 @@ classdef WD
                if flag
                    
                    keyword = strcat('*',obj.FieldID,'*proc_Image*.fits');
+                   %keyword = strcat('*proc_Image*.fits');
                    
                else
                
                    keyword = '*'+obj.FieldID(1)+'*proc_Image*.fits';
+                   %keyword = strcat('*proc_Image*.fits');
                    
                end
                
@@ -1215,6 +1217,7 @@ classdef WD
                    end
                end
                
+              
                if field_in
                    
                    H = AstroHeader(char(keyword));
@@ -1285,7 +1288,7 @@ classdef WD
            
            % Variability calculation
            
-           fluxerr = abs(-0.4*log(10)*f.*obj.LC_aper{3}(Args.id,:));
+           fluxerr = abs(0.4*log(10)*f.*obj.LC_aper{3}(Args.id,:));
            w  = 1./fluxerr;
            V1 = sum(w,'omitnan')   ;
            V2 = sum(w.^2,'omitnan'); 
@@ -2324,7 +2327,7 @@ end
 
               if flag
                   tic;
-                  FP     = imProc.sources.forcedPhot(AI,'Coo',[obj.RA(Args.Index) obj.Dec(Args.Index)]);
+                  FP     = imProc.sources.forcedPhot(AI,'Coo',[obj.RA(Args.Index) obj.Dec(Args.Index)],'ColNames',{'RA','Dec','X','Y','Xstart','Ystart','Chi2dof','FLUX_PSF','FLUXERR_PSF','MAG_PSF','MAGERR_PSF','BACK_ANNULUS', 'STD_ANNULUS','FLUX_APER','FLAG_POS','FLAGS'});
                   to     = toc;
                     
                   fprintf('\nFinished analyazing %s', obj.Name(Args.Index,:))
