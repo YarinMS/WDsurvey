@@ -180,7 +180,7 @@ for Iobj = 1 : Nobj
       
        errorbar(FP.JD-dt,FP.Data.MAG_PSF(:,1),FP.Data.MAGERR_PSF(:,1),'.')
        hold on
-       p = plot(time_l(:,wd.CropID(Iobj)),limmag(:,wd.CropID(Iobj)),'k.')
+       p = plot(time_1(:,wd.CropID(Iobj)),limmag(:,wd.CropID(Iobj)),'.','MarkerFaceColor','k','MarkerEdgeColor','k')
        p.MarkerFaceAlpha = .2;
        p.MarkerEdgeAlpha = .2;
        xlabel(['JD - ',num2str(dt)],'Interpreter','latex')
