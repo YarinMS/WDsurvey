@@ -180,7 +180,7 @@ for Iobj = 1 : Nobj
       
        errorbar(FP.JD-dt,FP.Data.MAG_PSF(:,1),FP.Data.MAGERR_PSF(:,1),'.')
        hold on
-       p = scatter(time_1(:,wd.CropID(Iobj))-num2str(dt),limmag(:,wd.CropID(Iobj)),'.','MarkerFaceColor','k','MarkerEdgeColor','k')
+       p = scatter(time_1(:,wd.CropID(Iobj))-dt,limmag(:,wd.CropID(Iobj)),'.','MarkerFaceColor','k','MarkerEdgeColor','k')
        p.MarkerFaceAlpha = .2;
        p.MarkerEdgeAlpha = .2;
        xlabel(['JD - ',num2str(dt)],'Interpreter','latex')
@@ -212,7 +212,7 @@ for Iobj = 1 : Nobj
         
     end
     
-    fprintf('\nFinished with   %d / % d targets',[Iobs,length(wd.RA)] )
+    fprintf('\nFinished with   %d / % d targets',[Iobj,length(wd.RA)] )
    
    
     
