@@ -2333,7 +2333,11 @@ end
                   fprintf('\nFinished analyazing %s', obj.Name(Args.Index,:))
                   fprintf('\nFor subframe # %d',Args.ID)
                   fprintf([' \n only "',num2str(to) ,'" s'])
-                  [R,LC] = lcUtil.zp_external(FP);
+                  % [R,LC] = lcUtil.zp_external(FP);
+                  R = [];
+                  LC = [];
+                  % Without ZP external
+                  
                   
                   X      = FP.Data.X(:,1);
                   Y      = FP.Data.Y(:,1);
@@ -2346,10 +2350,10 @@ end
                       
                    
                    ObsCoo  = [ObsLon, ObsLat];
-                   [AirMass,~,~] = celestial.coo.airmass(LC(:,1),RA*(pi/180),Dec*(pi/180),ObsCoo*(pi/180));
+                   [AirMass,~,~] = celestial.coo.airmass(FP.JD,RA*(pi/180),Dec*(pi/180),ObsCoo*(pi/180));
                       
-                   Median   = median(LC(:,7));
-                   MAD = sort(abs(Median-LC(:,7)));
+                   Median   = median(FP.Data.MAG_PSF(:,1));
+                   MAD = sort(abs(Median-FP.Data.MAG_PSF(:,1)));
                    mid = round(length(MAD)/2);
                    SDrobust = 1.5*MAD(mid);
                   
@@ -2563,9 +2567,9 @@ end
     
                  [R,LC,Xpos,Ypos,RA,Dec,AirMass,FP,Robust_parameters] = obj.Forced1(obj,'Index',Args.Index,'ID',id(i),'FieldID',FieldId(i))
     
-                 ForcedTime   = [ForcedTime ; LC(:,1)'];
-                 ForcedMag    = [ForcedMag ; LC(:,7)'];
-                 ForcedMagErr = [ForcedMagErr ; LC(:,3)'];
+                 ForcedTime   = [ForcedTime ; FP.JD'];
+                 ForcedMag    = [ForcedMag ; FP.Data.MAG_PSF(:,1)'];
+                 ForcedMagErr = [ForcedMagErr ; FP.Data.MAGERR_PSF(:,1)'];
                  X    = [X ; Xpos'] ;
                  Y    = [Y ; Ypos'] ;
                  ra   = [ra ; RA'] ;
