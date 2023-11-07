@@ -34,7 +34,7 @@ e  = WD(Targets(:,1),Targets(:,2),Targets(:,3),TargetsName,'/last06e/data1/archi
 
 % GetData
 
-wd = GetData(e)
+WD = GetData(e)
 
 
 %% 270823
@@ -78,6 +78,7 @@ TargetsName1 = [
 'WDJ234158.00+465033.76',
 'WDJ234143.85+452431.50',
 'WDJ234148.80+462711.91'
+
 ]
 
 
@@ -87,4 +88,4 @@ e1  = WD(Targets1(:,1),Targets1(:,2),Targets1(:,3),TargetsName1,'/last06e/data1/
 
 % GetData
 
-wd1 = GetData(e1,'SaveTo', '~/Documents/WD_survey/270823/')
+wd = GetData(e1,'SaveTo', '/home/ocs/Documents/WD_survey/270823/')
