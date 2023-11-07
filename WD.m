@@ -753,16 +753,9 @@ classdef WD
         
         
     
-        %% test forced phootmetry as a matched sources object
+        %% test forced photmetry as a matched sources object
         
-        
-
-
-      
-       
-        
-        
-        
+            
         
         
        %% find in catalog fits files.

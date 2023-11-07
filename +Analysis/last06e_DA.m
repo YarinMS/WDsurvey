@@ -88,3 +88,30 @@ e1  = WD(Targets1(:,1),Targets1(:,2),Targets1(:,3),TargetsName1,'/last06e/data1/
 % GetData
 
 wd1 = GetData(e1,'SaveTo', '~/Documents/WD_survey/270823/')
+
+
+
+%% Tests
+%% 270823
+
+% field : 355+45
+% coord : 356.487, 45.829
+
+Targets1    = [
+355.4535051748611	46.453454462505015	18.229677
+
+]
+
+TargetsName1 = [
+
+'WDJ234148.80+462711.91'
+]
+
+
+% Initilize WD object
+
+e1  = WD(Targets1(:,1),Targets1(:,2),Targets1(:,3),TargetsName1,'/last06e/data1/archive/LAST.01.06.01/2023/08/27/proc/12')
+
+% GetData
+
+wd1 = GetData(e1,'SaveTo', '~/Documents/WD_survey/270823/')
