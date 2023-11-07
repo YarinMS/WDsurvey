@@ -114,17 +114,17 @@ for Iobj = 1 : Nobj
        subplot(2,2,4)
        
        %% clean signal by flags
-       flags = searchFlags(FP) ;
-       sum   = countFlags(FP)  ;
+       %flags = searchFlags(FP) ;
+       %sum   = countFlags(FP)  ;
        
 
-       FP.Data.FLUX_PSF(flags(:,1),:) = NaN;
-       FP.Data.FLUXERR_PSF(flags(:,1),:) = NaN;
+       %FP.Data.FLUX_PSF(flags(:,1),:) = NaN;
+       %FP.Data.FLUXERR_PSF(flags(:,1),:) = NaN;
        
-       FP.Data.MAG_PSF(flags(:,1),:) = NaN;
-       FP.Data.MAGERR_PSF(flags(:,1),:) = NaN;
+       %FP.Data.MAG_PSF(flags(:,1),:) = NaN;
+       %FP.Data.MAGERR_PSF(flags(:,1),:) = NaN;
        
-       fprintf('cleaned %d Data points by Flags \n ',sum(1))
+      % fprintf('cleaned %d Data points by Flags \n ',sum(1))
        
        
        
@@ -155,7 +155,7 @@ for Iobj = 1 : Nobj
                 else
         
                      c1 = c1 +1;
-                     i
+                     
         
                 end
          
@@ -173,8 +173,8 @@ for Iobj = 1 : Nobj
        dm = FP.Data.MAGERR_PSF(~isnan(FP.Data.MAG_PSF(:,1)),1);
        t  = FP.JD(~isnan(FP.Data.MAG_PSF(:,1)));
 
-       Median   = median(m1);
-       MAD = sort(abs(Median-m1));
+       Median   = median(m);
+       MAD = sort(abs(Median-m),);
        mid = round(length(MAD)/2);
        SDrobust1= 1.5*MAD(mid);
       
@@ -189,8 +189,8 @@ for Iobj = 1 : Nobj
        t.Interpreter = 'latex';
        set(gca,'YDir','reverse')
        
-       lg = legend(['SF = ', num2str(ID(1)),' ; Dist from edge $\approx$ '...
-           ,num2str(min(minxy(1,:))),' pix ; RobustSD $\approx$ ',num2str(SDrobust1),' ; $5-\sigma$ detections : ',num2str(100*length(m1)/length(FP.JD)) ])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
+       lg = legend([...
+           ' pix ; RobustSD $\approx$ ',num2str(SDrobust1),' ; $5-\sigma$ detections : ',num2str(100*length(m1)/length(FP.JD)) ],['Lim Mag for SF # ',num2str((ID(1)))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
  
        lg.Interpreter = 'latex';
      

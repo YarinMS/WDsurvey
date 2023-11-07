@@ -155,7 +155,7 @@ for Iobj = 1 : Nobj
                 else
         
                      c1 = c1 +1;
-                     i
+                     
         
                 end
          
@@ -189,8 +189,8 @@ for Iobj = 1 : Nobj
        t.Interpreter = 'latex';
        set(gca,'YDir','reverse')
        
-       lg = legend(['SF = ', num2str(ID(1)),' ; Dist from edge $\approx$ '...
-           ,num2str(min(minxy(1,:))),' pix ; RobustSD $\approx$ ',num2str(SDrobust1),' ; $5-\sigma$ detections : ',num2str(100*length(m1)/length(FP.JD)) ])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
+       lg = legend([...
+           ' pix ; RobustSD $\approx$ ',num2str(SDrobust1),' ; $5-\sigma$ detections : ',num2str(100*length(m1)/length(FP.JD)) ],['Lim Mag for SF # ',num2str((ID(1)))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
  
        lg.Interpreter = 'latex';
      
@@ -202,7 +202,7 @@ for Iobj = 1 : Nobj
         % save the plot as a PNG file
         pause(7)
         filename = [Args.SaveTo,'LC_Result_',wd.Name(Iobj,:), '.png'];
-    %    saveas(gcf, filename);
+        saveas(gcf, filename);
         close;
        
        
