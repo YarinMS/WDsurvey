@@ -114,17 +114,17 @@ for Iobj = 1 : Nobj
        subplot(2,2,4)
        
        %% clean signal by flags
-       flags = searchFlags(FP) ;
-       sum   = countFlags(FP)  ;
+       %flags = searchFlags(FP) ;
+       %sum   = countFlags(FP)  ;
        
 
-       FP.Data.FLUX_PSF(flags(:,1),:) = NaN;
-       FP.Data.FLUXERR_PSF(flags(:,1),:) = NaN;
+       %FP.Data.FLUX_PSF(flags(:,1),:) = NaN;
+       %FP.Data.FLUXERR_PSF(flags(:,1),:) = NaN;
        
-       FP.Data.MAG_PSF(flags(:,1),:) = NaN;
-       FP.Data.MAGERR_PSF(flags(:,1),:) = NaN;
+       %FP.Data.MAG_PSF(flags(:,1),:) = NaN;
+       %FP.Data.MAGERR_PSF(flags(:,1),:) = NaN;
        
-       fprintf('cleaned %d Data points by Flags \n ',sum(1))
+      % fprintf('cleaned %d Data points by Flags \n ',sum(1))
        
        
        
@@ -173,8 +173,8 @@ for Iobj = 1 : Nobj
        dm = FP.Data.MAGERR_PSF(~isnan(FP.Data.MAG_PSF(:,1)),1);
        t  = FP.JD(~isnan(FP.Data.MAG_PSF(:,1)));
 
-       Median   = median(m1);
-       MAD = sort(abs(Median-m1));
+       Median   = median(m);
+       MAD = sort(abs(Median-m));
        mid = round(length(MAD)/2);
        SDrobust1= 1.5*MAD(mid);
       
@@ -202,7 +202,7 @@ for Iobj = 1 : Nobj
         % save the plot as a PNG file
         pause(7)
         filename = [Args.SaveTo,'LC_Result_',wd.Name(Iobj,:), '.png'];
-        saveas(gcf, filename);
+    %    saveas(gcf, filename);
         close;
        
        
