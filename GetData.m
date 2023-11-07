@@ -114,17 +114,17 @@ for Iobj = 1 : Nobj
        subplot(2,2,4)
        
        %% clean signal by flags
-       %flags = searchFlags(FP) ;
-       %sum   = countFlags(FP)  ;
+       flags = searchFlags(FP) ;
+       sum   = countFlags(FP)  ;
        
 
-       %FP.Data.FLUX_PSF(flags(:,1),:) = NaN;
-       %FP.Data.FLUXERR_PSF(flags(:,1),:) = NaN;
+       FP.Data.FLUX_PSF(flags(:,1),:) = NaN;
+       FP.Data.FLUXERR_PSF(flags(:,1),:) = NaN;
        
-       %FP.Data.MAG_PSF(flags(:,1),:) = NaN;
-       %FP.Data.MAGERR_PSF(flags(:,1),:) = NaN;
+       FP.Data.MAG_PSF(flags(:,1),:) = NaN;
+       FP.Data.MAGERR_PSF(flags(:,1),:) = NaN;
        
-      % fprintf('cleaned %d Data points by Flags \n ',sum(1))
+       fprintf('cleaned %d Data points by Flags \n ',sum(1))
        
        
        
