@@ -188,7 +188,14 @@ for Iobj = 1 : Nobj
        Median   = median(m);
        MAD = sort(abs(Median-m));
        mid = round(length(MAD)/2);
-       SDrobust1= 1.5*MAD(mid);
+       if mid > 0
+           
+           SDrobust1= 1.5*MAD(mid);
+           
+       else
+           SDrobust1 = nan;
+           
+       end
       
        errorbar(FP.JD-dt,FP.Data.MAG_PSF(:,1),FP.Data.MAGERR_PSF(:,1),'.')
        hold on
@@ -245,7 +252,7 @@ for Iobj = 1 : Nobj
         pause(7)
         filename = [Args.SaveTo,'LC_Result_',wd.Name(Iobj,:), '.png'];
         saveas(gcf, filename);
-        %close;
+        close;
        
        
     else
