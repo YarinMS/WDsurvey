@@ -67,14 +67,19 @@ for Iobj = 1 : Nobj
     
     if wd.CropID(Iobj) > 0 
            
-      
+       tic;
        [lc,ForcedMag,ForcedMagErr,ForcedTime,X,Y,ra,dec,AM,FP,Robust,minxy,ID] = wd.ForcedCheck(wd,'Index',Iobj)
-
+       tocs     = toc;
+                    
+       fprintf('\nfinished analyazing WD #%d , %s',Iobj,wd.Name(Iobj,:))
+       fprintf([' \n only ',num2str(tocs) ,' s'])
+       
+       
        FileName = [Args.SaveTo,wd.Name(Iobj,:),'_FP.mat'];
    
        save(FileName,'FP', '-nocompression', '-v7.3')
    
-       figure(1);
+       figure(Iobj);
        subplot(2,2,1)
        FP.plotRMS('FieldX','MAG_PSF','PlotColor','r')
        
@@ -112,7 +117,7 @@ for Iobj = 1 : Nobj
         lg.Interpreter = 'latex';
        
        % FP.sysrem('MagFields',{'MAG_PSF'},'MagErrFields',{'MAGERR_PSF'}) ;
-       
+       hold off
       
       % FP.sysrem('MagFields',{'MAG_PSF'},'MagErrFields',{'MAGERR_PSF'}) ;
        
@@ -188,7 +193,16 @@ for Iobj = 1 : Nobj
        Median   = median(m);
        MAD = sort(abs(Median-m));
        mid = round(length(MAD)/2);
-       SDrobust1= 1.5*MAD(mid);
+       if mid > 0
+           
+           SDrobust1= 1.5*MAD(mid);
+           
+       else
+           SDrobust1 = nan;
+           
+       end
+       
+       wd.LC_FP_Info(Iobj,1) = 100*length(m)/length(FP.JD) ;
       
        errorbar(FP.JD-dt,FP.Data.MAG_PSF(:,1),FP.Data.MAGERR_PSF(:,1),'.')
        hold on
@@ -201,11 +215,11 @@ for Iobj = 1 : Nobj
        t.Interpreter = 'latex';
        set(gca,'YDir','reverse')
        
-       lg = legend([...
-           ' RobustSD $\approx$ ',num2str(SDrobust1),' ; $5-\sigma$ detections : ',num2str(100*length(m1)/length(FP.JD)) ],['Lim Mag for SF # ',num2str((ID(1)))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
+       lg = legend(['RobustSD $\approx$ ',num2str(SDrobust1),' ; $5-\sigma$ detections : ',num2str(100*length(m)/length(FP.JD))], ...
+           ['Lim Mag for SF # ',num2str(ID(1))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
  
        lg.Interpreter = 'latex';
-       
+       hold off
        
        subplot(2,2,4)
        
@@ -245,7 +259,7 @@ for Iobj = 1 : Nobj
         pause(7)
         filename = [Args.SaveTo,'LC_Result_',wd.Name(Iobj,:), '.png'];
         saveas(gcf, filename);
-        %close;
+        close;
        
        
     else
@@ -257,7 +271,7 @@ for Iobj = 1 : Nobj
     
     %% REference sources 
   
-    figure(8);
+    figure(100 + Iobj);
     CountMax = 4;
     count = 0;
     legend_labels = cell(1, CountMax);
@@ -289,7 +303,7 @@ for Iobj = 1 : Nobj
                 legend(legend_labels(1:count));
                 legend('Location','best')
             
-                hold on
+             
                 
             end
             
@@ -307,13 +321,16 @@ for Iobj = 1 : Nobj
     end
     
     
+    
+    
         set(gcf, 'Position', get(0, 'ScreenSize'));
         % save the plot as a PNG file
-        pause(7)
+        %pause(7)
         filename = [Args.SaveTo,'REF_',wd.Name(Iobj,:), '.png'];
         saveas(gcf, filename);
         %close;
-        
+        pause(7)
+        hold on
         errorbar(FP.JD-dt,FP.Data.MAG_PSF(:,1),FP.Data.MAGERR_PSF(:,1),'o')
         legend_labels{count+1} = sprintf('WD Gaia g mag = %.2f', wd.Mag(Iobj));
                 
@@ -327,11 +344,14 @@ for Iobj = 1 : Nobj
         pause(7)
         filename = [Args.SaveTo,'REF_RES',wd.Name(Iobj,:), '.png'];
         saveas(gcf, filename);
-    
+        
+        close  hold off
+        
+      
     
     %% High SNR targets light curve
     
-    fprintf('\nFinished with   %d / % d targets',[Iobj,length(wd.RA)] )
+    fprintf('\nFinished with   %d / % d targets \n',[Iobj,length(wd.RA)] )
    
    
     

@@ -87,7 +87,7 @@ e1  = WD(Targets1(:,1),Targets1(:,2),Targets1(:,3),TargetsName1,'/last06e/data1/
 
 % GetData
 
-wd1 = GetData(e1,'SaveTo', '~/Documents/WD_survey/270823/')
+wd1 = GetData(e1,'SaveTo', '~/Documents/WD_survey/270823/355+45')
 
 
 
@@ -114,4 +114,4 @@ e1  = WD(Targets1(:,1),Targets1(:,2),Targets1(:,3),TargetsName1,'/last06e/data1/
 
 % GetData
 
-wd1 = GetData(e1,'SaveTo', '~/Documents/WD_survey/270823/')
+wd1 = GetData(e1,'SaveTo', '~/Documents/WD_survey/270823/355+45/')
