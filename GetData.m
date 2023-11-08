@@ -215,7 +215,7 @@ for Iobj = 1 : Nobj
        t.Interpreter = 'latex';
        set(gca,'YDir','reverse')
        
-       lg = legend(['RobustSD $\approx$ ',num2str(SDrobust1),' ; $5-\sigma$ detections : ',num2str(100*length(m)/length(FP.JD))], ...
+       lg = legend(['RobustSD $\approx$ ',num2str(SDrobust1),' ; $5-\sigma$ detections : ',num2str(100*length(m)/length(FP.JD)),'% '], ...
            ['Lim Mag for SF # ',num2str(ID(1))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
  
        lg.Interpreter = 'latex';
@@ -261,15 +261,8 @@ for Iobj = 1 : Nobj
         saveas(gcf, filename);
         close;
        
-       
-    else
         
-        fprintf('could not find target number # %d \n',Iobj)
-        
-    end
-    
-    
-    %% REference sources 
+         %% REference sources 
   
     figure(100 + Iobj);
     CountMax = 4;
@@ -338,14 +331,15 @@ for Iobj = 1 : Nobj
         legend('Location','best')
         tit = title(['Reference stars And ', wd.Name(Iobj,:)])
         tit.Interpreter = 'latex'
-        
+        hold off
         set(gcf, 'Position', get(0, 'ScreenSize'));
         % save the plot as a PNG file
         pause(7)
         filename = [Args.SaveTo,'REF_RES',wd.Name(Iobj,:), '.png'];
         saveas(gcf, filename);
         
-        close  hold off
+        close ;
+        
         
       
     
@@ -360,6 +354,15 @@ for Iobj = 1 : Nobj
     
     
     
+       
+    else
+        
+        fprintf('could not find target number # %d \n',Iobj)
+        
+    end
+    
+    
+   
 end
 
 
