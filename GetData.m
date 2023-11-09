@@ -215,7 +215,7 @@ for Iobj = 1 : Nobj
        t.Interpreter = 'latex';
        set(gca,'YDir','reverse')
        
-       lg = legend(['RobustSD $\approx$ ',num2str(SDrobust1),' ; $5-\sigma$ detections : ',num2str(100*length(m)/length(FP.JD)),'% '], ...
+       lg = legend(['RobustSD = ',num2str(SDrobust1),' ;  ',num2str(100*length(m)/length(FP.JD)),'% of entire obs'], ...
            ['Lim Mag for SF # ',num2str(ID(1))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
  
        lg.Interpreter = 'latex';
@@ -264,81 +264,81 @@ for Iobj = 1 : Nobj
         
          %% REference sources 
   
-    figure(100 + Iobj);
-    CountMax = 4;
-    count = 0;
-    legend_labels = cell(1, CountMax);
-    for i = 1 :length(FP.SrcData.phot_g_mean_mag)
+        figure(100 + Iobj);
+        CountMax = 4;
+        count = 0;
+        legend_labels = cell(1, CountMax);
+        for j = 1 :length(FP.SrcData.phot_g_mean_mag)
         
        
         
-        if (15 < FP.SrcData.phot_g_mean_mag(i) ) && (16 > FP.SrcData.phot_g_mean_mag(i) )
+            if (15 < FP.SrcData.phot_g_mean_mag(j) ) && (16 > FP.SrcData.phot_g_mean_mag(j) )
             
             
-            ind = abs(FP.Data.MAGERR_PSF(:,i)) < 0.2
+                ind = abs(FP.Data.MAGERR_PSF(:,j)) < 0.2
            
            
             
             
-            if  mean(FP.Data.MAG_PSF(ind,i)) < 22
-                 count = count +1 ;
-                
-                errorbar(FP.JD(ind)-dt,FP.Data.MAG_PSF(ind,i),FP.Data.MAGERR_PSF(ind,i),'.')
-                hold on
-                ax1 = xlabel(['JD - ',num2str(dt)])
-                ax1.Interpreter = 'latex'
-                ax2 = ylabel('Inst Mag')
-                ax2.Interpreter = 'latex'
-                tit = title(['Reference stars for ', wd.Name(Iobj,:)])
-                tit.Interpreter = 'latex'
-                legend_labels{count} = sprintf('Gaia g mag = %.2f', FP.SrcData.phot_g_mean_mag(i));
-                set(gca,'YDir','reverse')
-                legend(legend_labels(1:count));
-                legend('Location','best')
+                if  mean(FP.Data.MAG_PSF(ind,j)) < 22
+                    count = count +1 ;
+                 
+                    errorbar(FP.JD(ind)-dt,FP.Data.MAG_PSF(ind,j),FP.Data.MAGERR_PSF(ind,j),'.')
+                    hold on
+                    ax1 = xlabel(['JD - ',num2str(dt)])
+                    ax1.Interpreter = 'latex'
+                    ax2 = ylabel('Inst Mag')
+                    ax2.Interpreter = 'latex'
+                    tit = title(['Reference stars for ', wd.Name(Iobj,:)])
+                    tit.Interpreter = 'latex'
+                    legend_labels{count} = sprintf('Gaia g mag = %.2f', FP.SrcData.phot_g_mean_mag(j));
+                    set(gca,'YDir','reverse')
+                    legend(legend_labels(1:count));
+                    legend('Location','best')
             
              
                 
-            end
+                end
             
            
                 
             
-            if count == CountMax
+                if count == CountMax
                 
-                break;
+                    break;
                 
+                end
+            
+            
             end
-            
-            
         end
-    end
     
     
     
     
-        set(gcf, 'Position', get(0, 'ScreenSize'));
+            set(gcf, 'Position', get(0, 'ScreenSize'));
         % save the plot as a PNG file
         %pause(7)
-        filename = [Args.SaveTo,'REF_',wd.Name(Iobj,:), '.png'];
-        saveas(gcf, filename);
-        %close;
-        pause(7)
-        hold on
-        errorbar(FP.JD-dt,FP.Data.MAG_PSF(:,1),FP.Data.MAGERR_PSF(:,1),'o')
-        legend_labels{count+1} = sprintf('WD Gaia g mag = %.2f', wd.Mag(Iobj));
+            filename = [Args.SaveTo,'REF_',wd.Name(Iobj,:), '.png'];
+            saveas(gcf, filename);
+           %close;
+            pause(7)
+            hold on
+            errorbar(FP.JD-dt,FP.Data.MAG_PSF(:,1),FP.Data.MAGERR_PSF(:,1),'o')
+            legend_labels{count+1} = sprintf('WD Gaia g mag = %.2f', wd.Mag(Iobj));
                 
-        legend(legend_labels(1:count+1))
-        legend('Location','best')
-        tit = title(['Reference stars And ', wd.Name(Iobj,:)])
-        tit.Interpreter = 'latex'
-        hold off
-        set(gcf, 'Position', get(0, 'ScreenSize'));
+            legend(legend_labels(1:count+1))
+            legend('Location','best')
+            tit = title(['Reference stars And ', wd.Name(Iobj,:)])
+            tit.Interpreter = 'latex'
+            hold off
+            set(gcf, 'Position', get(0, 'ScreenSize'));
         % save the plot as a PNG file
-        pause(7)
-        filename = [Args.SaveTo,'REF_RES',wd.Name(Iobj,:), '.png'];
-        saveas(gcf, filename);
+            pause(7)
+           filename = [Args.SaveTo,'REF_RES',wd.Name(Iobj,:), '.png'];
+           saveas(gcf, filename);
         
-        close ;
+           close ;
         
         
       
