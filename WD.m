@@ -2246,8 +2246,9 @@ end
               
         end
        
-       function [R,LC,X,Y,RA,Dec,AirMass,FP,Robust_parameters] = Forced1(obj,Args)
-              %
+       function [AirMass,FP,MS,Robust_parameters] = Forced1(obj,Args)
+              %   [R,LC,X,Y,RA,Dec,AirMass,FP,MS,Robust_parameters]
+              %   original output
               %   Detailed explanation goes here - Yes
               
               arguments
@@ -2276,11 +2277,11 @@ end
     
                    fn  = FileNames.generateFromFileName('*proc_Image_1.fits');
                        
-               if ~ ismissing(Args.FieldID) 
+               if ~ismissing(Args.FieldID) 
               
                
     
-                    if ~isempty(fn.selectBy('FieldID',char(Args.FieldID)))
+                    if ~isempty(fn.selectBy('FieldID',char(Args.FieldID)).FieldID)
         
         
                         if Args.ID > 0 
@@ -2326,14 +2327,28 @@ end
                   fprintf('\nFinished analyazing %s', obj.Name(Args.Index,:))
                   fprintf('\nFor subframe # %d',Args.ID)
                   fprintf([' \n only "',num2str(to) ,'" s'])
-                  % [R,LC] = lcUtil.zp_external(FP);
-                  R = [];
-                  LC = [];
+                  PF = FP;
+                  
+                  R = lcUtil.zp_meddiff(PF,'MagField','MAG_PSF','MagErrField','MAGERR_PSF')
+                  
+           
+                  [MS,ApplyToMagFieldr] = applyZP(PF, R.FitZP,'ApplyToMagField','MAG_PSF');
+          
+                  
+       
+                  
+                  
+       %           [R,LC] = lcUtil.zp_external(FP,'UpdateMagFields',{'MAG_PSF','FLUX_PSF'})
+                  
+                  
+                  % [R,LC] = lcUtil.zp_external(FP,'UpdateMagFields,{'MAG_PSF','FLUX_PSF'});
+                  %R = [];
+                  %LC = [];
                   % Without ZP external
                   
                   
-                  X      = FP.Data.X(:,1);
-                  Y      = FP.Data.Y(:,1);
+         %         X      = FP.Data.X(:,1);
+         %         Y      = FP.Data.Y(:,1);
                   RA     = FP.Data.RA(:,1);
                   Dec    = FP.Data.Dec(:,1);
                   
@@ -2358,12 +2373,12 @@ end
               else
                   
                  
-                  R   = [nan* ones(counter*20,7)];
-                  LC  = [nan* ones(counter*20,7)];
-                  X   = [nan* ones(counter*20,1)];
-                  Y   = [nan* ones(counter*20,1)];
-                  RA  = [nan* ones(counter*20,1)];
-                  Dec = [nan* ones(counter*20,1)];
+          %        R   = [nan* ones(counter*20,7)];
+          %        LC  = [nan* ones(counter*20,7)];
+          %        X   = [nan* ones(counter*20,1)];
+          %        Y   = [nan* ones(counter*20,1)];
+           %       RA  = [nan* ones(counter*20,1)];
+            %      Dec = [nan* ones(counter*20,1)];
                   
                   
                   AirMass  =  [nan* ones(counter*20,1)];
@@ -2502,7 +2517,8 @@ end
     
        function [lc,ForcedMag,ForcedMagErr,ForcedTime,X,Y,ra,dec,AM,FP,Robust,MinDist,ID] = ForcedCheck(obj,Args)
               
-              % Get the forced photometry of a source in a WD object.
+              % Get the forced photometry of a source in a WD object. in
+              % all frames ( in ForcedMag ForcedMagerr
               
               % Find how many siginificant detection exist over the entire
               % obs
@@ -2531,7 +2547,7 @@ end
                    ID      = [ID ; id ]
                    if sum(id > 0) > 0
                     
-                       fprintf('Found the source in both subframes # : %s ',num2str(id(id > 0)) )
+                       fprintf('Found the source in subframes # : %s ',num2str(id(id > 0)) )
 
                    end
                    
@@ -2579,7 +2595,7 @@ end
         end
               
 
-       function [lc,ForcedMag,ForcedMagErr,ForcedTime,X,Y,ra,dec,AM,FP,Robust,MinDist,ID] = ForcedMS(obj,Args)
+       function [FP,MS,Robust,MinDist,ID] = ForcedMS(obj,Args)
               
               % Get the forced photometry of a source in a WD object.
               
@@ -2610,7 +2626,7 @@ end
                    ID      = [ID ; id ]
                    if sum(id > 0) > 0
                     
-                       fprintf('Found the source in both subframes # : %s ',num2str(id(id > 0)) )
+                       fprintf('Found the source in subframes # : %s ',num2str(id(id > 0)) )
 
                    end
                    
@@ -2620,7 +2636,9 @@ end
                   
               end
               
+              FirldId = FieldId(id > 0);
               id = id(id > 0);
+              
               %ForcedMag    = [];
               %ForcedMagErr = [];
               %ForcedTime   = [];
@@ -2634,13 +2652,15 @@ end
               %lc = {};
 
               
-              for i = 1:length(id)
+               if  ~isempty(id )
     
     
-                 [R,LC,Xpos,Ypos,RA,Dec,AirMass,FP,Robust_parameters] = obj.Forced1(obj,'Index',Args.Index,'ID',id(i),'FieldID',FieldId(i))
-    
+              [AirMass,FP,MS,Robust] = obj.Forced1(obj,'Index',Args.Index,'ID',id(1),'FieldID',FieldId(1));
+              % original output [R,LC,Xpos,Ypos,RA,Dec,AirMass,FP,Robust] 
                  
-              
+               else
+                   
+                   fprintf('Could not find target i any subframe ??')
    
               end
         
