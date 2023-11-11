@@ -144,4 +144,4 @@ LimMag.FieldID = e1.FieldID(1);
 
 % GetData
 
-wd1 = GetDataV3(e1 ,'SaveTo', '~/Documents/WD_survey/270823/355+45b/','time_1immag',time_1,'limmag',limmag)
+wd1 = GetDataV4(e1 ,'SaveTo', '~/Documents/WD_survey/270823/355+45b/','time_1immag',time_1,'limmag',limmag)
