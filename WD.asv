@@ -283,7 +283,7 @@ classdef WD
                Args.Xlabel      = ['Time'];
                Args.Ylabel      = [];
                Args.Interpreter = 'latex';
-               Args.FontSize    = 15;
+               Args.FontSize    = 18;
                Args.YDir        = 'reverse';
                Args.Name        = {}
                
@@ -304,22 +304,6 @@ classdef WD
            %t_psf = datetime(obj.LC_psf{1}(Args.id,:),'convertfrom','jd');
            %t_aper = datetime(obj.LC_aper{1}(Args.id,:),'convertfrom','jd');
            %figure();
-           
-            Median   = median(obj.LC_psf{2}(Args.id,:),'omitnan');
-            MAD = sort(abs(Median-obj.LC_psf{2}(Args.id,:)));
-            mid = round(length(MAD)/2);
-            if mid > 0
-           
-                 SDrobust1= 1.5*MAD(mid);
-           
-            else
-                 SDrobust1 = nan;
-           
-            end
-           
-           
-           
-           
            P               =errorbar(obj.LC_psf{1}(Args.id,:),obj.LC_psf{2}(Args.id,:),obj.LC_psf{3}(Args.id,:),"-o","MarkerSize",2,...
                "MarkerEdgeColor","black")
            P.Color = 'black';
@@ -331,7 +315,7 @@ classdef WD
            py.FontSize     = Args.FontSize  ;
            tit             = title([Args.Name ,' Gaia g mag = ',num2str(obj.Mag(Args.id))]);
            tit.Interpreter = Args.Interpreter
-           lg              = legend(['RobustSD catalog = ',num2str(SDrobust1)]);
+           lg              = legend(['RMS PSF= ',num2str(obj.InfoPsf(Args.id,7))]);
            lg.Interpreter  = Args.Interpreter
            set(lg,'FontSize',11);
            set(gca,'YDir',Args.YDir)
@@ -1123,7 +1107,7 @@ classdef WD
                                 
                                 if flags(j)
                                     
-                                    fprintf(['finished analayzing WD #', num2str(j),' ',obj.Name(j,:),' \n'])
+                                    fprintf(['finished analyazing WD #', num2str(j),' ',obj.Name(j,:),' \n'])
                                     
                                 else
                                      fprintf(['not enough observation for WD #', num2str(j),' ',obj.Name(j,:),'\n'])
