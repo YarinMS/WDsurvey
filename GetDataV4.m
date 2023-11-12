@@ -84,7 +84,7 @@ for Iobj = 1 : Nobj
            m1 = FP.Data.MAG_PSF(i,1);
     
 
-           if ~isnan(s1)
+           if ~isnan(s1) && ~isnan(m1)
                 if (abs(s1) > threshold)  || (m1 > MagThreshold)
         
                      FP.Data.MAGERR_PSF(i,:) = nan;
@@ -135,7 +135,7 @@ for Iobj = 1 : Nobj
        
        FP.sysrem('MagFields',{'MAG_PSF'},'MagErrFields',{'MAGERR_PSF'}) ;
        FileName = [Args.SaveTo,wd.Name(Iobj,:),'_SysRem_FP.mat'];
-       save(FileName,'fp', '-nocompression', '-v7.3')
+       save(FileName,'FP', '-nocompression', '-v7.3')
        FP.plotRMS('FieldX','MAG_PSF')
        tit = title(['before and after 2 SysRem Iterations'])
        tit.Interpreter = 'latex' ; 
