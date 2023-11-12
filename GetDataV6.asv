@@ -70,6 +70,42 @@ for Iobj = 1 : Nobj
        %hold on
        %MS.plotRMS
    %    [fp,m,dm,c1] = CleanLargeErr(FP,0.2,23);
+   
+       
+    figure(Iobj);
+       subplot(2,2,1)
+       wd.plotLCERR("id",Iobj,"Xlabel",'JD',"YDir",'reverse')
+       
+       %FP.plotRMS('FieldX','MAG_PSF','PlotColor','r')
+       
+       %tit = title(['Before SysRem ; RMS plot for Subframe # ',num2str(wd.CropID(Iobj))])
+       %tit.Interpreter = 'latex' ; 
+       %hold on
+       
+       %FP.sysrem('MagFields',{'MAG_PSF'},'MagErrFields',{'MAGERR_PSF'}) ;
+       
+       
+       %FP.sysrem('MagFields',{'MAG_PSF'},'MagErrFields',{'MAGERR_PSF'}) ;
+       %FileName = [Args.SaveTo,wd.Name(Iobj,:),'_SysRem_FP.mat'];
+       %save(FileName,'FP', '-nocompression', '-v7.3')
+       %FP.plotRMS('FieldX','MAG_PSF')
+       %tit = title(['before and after 2 SysRem Iterations'])
+       %tit.Interpreter = 'latex' ; 
+       
+       %legend('No SysRem or ZP correction','2 SysRem Iterations','Location','southeast')
+       %FileName = [Args.SaveTo,wd.Name(Iobj,:),'_SysRem_FP.mat'];
+       %save(FileName,'FP', '-nocompression', '-v7.3')
+   
+       subplot(2,2,2)
+         % clean targets with magnitude higher than 25
+ 
+      % MS = CleanByMag(MS,27);
+       
+       %figure();
+       %FP.plotRMS
+       %hold on
+       %MS.plotRMS
+   %    [fp,m,dm,c1] = CleanLargeErr(FP,0.2,23);
              
        threshold = 0.2;
        MagThreshold = 23;
@@ -112,89 +148,26 @@ for Iobj = 1 : Nobj
        t  = FP.JD(~isnan(FP.Data.MAG_PSF(:,1)));
        m  = FP.Data.MAG_PSF(~isnan(FP.Data.MAG_PSF(:,1)),1);
        detections = (100*c1)/all_measurments;
-       
-       
-       FileName = [Args.SaveTo,wd.Name(Iobj,:),'_FP.mat'];
-   
-       save(FileName,'FP', '-nocompression', '-v7.3')
-       
-       FileName = [Args.SaveTo,wd.Name(Iobj,:),'_FP_cleaned.mat'];
-   
-       save(FileName,'FP', '-nocompression', '-v7.3')
-   
-       figure(Iobj);
-       subplot(2,2,1)
-       FP.plotRMS('FieldX','MAG_PSF','PlotColor','r')
-       
-       tit = title(['Before SysRem ; RMS plot for Subframe # ',num2str(wd.CropID(Iobj))])
-       tit.Interpreter = 'latex' ; 
-       hold on
-       
-       FP.sysrem('MagFields',{'MAG_PSF'},'MagErrFields',{'MAGERR_PSF'}) ;
-       
-       
-       FP.sysrem('MagFields',{'MAG_PSF'},'MagErrFields',{'MAGERR_PSF'}) ;
-       FileName = [Args.SaveTo,wd.Name(Iobj,:),'_SysRem_FP.mat'];
-       save(FileName,'FP', '-nocompression', '-v7.3')
-       FP.plotRMS('FieldX','MAG_PSF')
-       tit = title(['before and after 2 SysRem Iterations'])
-       tit.Interpreter = 'latex' ; 
-       
-       legend('No SysRem or ZP correction','2 SysRem Iterations','Location','southeast')
-       FileName = [Args.SaveTo,wd.Name(Iobj,:),'_SysRem_FP.mat'];
-       save(FileName,'FP', '-nocompression', '-v7.3')
-   
-       subplot(2,2,2)
-       
        dt = round(FP.JD(1));
        
-       errorbar(FP.JD-dt,FP.Data.MAG_PSF(:,1),FP.Data.MAGERR_PSF(:,1),'.')
-    
-       xlabel(['JD - ',num2str(dt)],'Interpreter','latex')
-       ylabel('Instrumental Magnitude','Interpreter','latex') % Double check
-       t = title(['Raw Forced Photometry ']) %,wd.Name(Iobj,:),' Gaia g mag = ',num2str(wd.Mag(Iobj))])
-       t.Interpreter = 'latex';
-       set(gca,'YDir','reverse')
-       lg = legend(['SF = ', num2str(ID(1)),' ; Dist from edge $\approx$ '...
-       ,num2str(min(minxy(1,:))),' pix ; RobustSD $\approx$ ',num2str(Robust(2))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
-        lg.Interpreter = 'latex';
        
-       % FP.sysrem('MagFields',{'MAG_PSF'},'MagErrFields',{'MAGERR_PSF'}) ;
-       hold off
-      
-      % FP.sysrem('MagFields',{'MAG_PSF'},'MagErrFields',{'MAGERR_PSF'}) ;
-       
-      % FP.plotRMS
-      % tit = title(['2nd SysRem iteration'])
-      % tit.Interpreter = 'latex' ; 
-       
-
+       FileName = [Args.SaveTo,wd.Name(Iobj,:),'_FP1.mat'];
    
-       subplot(2,2,3)
+       save(FileName,'FP', '-nocompression', '-v7.3')
        
-       %% clean signal by flags
-       flags = searchFlags(FP) ;
-       sum   = countFlags(FP)  ;
+       FileName = [Args.SaveTo,wd.Name(Iobj,:),'_FP_cleaned1.mat'];
+   
+       save(FileName,'FP', '-nocompression', '-v7.3')
        
-
-       FP.Data.FLUX_PSF(flags(:,1),:) = NaN;
-       FP.Data.FLUXERR_PSF(flags(:,1),:) = NaN;
-       
-       FP.Data.MAG_PSF(flags(:,1),:) = NaN;
-       FP.Data.MAGERR_PSF(flags(:,1),:) = NaN;
-       
-       fprintf('cleaned %d Data points by Flags \n ',sum(1))
+       FP.sysrem('MagFields',{'MAG_PSF'},'MagErrFields',{'MAGERR_PSF'}) ;
        
        
+       FP.sysrem('MagFields',{'MAG_PSF'},'MagErrFields',{'MAGERR_PSF'}) ;
+       FileName = [Args.SaveTo,wd.Name(Iobj,:),'_SysRem_FP1.mat'];
+       save(FileName,'FP', '-nocompression', '-v7.3')
+    
        
        
-      
-       
-       %% clean points with snr lower than 5
-       
-       
-      
-
        Median   = median(m);
        MAD = sort(abs(Median-m));
        mid = round(length(MAD)/2);
@@ -209,12 +182,12 @@ for Iobj = 1 : Nobj
        
        wd.LC_FP_Info(Iobj,1) = detections ;
       
-       errorbar(FP.JD-dt,FP.Data.MAG_PSF(:,1),FP.Data.MAGERR_PSF(:,1),'.')
-       hold on
-       p = scatter(Args.time_1immag(:,wd.CropID(Iobj))-dt,Args.limmag(:,wd.CropID(Iobj)),'.','MarkerFaceColor','k','MarkerEdgeColor','k')
-       p.MarkerFaceAlpha = .1;
-       p.MarkerEdgeAlpha = .1;
-       xlabel(['JD - ',num2str(dt)],'Interpreter','latex')
+       errorbar(FP.JD,FP.Data.MAG_PSF(:,1),FP.Data.MAGERR_PSF(:,1),'.')
+       %hold on
+       %p = scatter(Args.time_1immag(:,wd.CropID(Iobj))-dt,Args.limmag(:,wd.CropID(Iobj)),'.','MarkerFaceColor','k','MarkerEdgeColor','k')
+       %p.MarkerFaceAlpha = .1;
+       %p.MarkerEdgeAlpha = .1;
+       xlabel(['JD '],'Interpreter','latex')
        ylabel('Instrumental Magnitude','Interpreter','latex') % Double check
        t = title(['Cleaned Forced Photometry'])% for ',wd.Name(Iobj,:),' Gaia g mag = ',num2str(wd.Mag(Iobj))])
        t.Interpreter = 'latex';
@@ -225,6 +198,20 @@ for Iobj = 1 : Nobj
  
        lg.Interpreter = 'latex';
        hold off
+       
+       
+       subplot(2,2,3)
+       [rms,interval_center] = wd.RMS_timeseries(wd,wd.LC_psf{1}(2,:),wd.LC_psf{2}(2,:),20)
+       [rms1,interval_center1] = wd.RMS_timeseries(wd,FP.JD,FP.Data.MAG_PSF(:,1),20)
+       [a,inx] = sort(interval_center1)
+       plot(interval_center,rms,'-o')
+       hold on
+       plot(interval_center1(inx),rms1(inx),'-x')
+       xlabel('Time','Interpreter','latex')
+       ylabel('RMS','Interpreter','latex')
+       title('RMS time series (RMS per visit)')
+       legend('Catalog','Forced')
+       
        
        subplot(2,2,4)
        
@@ -240,31 +227,26 @@ for Iobj = 1 : Nobj
        
        
        latexText = {
-            ['$$ ',wd.Name(Iobj,:),' $$'], ...
-            ['$$ Gaia\ g\ mag\ =',num2str(wd.Mag(Iobj)),' $$'], ...
-                      ['$$ Theroetical \ Error =\ ', num2str(1./SNR),'\ $$'], ...
+            ['$$ ',wd.Name(Iobj,:),' $$'],...
+            ['$$  Gaia\ g\ mag\ =',num2str(wd.Mag(Iobj)),' $$'], ...
+            ['$$  B_p\ =',num2str(wd.LC_FP(Iobj)),' $$'], ...
+            ['$$  B_p - R_p =',num2str(wd.LC_coadd(Iobj)),' $$'], ...
+            ['$$  Subframe \ =',num2str(ID(1)),' $$'], ...
+            ['$$  Detections \ :',num2str(detections),' \% $$'], ...
+            ['$$  Distance to SF edge \ :',num2str(min(minxy)),' pix $$'], ...
+            ['$$ Theroetical \ Error =\ ', num2str(1./SNR),'\ $$'], ...
             strcat('$$ ObsID\ : ',ObsId, '\ $$'), ...
-          
              };
        
  
-       text(0.5, 0.5, latexText, 'HorizontalAlignment', 'center', 'FontSize', 12,'Interpreter','latex');
+       text(0.5, 0.5, latexText, 'HorizontalAlignment', 'center', 'FontSize', 10,'Interpreter','latex');
        axis off;
-       
-      % strcat('$$ RA\ : \',num2str(wd.RA(Iobj)),'\ Dec\ : \ ',num2str(wd.Dec(Iobj)), ' $$'), ...
-      %      strcat('$$ Gaia \ g = ',num2str(wd.Mag(Iobj)),' $$'), ...
-       
+      
      
         
         
                
         
-        set(gcf, 'Position', get(0, 'ScreenSize'));
-        % save the plot as a PNG file
-        pause(7)
-        filename = [Args.SaveTo,'LC_Result_',wd.Name(Iobj,:), '.png'];
-        saveas(gcf, filename);
-        close;
        
         
          %% REference sources 
