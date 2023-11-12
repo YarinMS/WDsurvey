@@ -193,8 +193,8 @@ for Iobj = 1 : Nobj
        t.Interpreter = 'latex';
        set(gca,'YDir','reverse')
        
-       lg = legend(['RobustSD = ',num2str(SDrobust1),' ;  ',num2str(detections),'% of entire obs'], ...
-           ['Lim Mag for SF # ',num2str(ID(1))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
+       lg = legend(['RobustSD = ',num2str(SDrobust1)]%,%' ;  ',num2str(detections),'% of entire obs'], ...
+           %['Lim Mag for SF # ',num2str(ID(1))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
  
        lg.Interpreter = 'latex';
        hold off
@@ -242,6 +242,17 @@ for Iobj = 1 : Nobj
        text(0.5, 0.5, latexText, 'HorizontalAlignment', 'center', 'FontSize', 10,'Interpreter','latex');
        axis off;
       
+       
+       
+            set(gcf, 'Position', get(0, 'ScreenSize'));
+        % save the plot as a PNG file
+        %pause(7)
+            filename = [Args.SaveTo,'_ALL_',wd.Name(Iobj,:), '.png'];
+            saveas(gcf, filename);
+           %close;
+            pause(7)
+            
+           
      
         
         

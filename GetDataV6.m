@@ -193,8 +193,8 @@ for Iobj = 1 : Nobj
        t.Interpreter = 'latex';
        set(gca,'YDir','reverse')
        
-       lg = legend(['RobustSD = ',num2str(SDrobust1),' ;  ',num2str(detections),'% of entire obs'], ...
-           ['Lim Mag for SF # ',num2str(ID(1))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
+       lg = legend(['RobustSD = ',num2str(SDrobust1)])  %,%' ;  ',num2str(detections),'% of entire obs'], ...
+                                                     %['Lim Mag for SF # ',num2str(ID(1))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
  
        lg.Interpreter = 'latex';
        hold off
@@ -209,7 +209,7 @@ for Iobj = 1 : Nobj
        plot(interval_center1(inx),rms1(inx),'-x')
        xlabel('Time','Interpreter','latex')
        ylabel('RMS','Interpreter','latex')
-       title('RMS time series (RMS per visit)')
+       title('RMS time series (RMS per visit)','Interpreter','latex')
        legend('Catalog','Forced')
        
        
@@ -233,7 +233,7 @@ for Iobj = 1 : Nobj
             ['$$  B_p - R_p =',num2str(wd.LC_coadd(Iobj)),' $$'], ...
             ['$$  Subframe \ =',num2str(ID(1)),' $$'], ...
             ['$$  Detections \ :',num2str(detections),' \% $$'], ...
-            ['$$  Distance to SF edge \ :',num2str(min(minxy)),' pix $$'], ...
+            ['$$  Distance\ to\ SF\ edge \ :',num2str(min(minxy)),' pix $$'], ...
             ['$$ Theroetical \ Error =\ ', num2str(1./SNR),'\ $$'], ...
             strcat('$$ ObsID\ : ',ObsId, '\ $$'), ...
              };
@@ -251,7 +251,7 @@ for Iobj = 1 : Nobj
             saveas(gcf, filename);
            %close;
             pause(7)
-            
+            close;
            
      
         
