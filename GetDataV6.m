@@ -222,7 +222,7 @@ for Iobj = 1 : Nobj
        title('RMS time series (RMS per visit)','Interpreter','latex')
        legend('Catalog','Forced')
        for i = 1:numel(t)
-       text(t(i), rms(i), sprintf('%d%', 100*notnan(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 6);
+       text(t(i), rms(i), sprintf('%.0f%%', 100*notnan(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 6)%,'Interpreter','latex');
        end
        
        
