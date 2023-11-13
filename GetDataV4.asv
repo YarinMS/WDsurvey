@@ -1,4 +1,5 @@
-function [wd] = GetData(wd,Args)
+function [wd] = GetDataV4(wd,Args)
+% V# works good without RMS cleaning !!!
 % GetData applies all functions in the WD class.
 % Using a path for the processed images and target list [RA DEC MAG] as input 
 %
@@ -31,31 +32,16 @@ function [wd] = GetData(wd,Args)
 %%
 arguments
     wd
-    Args.SaveTo  = '/home/ocs/Documents/WD_survey/210823/'
+    Args.time_1immag = {};
+    Args.limmag      = {};
+    Args.SaveTo      = '/home/ocs/Documents/WD_survey/210823/'
     
     
     
 end
 
-%% 1.
-
-[id,FieldId] = wd.Coo_to_Subframe(wd.Pathway,wd);
-wd  = wd.get_id(id(:,1));
-wd  = wd.get_fieldID(FieldId);
-% [Index,cat_id] = WD.find_in_cat(WD);
-% WD  = WD.get_cat_id(cat_id);
-
-%% 2.  Lim mag from header:
-
-LimMag  = WD([],[],[],[],wd.Pathway)
-
-%choose field ID :
-LimMag.FieldID = wd.FieldID(1);
-
-% limmag per subframe
 
 
-[time_1,limmag] = LimMag.Header_LimMag(LimMag);
 
 
 %% Get Forced
@@ -68,14 +54,71 @@ for Iobj = 1 : Nobj
     if wd.CropID(Iobj) > 0 
            
        tic;
-       [lc,ForcedMag,ForcedMagErr,ForcedTime,X,Y,ra,dec,AM,FP,Robust,minxy,ID] = wd.ForcedCheck(wd,'Index',Iobj)
+       [FP,MS,Robust,minxy,ID] = wd.ForcedMS(wd,'Index',Iobj)
        tocs     = toc;
-                    
-       fprintf('\nfinished analyazing WD #%d , %s',Iobj,wd.Name(Iobj,:))
+       fprintf('\nfinished ForcedPhot for WD #%d , %s',Iobj,wd.Name(Iobj,:))
        fprintf([' \n only ',num2str(tocs) ,' s'])
+       
+       %% cleaning FP and MS
+       
+       % clean targets with magnitude higher than 25
+       FP = CleanByMag(FP,27);
+      % MS = CleanByMag(MS,27);
+       
+       %figure();
+       %FP.plotRMS
+       %hold on
+       %MS.plotRMS
+   %    [fp,m,dm,c1] = CleanLargeErr(FP,0.2,23);
+             
+       threshold = 0.2;
+       MagThreshold = 23;
+       all_measurments = 0;
+       c1 = 0 ;
+
+
+       for i = 1 : length(FP.Data.MAG_PSF(:,1))
+           all_measurments = all_measurments +1; 
+    
+           s1 = FP.Data.MAGERR_PSF(i,1);
+           m1 = FP.Data.MAG_PSF(i,1);
+    
+
+           if ~isnan(s1)
+                if (abs(s1) > threshold)  || (m1 > MagThreshold)
+        
+                     FP.Data.MAGERR_PSF(i,:) = nan;
+                     FP.Data.MAG_PSF(i,:) = nan;
+                     fprintf('error too large t1 :%d \n',m1/s1)
+        
+                else
+        
+                     c1 = c1 +1;
+                     
+        
+                end
+         
+           else
+        
+                FP.Data.MAGERR_PSF(i,:) = nan;
+                FP.Data.MAG_PSF(i,:) = nan;
+                fprintf('errorbar has nan value \n')
+        
+           end
+    
+       end
+       
+       dm = FP.Data.MAGERR_PSF(~isnan(FP.Data.MAG_PSF(:,1)),1);
+       t  = FP.JD(~isnan(FP.Data.MAG_PSF(:,1)));
+       m  = FP.Data.MAG_PSF(~isnan(FP.Data.MAG_PSF(:,1)),1);
+       detections = (100*c1)/all_measurments;
        
        
        FileName = [Args.SaveTo,wd.Name(Iobj,:),'_FP.mat'];
+   
+       save(FileName,'FP', '-nocompression', '-v7.3')
+       
+       FileName = [Args.SaveTo,wd.Name(Iobj,:),'_FP_cleaned.mat'];
    
        save(FileName,'FP', '-nocompression', '-v7.3')
    
@@ -92,7 +135,7 @@ for Iobj = 1 : Nobj
        
        FP.sysrem('MagFields',{'MAG_PSF'},'MagErrFields',{'MAGERR_PSF'}) ;
        FileName = [Args.SaveTo,wd.Name(Iobj,:),'_SysRem_FP.mat'];
-       save(FileName,'FP', '-nocompression', '-v7.3')
+       save(FileName,'fp', '-nocompression', '-v7.3')
        FP.plotRMS('FieldX','MAG_PSF')
        tit = title(['before and after 2 SysRem Iterations'])
        tit.Interpreter = 'latex' ; 
@@ -150,45 +193,7 @@ for Iobj = 1 : Nobj
        %% clean points with snr lower than 5
        
        
-       all_measurements = 0
-       c1 = 0 ;
-
-
-       for i = 1 : length(FP.Data.MAG_PSF(:,1))
-           all_measurements = all_measurements +1; 
-    
-           s1 = FP.Data.MAGERR_PSF(i,1);
-           m1 = FP.Data.MAG_PSF(i,1);
-    
-
-           if ~isnan(s1)
-                if (abs(s1) > 0.2)  || (m1 > 23)
-        
-                     FP.Data.MAGERR_PSF(i,1) = nan;
-                     FP.Data.MAG_PSF(i,1) = nan;
-                     fprintf('error too large t1 :%d \n',m1/s1)
-        
-                else
-        
-                     c1 = c1 +1;
-                     
-        
-                end
-         
-           else
-        
-                FP.Data.MAGERR_PSF(i,1) = nan;
-                FP.Data.MAG_PSF(i,1) = nan;
-                fprintf('errorbar has nan value \n')
-        
-           end
-    
-       end
-       
-       dm = FP.Data.MAGERR_PSF(~isnan(FP.Data.MAG_PSF(:,1)),1);
-       t  = FP.JD(~isnan(FP.Data.MAG_PSF(:,1)));
-       m  = FP.Data.MAG_PSF(~isnan(FP.Data.MAG_PSF(:,1)),1);
-
+      
 
        Median   = median(m);
        MAD = sort(abs(Median-m));
@@ -202,20 +207,20 @@ for Iobj = 1 : Nobj
            
        end
        
-       wd.LC_FP_Info(Iobj,1) = 100*length(m)/length(FP.JD) ;
+       wd.LC_FP_Info(Iobj,1) = detections ;
       
        errorbar(FP.JD-dt,FP.Data.MAG_PSF(:,1),FP.Data.MAGERR_PSF(:,1),'.')
        hold on
-       p = scatter(time_1(:,wd.CropID(Iobj))-dt,limmag(:,wd.CropID(Iobj)),'.','MarkerFaceColor','k','MarkerEdgeColor','k')
-       p.MarkerFaceAlpha = .2;
-       p.MarkerEdgeAlpha = .2;
+       p = scatter(Args.time_1immag(:,wd.CropID(Iobj))-dt,Args.limmag(:,wd.CropID(Iobj)),'.','MarkerFaceColor','k','MarkerEdgeColor','k')
+       p.MarkerFaceAlpha = .1;
+       p.MarkerEdgeAlpha = .1;
        xlabel(['JD - ',num2str(dt)],'Interpreter','latex')
        ylabel('Instrumental Magnitude','Interpreter','latex') % Double check
        t = title(['Cleaned Forced Photometry'])% for ',wd.Name(Iobj,:),' Gaia g mag = ',num2str(wd.Mag(Iobj))])
        t.Interpreter = 'latex';
        set(gca,'YDir','reverse')
        
-       lg = legend(['RobustSD $\approx$ ',num2str(SDrobust1),' ; $5-\sigma$ detections : ',num2str(100*length(m)/length(FP.JD)),'% '], ...
+       lg = legend(['RobustSD = ',num2str(SDrobust1),' ;  ',num2str(detections),'% of entire obs'], ...
            ['Lim Mag for SF # ',num2str(ID(1))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
  
        lg.Interpreter = 'latex';
@@ -272,7 +277,7 @@ for Iobj = 1 : Nobj
         
        
         
-            if (15 < FP.SrcData.phot_g_mean_mag(j) ) && (16 > FP.SrcData.phot_g_mean_mag(j) )
+            if (15 < FP.SrcData.phot_g_mean_mag(j) ) && (16 >FP.SrcData.phot_g_mean_mag(j) )
             
             
                 ind = abs(FP.Data.MAGERR_PSF(:,j)) < 0.2

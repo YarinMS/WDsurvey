@@ -34,7 +34,7 @@ e  = WD(Targets(:,1),Targets(:,2),Targets(:,3),TargetsName,'/last06e/data1/archi
 
 % GetData
 
-wd = GetData(e)
+e1 = GetData(e)
 
 
 %% 270823
@@ -91,6 +91,9 @@ wd1 = GetData(e1,'SaveTo', '~/Documents/WD_survey/270823/355+45/')
 
 
 
+
+
+
 %% Tests
 %% 270823
 
@@ -108,10 +111,37 @@ TargetsName1 = [
 ]
 
 
+
+
 % Initilize WD object
 
 e1  = WD(Targets1(:,1),Targets1(:,2),Targets1(:,3),TargetsName1,'/last06e/data1/archive/LAST.01.06.01/2023/08/27/proc/12')
 
+% first lim mag calculations
+[id,FieldId] = e1.Coo_to_Subframe(e1.Pathway,e1);
+e1  = e1.get_id(id(:,1));
+e1  = e1.get_fieldID(FieldId);
+% [Index,cat_id] = WD.find_in_cat(WD);
+% WD  = WD.get_cat_id(cat_id);
+
+%%  Lim mag from header:
+
+LimMag  = WD([],[],[],[],e1.Pathway)
+
+%choose field ID :
+LimMag.FieldID = e1.FieldID(1);
+
+% limmag per subframe
+
+
+[time_1,limmag] = LimMag.Header_LimMag(LimMag);
+
+%
+
+
+
+
+
 % GetData
 
-wd1 = GetData(e1,'SaveTo', '~/Documents/WD_survey/270823/355+45/')
+wd1 = GetDataV3(e1,time_1,limmag ,'SaveTo', '~/Documents/WD_survey/270823/355+45b/','time_limmag',time_1,'limmag',limmag)

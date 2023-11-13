@@ -283,7 +283,7 @@ classdef WD
                Args.Xlabel      = ['Time'];
                Args.Ylabel      = [];
                Args.Interpreter = 'latex';
-               Args.FontSize    = 18;
+               Args.FontSize    = 12;
                Args.YDir        = 'reverse';
                Args.Name        = {}
                
@@ -303,8 +303,24 @@ classdef WD
            %            {2}{Nobj x Novs} - mag_psf 
            %t_psf = datetime(obj.LC_psf{1}(Args.id,:),'convertfrom','jd');
            %t_aper = datetime(obj.LC_aper{1}(Args.id,:),'convertfrom','jd');
-           figure();
-           P               =errorbar(obj.LC_psf{1}(Args.id,:),obj.LC_psf{2}(Args.id,:),obj.LC_psf{3}(Args.id,:),"-o","MarkerSize",2,...
+           %figure();
+            m = obj.LC_psf{2}(Args.id,~isnan(obj.LC_psf{2}(Args.id,:)));
+            Median   = median(m);
+            MAD = sort(abs(Median-m));
+            mid = round(length(MAD)/2);
+            if mid > 0
+           
+                 SDrobust1= 1.5*MAD(mid);
+           
+            else
+                 SDrobust1 = nan;
+           
+            end
+           
+           
+           
+           
+           P               =errorbar(obj.LC_psf{1}(Args.id,:),obj.LC_psf{2}(Args.id,:),obj.LC_psf{3}(Args.id,:),"o","MarkerSize",2,...
                "MarkerEdgeColor","black")
            P.Color = 'black';
            px              = xlabel(Args.Xlabel)
@@ -313,11 +329,12 @@ classdef WD
            py              = ylabel(Args.Ylabel)
            py.Interpreter  = Args.Interpreter;
            py.FontSize     = Args.FontSize  ;
-           tit             = title([Args.Name ,' Gaia g mag = ',num2str(obj.Mag(Args.id))]);
-           tit.Interpreter = Args.Interpreter
-           lg              = legend(['RMS PSF= ',num2str(obj.InfoPsf(Args.id,7))]);
+           tit             = title('Catalog LC ');
+           tit.Interpreter = Args.Interpreter'
+           lg              = legend(['RobustSD = ',num2str(SDrobust1)]);
            lg.Interpreter  = Args.Interpreter
-           set(lg,'FontSize',11);
+           lg.Location = 'best'
+           set(lg,'FontSize',11,'Interpreter','latex');
            set(gca,'YDir',Args.YDir)
            axis tight
            
@@ -352,7 +369,7 @@ classdef WD
                  
            end
            
-           time  = obj.LC_FP{1}(Args.id,:)-2460183.5;
+           %time  = obj.LC_FP{1}(Args.id,:)-2460183.5;
            mag = obj.LC_FP{2}(Args.id,:) ;
            magerr  = obj.LC_FP{3}(Args.id,:)
            
@@ -931,29 +948,58 @@ classdef WD
        end
             
        
-       function [RMS]  = calcRMS(y)
+       function [RMS,notnanval]  = calcRMS(y)
+           
+           notnanval = sum(~isnan(y)) / 20 ;
+           
+           if sum(~isnan(y)) > 1
+               
+               % do RMS
           
-            Mean = mean(y,'omitnan');
-            sd   = (y - Mean).^2 ;
-            meansquare   = mean(sd,'omitnan');
-            RMS = sqrt(meansquare);
-            
+               Mean = mean(y,'omitnan');
+               sd   = (y - Mean).^2 ;
+               meansquare   = mean(sd,'omitnan');
+               RMS = sqrt(meansquare);
+           else
+               if sum(~isnan(y)) > 1
+                   
+                   RMS = mean(y,'omitnan') ;
+                   
+               else
+                   
+                   RMS = nan;
+                   
+               end
+               
+           end
+               
+               
+                   
+                   
+               
        end
        
-       function [rms,interval_center] = RMS_timeseries(obj,t,y,window)
+       function [rms,interval_center,notnan] = RMS_timeseries(obj,t,y,window)
         
            
            Nwindows = floor(numel(y)/window);
            rms      = zeros(Nwindows,1) ;
+           notnan      = zeros(Nwindows,1) ;
            interval_center = zeros(Nwindows,1);
            
-           for i = 1 : Nwindows
+           for i = 1 : Nwindows 
                
                start = (i-1)*window +1;
                End   = i*window;
                
+              % if (start > length(t))  || (End > length(t))
+              %     
+               %    break
+                   
+              % end
+               
                Window = y(start:End);
-               rms(i) = obj.calcRMS(Window)  ;
+               [rms(i),notnan(i)] = obj.calcRMS(Window)  ;
                interval_center(i) = mean(t(start:End),'omitnan');
                
            end
@@ -1101,7 +1147,7 @@ classdef WD
                                 
                                 if flags(j)
                                     
-                                    fprintf(['finished analyazing WD #', num2str(j),' ',obj.Name(j,:),' \n'])
+                                    fprintf(['finished analayzing WD #', num2str(j),' ',obj.Name(j,:),' \n'])
                                     
                                 else
                                      fprintf(['not enough observation for WD #', num2str(j),' ',obj.Name(j,:),'\n'])
@@ -2246,8 +2292,9 @@ end
               
         end
        
-       function [R,LC,X,Y,RA,Dec,AirMass,FP,Robust_parameters] = Forced1(obj,Args)
-              %
+       function [AirMass,FP,MS,Robust_parameters] = Forced1(obj,Args)
+              %   [R,LC,X,Y,RA,Dec,AirMass,FP,MS,Robust_parameters]
+              %   original output
               %   Detailed explanation goes here - Yes
               
               arguments
@@ -2276,11 +2323,11 @@ end
     
                    fn  = FileNames.generateFromFileName('*proc_Image_1.fits');
                        
-               if ~ ismissing(Args.FieldID) 
+               if ~ismissing(Args.FieldID) 
               
                
     
-                    if ~isempty(fn.selectBy('FieldID',char(Args.FieldID)))
+                    if ~isempty(fn.selectBy('FieldID',char(Args.FieldID)).FieldID)
         
         
                         if Args.ID > 0 
@@ -2326,14 +2373,28 @@ end
                   fprintf('\nFinished analyazing %s', obj.Name(Args.Index,:))
                   fprintf('\nFor subframe # %d',Args.ID)
                   fprintf([' \n only "',num2str(to) ,'" s'])
-                  % [R,LC] = lcUtil.zp_external(FP);
-                  R = [];
-                  LC = [];
+                  PF = FP;
+                  
+                  R = lcUtil.zp_meddiff(PF,'MagField','MAG_PSF','MagErrField','MAGERR_PSF')
+                  
+           
+                  [MS,ApplyToMagFieldr] = applyZP(PF, R.FitZP,'ApplyToMagField','MAG_PSF');
+          
+                  
+       
+                  
+                  
+       %           [R,LC] = lcUtil.zp_external(FP,'UpdateMagFields',{'MAG_PSF','FLUX_PSF'})
+                  
+                  
+                  % [R,LC] = lcUtil.zp_external(FP,'UpdateMagFields,{'MAG_PSF','FLUX_PSF'});
+                  %R = [];
+                  %LC = [];
                   % Without ZP external
                   
                   
-                  X      = FP.Data.X(:,1);
-                  Y      = FP.Data.Y(:,1);
+         %         X      = FP.Data.X(:,1);
+         %         Y      = FP.Data.Y(:,1);
                   RA     = FP.Data.RA(:,1);
                   Dec    = FP.Data.Dec(:,1);
                   
@@ -2358,12 +2419,12 @@ end
               else
                   
                  
-                  R   = [nan* ones(counter*20,7)];
-                  LC  = [nan* ones(counter*20,7)];
-                  X   = [nan* ones(counter*20,1)];
-                  Y   = [nan* ones(counter*20,1)];
-                  RA  = [nan* ones(counter*20,1)];
-                  Dec = [nan* ones(counter*20,1)];
+          %        R   = [nan* ones(counter*20,7)];
+          %        LC  = [nan* ones(counter*20,7)];
+          %        X   = [nan* ones(counter*20,1)];
+          %        Y   = [nan* ones(counter*20,1)];
+           %       RA  = [nan* ones(counter*20,1)];
+            %      Dec = [nan* ones(counter*20,1)];
                   
                   
                   AirMass  =  [nan* ones(counter*20,1)];
@@ -2502,7 +2563,8 @@ end
     
        function [lc,ForcedMag,ForcedMagErr,ForcedTime,X,Y,ra,dec,AM,FP,Robust,MinDist,ID] = ForcedCheck(obj,Args)
               
-              % Get the forced photometry of a source in a WD object.
+              % Get the forced photometry of a source in a WD object. in
+              % all frames ( in ForcedMag ForcedMagerr
               
               % Find how many siginificant detection exist over the entire
               % obs
@@ -2531,7 +2593,7 @@ end
                    ID      = [ID ; id ]
                    if sum(id > 0) > 0
                     
-                       fprintf('Found the source in both subframes # : %s ',num2str(id(id > 0)) )
+                       fprintf('Found the source in subframes # : %s ',num2str(id(id > 0)) )
 
                    end
                    
@@ -2579,7 +2641,7 @@ end
         end
               
 
-       function [lc,ForcedMag,ForcedMagErr,ForcedTime,X,Y,ra,dec,AM,FP,Robust,MinDist,ID] = ForcedMS(obj,Args)
+       function [FP,MS,Robust,MinDist,ID] = ForcedMS(obj,Args)
               
               % Get the forced photometry of a source in a WD object.
               
@@ -2610,7 +2672,7 @@ end
                    ID      = [ID ; id ]
                    if sum(id > 0) > 0
                     
-                       fprintf('Found the source in both subframes # : %s ',num2str(id(id > 0)) )
+                       fprintf('Found the source in subframes # : %s ',num2str(id(id > 0)) )
 
                    end
                    
@@ -2620,7 +2682,9 @@ end
                   
               end
               
+              FirldId = FieldId(id > 0);
               id = id(id > 0);
+              
               %ForcedMag    = [];
               %ForcedMagErr = [];
               %ForcedTime   = [];
@@ -2634,13 +2698,15 @@ end
               %lc = {};
 
               
-              for i = 1:length(id)
+               if  ~isempty(id )
     
     
-                 [R,LC,Xpos,Ypos,RA,Dec,AirMass,FP,Robust_parameters] = obj.Forced1(obj,'Index',Args.Index,'ID',id(i),'FieldID',FieldId(i))
-    
+              [AirMass,FP,MS,Robust] = obj.Forced1(obj,'Index',Args.Index,'ID',id(1),'FieldID',FieldId(1));
+              % original output [R,LC,Xpos,Ypos,RA,Dec,AirMass,FP,Robust] 
                  
-              
+               else
+                   
+                   fprintf('Could not find target i any subframe ??')
    
               end
         
