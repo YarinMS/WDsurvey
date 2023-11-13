@@ -1,4 +1,4 @@
-function [wd] = GetDataV4(wd,Args)
+function [wd] = GetDataV5(wd,Args)
 % V# works good without RMS cleaning !!!
 % GetData applies all functions in the WD class.
 % Using a path for the processed images and target list [RA DEC MAG] as input 

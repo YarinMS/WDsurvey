@@ -197,20 +197,34 @@ for Iobj = 1 : Nobj
                                                      %['Lim Mag for SF # ',num2str(ID(1))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
  
        lg.Interpreter = 'latex';
+       lg.Location = 'best';
        hold off
-       
+       axis tight;
        
        subplot(2,2,3)
-       [rms,interval_center] = wd.RMS_timeseries(wd,wd.LC_psf{1}(2,:),wd.LC_psf{2}(2,:),20)
-       [rms1,interval_center1] = wd.RMS_timeseries(wd,FP.JD,FP.Data.MAG_PSF(:,1),20)
-       [a,inx] = sort(interval_center1)
-       plot(interval_center,rms,'-o')
+       [rms,interval_center,notnan] = wd.RMS_timeseries(wd,wd.LC_psf{1}(Iobj,:),wd.LC_psf{2}(Iobj,:),20);
+       [a,inx] = sort(FP.JD);
+       x1 = FP.JD(inx);
+       y1 = FP.Data.MAG_PSF(inx,1);
+       
+       [rms1,interval_center1,notnan1] = wd.RMS_timeseries(wd,x1,y1,20);
+      
+       t = datetime(interval_center,'convertfrom','jd');
+       t1 = datetime(interval_center1,'convertfrom','jd');
+       plot(t,rms,'-o')
+
+    
+       
        hold on
-       plot(interval_center1(inx),rms1(inx),'-x')
+       plot(t1,rms1,'-x')
        xlabel('Time','Interpreter','latex')
        ylabel('RMS','Interpreter','latex')
        title('RMS time series (RMS per visit)','Interpreter','latex')
        legend('Catalog','Forced')
+       for i = 1:numel(t)
+       text(t(i), rms(i), sprintf('%d%', 100*notnan(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 6);
+       end
+       
        
        
        subplot(2,2,4)
@@ -233,7 +247,7 @@ for Iobj = 1 : Nobj
             ['$$  B_p - R_p =',num2str(wd.LC_coadd(Iobj)),' $$'], ...
             ['$$  Subframe \ =',num2str(ID(1)),' $$'], ...
             ['$$  Detections \ :',num2str(detections),' \% $$'], ...
-            ['$$  Distance\ to\ SF\ edge \ :',num2str(min(minxy)),' pix $$'], ...
+            ['$$  Distance\ to\ SF\ edge \ :',num2str(min(minxy(1,:))),' \ pix $$'], ...
             ['$$ Theroetical \ Error =\ ', num2str(1./SNR),'\ $$'], ...
             strcat('$$ ObsID\ : ',ObsId, '\ $$'), ...
              };
@@ -248,6 +262,8 @@ for Iobj = 1 : Nobj
         % save the plot as a PNG file
         %pause(7)
             filename = [Args.SaveTo,'_ALL_',wd.Name(Iobj,:), '.png'];
+            saveas(gcf, filename);
+            filename = [Args.SaveTo,'_ALL_',wd.Name(Iobj,:), '.fig'];
             saveas(gcf, filename);
            %close;
             pause(7)
