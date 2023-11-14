@@ -1216,7 +1216,7 @@ classdef WD
                times_vec      = zeros(Nobs,24)*nan;
                LimMag_vec     = zeros(Nobs,24)*nan;
                Subframe_index = ones(24,1);  
-               fprintf('choose  field ID to analyze \n')
+               fprintf('Analayzinf field : %s ',obj.FieldID)
                flag = true;
            end
            
