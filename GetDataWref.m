@@ -282,37 +282,50 @@ for Iobj = 1 : Nobj
         CountMax = 4;
         count = 0;
         legend_labels = cell(1, CountMax);
+        Nlightcurve   = zeros(numel(FP.Data.MAG_PSF(:,1)),1);
+        
+        
         for j = 1 :length(FP.SrcData.phot_g_mean_mag)
         
-       
+           colorterm = wd.LC_coadd(Iobj) ;
+           
         
             if (15 < FP.SrcData.phot_g_mean_mag(j) ) && (16 >FP.SrcData.phot_g_mean_mag(j) )
+                bp_rp = FP.SrcData.phot_bp_mean_mag(j) - FP.SrcData.phot_rp_mean_mag(j);
+                
+                if abs(colorterm - bp_rp) < 0.51
             
-            
-                ind = abs(FP.Data.MAGERR_PSF(:,j)) < 0.2
+                     ind = abs(FP.Data.MAGERR_PSF(:,j)) < 0.2  ;
            
            
             
             
-                if  mean(FP.Data.MAG_PSF(ind,j)) < 22
-                    count = count +1 ;
+                     if  mean(FP.Data.MAG_PSF(ind,j)) < 22
+                          count = count +1 ;
+                          
+                          Nlightcurve(:,1) = Nlightcurve(:,1) + (1./CountMax).* FP.Data.MAG_PSF(ind,j) ;             
                  
-                    errorbar(FP.JD(ind)-dt,FP.Data.MAG_PSF(ind,j),FP.Data.MAGERR_PSF(ind,j),'.')
-                    hold on
-                    ax1 = xlabel(['JD - ',num2str(dt)])
-                    ax1.Interpreter = 'latex'
-                    ax2 = ylabel('Inst Mag')
-                    ax2.Interpreter = 'latex'
-                    tit = title(['Reference stars for ', wd.Name(Iobj,:)])
-                    tit.Interpreter = 'latex'
-                    legend_labels{count} = sprintf('Gaia g mag = %.2f', FP.SrcData.phot_g_mean_mag(j));
-                    set(gca,'YDir','reverse')
-                    legend(legend_labels(1:count));
-                    legend('Location','best')
+                          errorbar(FP.JD(ind)-dt,FP.Data.MAG_PSF(ind,j),FP.Data.MAGERR_PSF(ind,j),'.')
+                          hold on
+                          ax1 = xlabel(['JD - ',num2str(dt)])
+                          ax1.Interpreter = 'latex'
+                          ax2 = ylabel('Inst Mag')
+                          ax2.Interpreter = 'latex'
+                          tit = title(['Reference stars for ', wd.Name(Iobj,:)])
+                          tit.Interpreter = 'latex'
+                          legend_labels{count} = sprintf('Gaia g mag = %.2f', FP.SrcData.phot_g_mean_mag(j));
+                          set(gca,'YDir','reverse')
+                          legend(legend_labels(1:count));
+                          legend('Location','best')
             
              
                 
-                end
+                     end 
+                     
+                     
+                     
+                     
+               
             
            
                 
@@ -320,6 +333,8 @@ for Iobj = 1 : Nobj
                 if count == CountMax
                 
                     break;
+                
+                end
                 
                 end
             
@@ -353,6 +368,72 @@ for Iobj = 1 : Nobj
            saveas(gcf, filename);
         
            close ;
+           
+           for o = 1 : length(Nlightcurve)
+               
+               if Nlightcurve(o) == 0 
+                   
+                   Nlightcurve(o) = nan;
+                   
+               end
+           end
+           
+           
+           figure(57);
+           subplot(3,1,1)
+           
+           plot(FP.JD-dt, Nlightcurve,'k.')
+           tit = title(['Reference stars total light curve ', wd.Name(Iobj,:)])
+           tit.Interpreter = 'latex'
+           xlabel(['JD - ',num2str(dt)],'Interpreter','latex')
+           ylabel(['Ins Mag'],'Interpreter','latex')
+           set(gca,'YDir','reverse')
+
+           subplot(3,1,2)
+           val = FP.Data.MAG_PSF(:,1)./Nlightcurve;
+           val = val./median(val);
+           plot(FP.JD-dt, val,'k.')
+           tit = title(['normalized light curve', wd.Name(Iobj,:)])
+           tit.Interpreter = 'latex'
+           xlabel(['JD - ',num2str(dt)],'Interpreter','latex')
+           ylabel(['Ins Mag'],'Interpreter','latex')
+           set(gca,'YDir','reverse')
+           
+           Median   = median(val);
+           MAD = sort(abs(Median-val));
+           mid = round(length(MAD)/2);
+           if mid > 0
+           
+               SDrobust2= 1.5*MAD(mid);
+           
+           else
+               SDrobust2 = nan;
+           
+           end
+           
+           legend(['RobustSD = ',num2str(SDrobust2)],'Interpreter','latex')
+           subplot(3,1,3)
+           
+           [rms2,interval_center2,notnan2] = wd.RMS_timeseries(wd,FP.JD,val,20);
+           [a,inx] = sort(interval_center2);
+           t = datetime(interval_center2(inx),'convertfrom','jd')
+           
+           plot(t,rms2(inx),'k-o')
+           xlabel('JD','Interpreter','latex')
+           ylabel('RMS','Interpreter','latex')
+           tit = title(['RMS timeseries', wd.Name(Iobj,:)])
+           tit.Interpreter = 'latex'
+           
+
+           set(gcf, 'Position', get(0, 'ScreenSize'));
+        % save the plot as a PNG file
+           pause(7)
+           filename = [Args.SaveTo,'normalizedLC_',wd.Name(Iobj,:), '.png'];
+           saveas(gcf, filename);
+        
+           close ;
+          
+ 
         
         
       

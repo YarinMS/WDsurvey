@@ -283,7 +283,7 @@ classdef WD
                Args.Xlabel      = ['Time'];
                Args.Ylabel      = [];
                Args.Interpreter = 'latex';
-               Args.FontSize    = 18;
+               Args.FontSize    = 12;
                Args.YDir        = 'reverse';
                Args.Name        = {}
                
@@ -304,7 +304,23 @@ classdef WD
            %t_psf = datetime(obj.LC_psf{1}(Args.id,:),'convertfrom','jd');
            %t_aper = datetime(obj.LC_aper{1}(Args.id,:),'convertfrom','jd');
            %figure();
-           P               =errorbar(obj.LC_psf{1}(Args.id,:),obj.LC_psf{2}(Args.id,:),obj.LC_psf{3}(Args.id,:),"-o","MarkerSize",2,...
+            m = obj.LC_psf{2}(Args.id,~isnan(obj.LC_psf{2}(Args.id,:)));
+            Median   = median(m);
+            MAD = sort(abs(Median-m));
+            mid = round(length(MAD)/2);
+            if mid > 0
+           
+                 SDrobust1= 1.5*MAD(mid);
+           
+            else
+                 SDrobust1 = nan;
+           
+            end
+           
+           
+           
+           
+           P               =errorbar(obj.LC_psf{1}(Args.id,:),obj.LC_psf{2}(Args.id,:),obj.LC_psf{3}(Args.id,:),"o","MarkerSize",2,...
                "MarkerEdgeColor","black")
            P.Color = 'black';
            px              = xlabel(Args.Xlabel)
@@ -313,11 +329,12 @@ classdef WD
            py              = ylabel(Args.Ylabel)
            py.Interpreter  = Args.Interpreter;
            py.FontSize     = Args.FontSize  ;
-           tit             = title([Args.Name ,' Gaia g mag = ',num2str(obj.Mag(Args.id))]);
-           tit.Interpreter = Args.Interpreter
-           lg              = legend(['RMS PSF= ',num2str(obj.InfoPsf(Args.id,7))]);
+           tit             = title('Catalog LC ');
+           tit.Interpreter = Args.Interpreter'
+           lg              = legend(['RobustSD = ',num2str(SDrobust1)]);
            lg.Interpreter  = Args.Interpreter
-           set(lg,'FontSize',11);
+           lg.Location = 'best'
+           set(lg,'FontSize',11,'Interpreter','latex');
            set(gca,'YDir',Args.YDir)
            axis tight
            
@@ -352,7 +369,7 @@ classdef WD
                  
            end
            
-           time  = obj.LC_FP{1}(Args.id,:)-2460183.5;
+           %time  = obj.LC_FP{1}(Args.id,:)-2460183.5;
            mag = obj.LC_FP{2}(Args.id,:) ;
            magerr  = obj.LC_FP{3}(Args.id,:)
            
@@ -931,20 +948,43 @@ classdef WD
        end
             
        
-       function [RMS]  = calcRMS(y)
+       function [RMS,notnanval]  = calcRMS(y)
+           
+           notnanval = sum(~isnan(y)) / 20 ;
+           
+           if sum(~isnan(y)) > 1
+               
+               % do RMS
           
-            Mean = mean(y,'omitnan');
-            sd   = (y - Mean).^2 ;
-            meansquare   = mean(sd,'omitnan');
-            RMS = sqrt(meansquare);
-            
+               Mean = mean(y,'omitnan');
+               sd   = (y - Mean).^2 ;
+               meansquare   = mean(sd,'omitnan');
+               RMS = sqrt(meansquare);
+           else
+               if sum(~isnan(y)) > 1
+                   
+                   RMS = mean(y,'omitnan') ;
+                   
+               else
+                   
+                   RMS = nan;
+                   
+               end
+               
+           end
+               
+               
+                   
+                   
+               
        end
        
-       function [rms,interval_center] = RMS_timeseries(obj,t,y,window)
+       function [rms,interval_center,notnan] = RMS_timeseries(obj,t,y,window)
         
            
            Nwindows = floor(numel(y)/window);
            rms      = zeros(Nwindows,1) ;
+           notnan      = zeros(Nwindows,1) ;
            interval_center = zeros(Nwindows,1);
            
            for i = 1 : Nwindows 
@@ -959,7 +999,7 @@ classdef WD
               % end
                
                Window = y(start:End);
-               rms(i) = obj.calcRMS(Window)  ;
+               [rms(i),notnan(i)] = obj.calcRMS(Window)  ;
                interval_center(i) = mean(t(start:End),'omitnan');
                
            end
@@ -1107,7 +1147,7 @@ classdef WD
                                 
                                 if flags(j)
                                     
-                                    fprintf(['finished analyazing WD #', num2str(j),' ',obj.Name(j,:),' \n'])
+                                    fprintf(['finished analayzing WD #', num2str(j),' ',obj.Name(j,:),' \n'])
                                     
                                 else
                                      fprintf(['not enough observation for WD #', num2str(j),' ',obj.Name(j,:),'\n'])
