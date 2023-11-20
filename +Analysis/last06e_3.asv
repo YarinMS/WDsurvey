@@ -101,13 +101,13 @@ wd1 = GetData(e1,'SaveTo', '~/Documents/WD_survey/270823/355+45/')
 % coord : 356.487, 45.829
 
 Targets1    = [
-355.4535051748611	46.453454462505015	18.229677
+355.4357979983561	47.22312148612801	17.838444
 
 ]
 
 TargetsName1 = [
 
-'WDJ234148.80+462711.91'
+'WDJ234144.64+471325.14'
 ]
 
 
@@ -144,4 +144,4 @@ LimMag.FieldID = e1.FieldID(1);
 
 % GetData
 
-wd1 = GetDataV3(e1,time_1,limmag ,'SaveTo', '~/Documents/WD_survey/270823/355+45b/','time_limmag',time_1,'limmag',limmag)
+wd1 = GetDataV4(e1 ,'SaveTo', '~/Documents/WD_survey/270823/355+45b/','time_1immag',time_1,'limmag',limmag)
