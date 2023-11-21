@@ -1,4 +1,4 @@
-function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
+function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
     % Perform relative photometry calibration using the linear least square method.
     %   This function solves the following linear problem:
     %   m_ij = z_i + M_j + alpha*C + ... (see Ofek et al. 2011).
@@ -93,6 +93,10 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
         Args.CalibMag              = [];
         
         
+        Args.StartInd              = 1;
+        Args.EndInd                = MS.Nepoch
+        
+        
         Args.Sparse logical        = true;
         Args.ZP_PrefixName         = 'Z';
         Args.MeanMag_PrefixName    = 'M';
@@ -104,26 +108,17 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
         Args.ThresholdSigma        = 3;
         Args.resid_vs_magArgs cell = {};
         
-        
         Args.obj                   = {};
-        Args.wdt                   =  1;
-        
-        
+        Args.wdt                   =  1;        
         
         Args.BitDic       = BitDictionary;
         Args.PropFlags    = 'FLAGS';
         Args.FlagsList    = {'NearEdge','Saturated','NaN','Negative'};
         Args.Operator      = @or; % @or | @and
-        
-        Args.TargetBpRp    = nan;
-        
     end
     
-   Args.InstMag = MS.Data.MAG_PSF ;
-   Args.MagErr  = MS.Data.MAGERR_PSF ;
-   bprp         = MS.SrcData.phot_bp_mean_mag - MS.SrcData.phot_rp_mean_mag;
-   bprp(1)      = Args.TargetBpRp ;
-   
+   Args.InstMag     = MS.Data.MAG_PSF(Args.StartInd:Args.EndInd,:) ;
+   Args.MagErr = MS.Data.MAGERR_PSF(Args.StartInd:Args.EndInd,:) ;
     
     
     if isempty(Args.InstMag)
@@ -162,101 +157,9 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
         Y             = [Y; Args.CalibMag(:)];
     end
     
-    % for first Iter take SNR > 30
+    % for first Iter take SNR > 10
     
     Flag = true(size(Y))  ;
-    
-    store = [];
-    for Isrc= 1 : Nstar
-        flag = true;
-        for Iimg = 1 : Nimage
-            
-            if ~isnan(MS.Data.MAGERR_PSF(Iimg,Isrc) )
-            
-                if MS.Data.MAGERR_PSF(Iimg,Isrc) > 0.03
-                
-                   flag = false;
-               
-                end
-            end
-        end
-        
-        if flag
-            
-            store = [store ; Isrc] ;
-        end
-        
-        
-    end
-    
-    s= [];
-    YY = false(size(MS.Data.MAG_PSF)) ; 
-    counter = 0;
-          
-    if numel(store) > 5
-        
-       fprintf('Found 5 sources with SNR > 30')
-       
-       count_max = 500;
-       
-       
-       for Iobj = 1 : length(store)
-           
-           L = MS.Data.MAG_PSF(:,store(Iobj));
-           Lnan = sum(isnan(L)) ;
-           
-           if Lnan/Nimage < 0.25
-               
-               
-           Lmed = mean(L,'omitnan');
-           
-           if ( Lmed > 12 ) && (Lmed < 16.2)
-               
-               counter = counter + 1 ;
-               
-               YY(:,store(Iobj)) = true;
-             %  plot(MS.JD,MS.Data.MAG_PSF(:,store(Iobj)),'.')
-              % LL{counter} = sprintf('$$ B_p = %.2f $$',MS.SrcData.phot_g_mean_mag(store(Iobj)))
-              % legend(LL(1:counter),'Interpreter','latex')
-             %  hold on
-               s = [s ; store(Iobj)];
-               
-           end
-           
-         
-           
-           
-           end
-           
-           if counter == count_max 
-               fprintf('\nFound enough stars')
-               break;
-               
-               
-           end
-           
-       end
-           
-                
-           
-       
-        
-    else
-        
-        fprintf('could not find enough sources with SNR > 30')
-               
-         
-    end
-    %hold off
-    
-    %pause(5)
-    %close;
-    
-    
-    YY(:,1) = true;
-    YY = YY(:);
-    
-    
     for Iiter=1:1:Args.Niter
         
         
@@ -276,7 +179,7 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
         % filter any critical flags
         BitClass = Args.BitDic.Class;
         Flags = BitClass(MS.Data.(Args.PropFlags));
-
+        Flags = Flags(Args.StartInd:Args.EndInd,:);
         FLAG = zeros(size(Flags));
         Nflag  = numel(Args.FlagsList);
         for Iflag = 1:1:Nflag
@@ -291,12 +194,16 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
         FLAG = ~FLAG(:);
         
         % remove NaNs and BAD FLAGs and SNR lower than 10
-        Flag = Flag & ~isnan(Y) & FLAG  & ~isnan(Args.InstMag(:)) & ErrY < 0.1;
-            
-            
-     %   Flag = Flag & Y > 15;
-      %  Flag = Flag & Y < 17.5;
         
+        if Iiter == 1 
+            
+        
+            Flag = Flag & ~isnan(Y) & FLAG & (ErrY < Args.MaxStarStd);
+            
+        end
+            
+            
+             
  
             
         
@@ -304,10 +211,8 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
             case 'lscov'
                [Par, ParErr] = lscov(H(Flag,:), Y(Flag), 1./VarY(Flag), Args.Algo);
               %[Par,ParErr] = lscov(H(Flag,:), Y(Flag)); 
-                   
-              Resid = Y - H*Par;  % all residuals (including bad stars)
-              Model = H*Par ; 
-            
+              Model =  H*Par ;    
+              Resid = Y - Model;  % all residuals (including bad stars)
             otherwise
                error('Unknown Method option');
         end
@@ -320,101 +225,63 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
              ResidSquare(~FlagSquare) = NaN;  % set anused stars to NaN
              StdStar     = std(ResidSquare, [], 1, 'omitnan');
              
+             MS.SrcData.phot_g_mean_mag(1) = Args.obj.Mag(Args.wdt);
+             figure(777);
+             [rms1,meanmag1]  = CalcRMS(MS.SrcData.phot_g_mean_mag,ResidSquare,Args.obj,Args.wdt,'Marker','.k','Predicted',false);
              
-             Refstars = cell(0,1) ; 
-             counter = 0;
-             for Istr = 1 : Nstar
+             xlabel('Gaia g mag','Interpreter','latex')
+             ylabel('RMS','Interpreter','latex')
+             
+             IntervalLength = Args.EndInd - Args. StartInd ;
+             
+             GoodFlagSources = sum(FlagSquare) >= IntervalLength ;
+             
+             if sum(GoodFlagSources) < 5
                  
-                 UsedPoints = sum(FlagSquare(:,Istr)) ;
+                 GoodFlagSources = sum(FlagSquare) >= 1
                  
-                 if UsedPoints/Nimage > 0.75
+                 if sum(GoodFlagSources) < 5
                      
-                     counter           = counter+ 1 ;
-                     Refstars{counter} = Istr;
+                     fprintf('\nNo Stars to use')
+                     break;
+                     
                  end
                  
              end
              
+             hold on
+
+             pause(2);
+             semilogy(  MS.SrcData.phot_g_mean_mag(GoodFlagSources),rms1(GoodFlagSources),'o')
+             pause(2);
+             semilogy( MS.SrcData.phot_g_mean_mag(1),rms1(1),'G*') 
+             legend('All Targets','Used Targets','WD','Interpreter','latex','Location','best')
+             xlim([10,20])
+             pause(2);
+             close;
             
-             
+            
+            
+        
              if Iiter<Args.Niter
-                 
-                  FinalRef = [];
-                  c = 0;
                  % skip this step in the last iteration
               % [FlagResid,Res] = imUtil.calib.resid_vs_mag(ParMag(:), StdStar(:)) %, Args.ThresholdSigma, Args.resid_vs_magArgs{:});
                % FlagResid = repmat(FlagResid(:),[1, Nimage]).';
-                [rms0,meanmag0]  = CalcRMS(MS.SrcData.phot_g_mean_mag,MS.Data.MAG_PSF,Args.obj,Args.wdt,'Marker','xk','Predicted',true)
-                 pause(2)
-                 hold on
-                 semilogy(meanmag0(cell2mat(Refstars)),rms0(cell2mat(Refstars)),'gx')
-                 pause(4)
-                 hold off
-                 close;
-                 
-                 MagIntervals = [11:0.5:19];
-                 ref_index    = cell2mat(Refstars);
-                 rms          = rms0(ref_index) ;
-                 gmag         = meanmag0(ref_index);
-                 store_flag = false(size(FlagSquare));
-                 
-                 
-                 for Ibin = 1:numel(MagIntervals) -1 
-                     
-                     MinMag = MagIntervals(Ibin);
-                     MaxMag = MagIntervals(Ibin+1);
-                     
-                     bin_index = (MinMag < gmag ) & (gmag < MaxMag);
-                     
-                     Nref = sum(bin_index);
-                     
-                     
-                     if Nref > 0
-                         
-                         [val,inx] = find(bin_index == 1);
-                         
-                         Mrms = median(rms(inx));
-                         take = rms(inx) < 3 *Mrms;
-                         
-                             
-                          store_flag(:,ref_index(inx(take))) = true;
-                          min_c = c ;
-                          max_c = c + length(inx(take)) ;
-                          
-                          if min_c == 0
-                              
-                          
-                              FinalRef = [FinalRef ; ref_index(inx(take))'];
-                          else
-                              FinalRef = [FinalRef ; ref_index(inx(take))']
-
-                          end
-                          
-                          c = max_c ;
-                     end
-                     
-                 end
-                 
-                 
-                         
-                        
-                         
-              
-                     
-                 
-                 
-                 
+            
                  % calc VarY
-                 if Args.UseMagStdErr
-%                     NewErr = repmat(Res.InterpStdResid.', Nimage, 1);
- %                    VarY   = NewErr(:).^2;
-                 end
+               %  if Args.UseMagStdErr
+               %      NewErr = repmat(Res.InterpStdResid.', Nimage, 1);
+               %      VarY   = NewErr(:).^2;
+               %  end
             
-  %               MatStdStar = repmat(StdStar, Nimage, 1);
+                 MatStdStar = repmat(StdStar, Nimage, 1);
+                 GoodFlags  =  false(size(FlagSquare));
+                 GoodFlags(:,GoodFlagSources) = true;
+                 GFlags = GoodFlags(:);
+                 
             
-   %              FlagResid = FlagResid(:);
-    %             FlagResid = store_flag(:);
-     %            Flag = Flag & FlagResid & MatStdStar(:)<Args.MaxStarStd;
+               %  FlagResid = FlagResid(:);
+                 Flag = Flag & GFlags % & MatStdStar(:)<Args.MaxStarStd;
              end
         
         %std(ParZP - ZP)   % should be eq to MagErr/sqrt(Nimage)
@@ -436,11 +303,11 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
     Result.StdImage  = std(ResidSquare, [], 2, 'omitnan');
     
     if Args.Niter>1
-     %   [Result.AssymStd, Imin] = min(Res.InterpStdResid);
-      %  Result.MagAssymStd      = Res.Mag(Imin);
+       % [Result.AssymStd, Imin] = min(Res.InterpStdResid);
+       % Result.MagAssymStd      = Res.Mag(Imin);
     else
-       % Result.AssymStd    = NaN;
-       % Result.MagAssymStd = NaN;
+        Result.AssymStd    = NaN;
+        Result.MagAssymStd = NaN;
     end
     Result.ColNames         = CN;
 end

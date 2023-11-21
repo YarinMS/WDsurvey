@@ -1,4 +1,4 @@
-function [wd] = GetDataV6(wd,Args)
+function [wd] = GetDataWref(wd,Args)
 % V# works good without RMS cleaning !!!
 % GetData applies all functions in the WD class.
 % Using a path for the processed images and target list [RA DEC MAG] as input 
@@ -303,7 +303,7 @@ for Iobj = 1 : Nobj
                      if  mean(FP.Data.MAG_PSF(ind,j)) < 22
                           count = count +1 ;
                           
-                          Nlightcurve(:,1) = Nlightcurve(:,1) + (1./CountMax).* FP.Data.MAG_PSF(ind,j) ;             
+                          %Nlightcurve(:,1) = Nlightcurve(:,1) + (1./CountMax).* FP.Data.MAG_PSF(ind,j) ;             
                  
                           errorbar(FP.JD(ind)-dt,FP.Data.MAG_PSF(ind,j),FP.Data.MAGERR_PSF(ind,j),'.')
                           hold on

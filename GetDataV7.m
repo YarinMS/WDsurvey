@@ -1,4 +1,4 @@
-function [wd] = GetDataV6(wd,Args)
+function [wd] = GetDataV4(wd,Args)
 % V# works good without RMS cleaning !!!
 % GetData applies all functions in the WD class.
 % Using a path for the processed images and target list [RA DEC MAG] as input 
@@ -60,6 +60,19 @@ for Iobj = 1 : Nobj
        fprintf([' \n only ',num2str(tocs) ,' s'])
        
        %% cleaning FP and MS
+       
+       flags = searchFlags(FP) ;
+       sum   = countFlags(FP)  ;
+       
+
+       FP.Data.FLUX_PSF(flags(:,1),:) = NaN;
+       FP.Data.FLUXERR_PSF(flags(:,1),:) = NaN;
+       
+       FP.Data.MAG_PSF(flags(:,1),:) = NaN;
+       FP.Data.MAGERR_PSF(flags(:,1),:) = NaN;
+       
+       fprintf('cleaned %d Data points by Flags \n ',sum(1))
+       
        
        % clean targets with magnitude higher than 25
        FP = CleanByMag(FP,27);
@@ -197,34 +210,20 @@ for Iobj = 1 : Nobj
                                                      %['Lim Mag for SF # ',num2str(ID(1))])%,['SF = ', num2str(ID(2)),' ; Dist from edge $\approx$ '...
  
        lg.Interpreter = 'latex';
-       lg.Location = 'best';
        hold off
-       axis tight;
+       
        
        subplot(2,2,3)
-       [rms,interval_center,notnan] = wd.RMS_timeseries(wd,wd.LC_psf{1}(Iobj,:),wd.LC_psf{2}(Iobj,:),20);
-       [a,inx] = sort(FP.JD);
-       x1 = FP.JD(inx);
-       y1 = FP.Data.MAG_PSF(inx,1);
-       
-       [rms1,interval_center1,notnan1] = wd.RMS_timeseries(wd,x1,y1,20);
-      
-       t = datetime(interval_center,'convertfrom','jd');
-       t1 = datetime(interval_center1,'convertfrom','jd');
-       plot(t,rms,'-o')
-
-    
-       
+       [rms,interval_center] = wd.RMS_timeseries(wd,wd.LC_psf{1}(2,:),wd.LC_psf{2}(2,:),20)
+       [rms1,interval_center1] = wd.RMS_timeseries(wd,FP.JD,FP.Data.MAG_PSF(:,1),20)
+       [a,inx] = sort(interval_center1)
+       plot(interval_center,rms,'-o')
        hold on
-       plot(t1,rms1,'-x')
+       plot(interval_center1(inx),rms1(inx),'-x')
        xlabel('Time','Interpreter','latex')
        ylabel('RMS','Interpreter','latex')
        title('RMS time series (RMS per visit)','Interpreter','latex')
        legend('Catalog','Forced')
-       for i = 1:numel(t)
-       text(t(i), rms(i), sprintf('%.0f%%', 100*notnan(i)), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 6)%,'Interpreter','latex');
-       end
-       
        
        
        subplot(2,2,4)
@@ -247,7 +246,7 @@ for Iobj = 1 : Nobj
             ['$$  B_p - R_p =',num2str(wd.LC_coadd(Iobj)),' $$'], ...
             ['$$  Subframe \ =',num2str(ID(1)),' $$'], ...
             ['$$  Detections \ :',num2str(detections),' \% $$'], ...
-            ['$$  Distance\ to\ SF\ edge \ :',num2str(min(minxy(1,:))),' \ pix $$'], ...
+            ['$$  Distance\ to\ SF\ edge \ :',num2str(min(minxy)),' \ pix $$'], ...
             ['$$ Theroetical \ Error =\ ', num2str(1./SNR),'\ $$'], ...
             strcat('$$ ObsID\ : ',ObsId, '\ $$'), ...
              };
@@ -263,8 +262,6 @@ for Iobj = 1 : Nobj
         %pause(7)
             filename = [Args.SaveTo,'_ALL_',wd.Name(Iobj,:), '.png'];
             saveas(gcf, filename);
-            filename = [Args.SaveTo,'_ALL_',wd.Name(Iobj,:), '.fig'];
-            saveas(gcf, filename);
            %close;
             pause(7)
             close;
@@ -276,56 +273,43 @@ for Iobj = 1 : Nobj
         
        
         
-         %% REference sources 
+         %% Reference sources 
   
         figure(100 + Iobj);
         CountMax = 4;
         count = 0;
         legend_labels = cell(1, CountMax);
-        Nlightcurve   = zeros(numel(FP.Data.MAG_PSF(:,1)),1);
-        
-        
         for j = 1 :length(FP.SrcData.phot_g_mean_mag)
         
-           colorterm = wd.LC_coadd(Iobj) ;
-           
+       
         
             if (15 < FP.SrcData.phot_g_mean_mag(j) ) && (16 >FP.SrcData.phot_g_mean_mag(j) )
-                bp_rp = FP.SrcData.phot_bp_mean_mag(j) - FP.SrcData.phot_rp_mean_mag(j);
-                
-                if abs(colorterm - bp_rp) < 0.51
             
-                     ind = abs(FP.Data.MAGERR_PSF(:,j)) < 0.2  ;
+            
+                ind = abs(FP.Data.MAGERR_PSF(:,j)) < 0.2
            
            
             
             
-                     if  mean(FP.Data.MAG_PSF(ind,j)) < 22
-                          count = count +1 ;
-                          
-                          Nlightcurve(:,1) = Nlightcurve(:,1) + (1./CountMax).* FP.Data.MAG_PSF(ind,j) ;             
+                if  mean(FP.Data.MAG_PSF(ind,j)) < 22
+                    count = count +1 ;
                  
-                          errorbar(FP.JD(ind)-dt,FP.Data.MAG_PSF(ind,j),FP.Data.MAGERR_PSF(ind,j),'.')
-                          hold on
-                          ax1 = xlabel(['JD - ',num2str(dt)])
-                          ax1.Interpreter = 'latex'
-                          ax2 = ylabel('Inst Mag')
-                          ax2.Interpreter = 'latex'
-                          tit = title(['Reference stars for ', wd.Name(Iobj,:)])
-                          tit.Interpreter = 'latex'
-                          legend_labels{count} = sprintf('Gaia g mag = %.2f', FP.SrcData.phot_g_mean_mag(j));
-                          set(gca,'YDir','reverse')
-                          legend(legend_labels(1:count));
-                          legend('Location','best')
+                    errorbar(FP.JD(ind)-dt,FP.Data.MAG_PSF(ind,j),FP.Data.MAGERR_PSF(ind,j),'.')
+                    hold on
+                    ax1 = xlabel(['JD - ',num2str(dt)])
+                    ax1.Interpreter = 'latex'
+                    ax2 = ylabel('Inst Mag')
+                    ax2.Interpreter = 'latex'
+                    tit = title(['Reference stars for ', wd.Name(Iobj,:)])
+                    tit.Interpreter = 'latex'
+                    legend_labels{count} = sprintf('Gaia g mag = %.2f', FP.SrcData.phot_g_mean_mag(j));
+                    set(gca,'YDir','reverse')
+                    legend(legend_labels(1:count));
+                    legend('Location','best')
             
              
                 
-                     end 
-                     
-                     
-                     
-                     
-               
+                end
             
            
                 
@@ -333,8 +317,6 @@ for Iobj = 1 : Nobj
                 if count == CountMax
                 
                     break;
-                
-                end
                 
                 end
             
@@ -368,72 +350,6 @@ for Iobj = 1 : Nobj
            saveas(gcf, filename);
         
            close ;
-           
-           for o = 1 : length(Nlightcurve)
-               
-               if Nlightcurve(o) == 0 
-                   
-                   Nlightcurve(o) = nan;
-                   
-               end
-           end
-           
-           
-           figure(57);
-           subplot(3,1,1)
-           
-           plot(FP.JD-dt, Nlightcurve,'k.')
-           tit = title(['Reference stars total light curve ', wd.Name(Iobj,:)])
-           tit.Interpreter = 'latex'
-           xlabel(['JD - ',num2str(dt)],'Interpreter','latex')
-           ylabel(['Ins Mag'],'Interpreter','latex')
-           set(gca,'YDir','reverse')
-
-           subplot(3,1,2)
-           val = FP.Data.MAG_PSF(:,1)./Nlightcurve;
-           val = val./median(val);
-           plot(FP.JD-dt, val,'k.')
-           tit = title(['normalized light curve', wd.Name(Iobj,:)])
-           tit.Interpreter = 'latex'
-           xlabel(['JD - ',num2str(dt)],'Interpreter','latex')
-           ylabel(['Ins Mag'],'Interpreter','latex')
-           set(gca,'YDir','reverse')
-           
-           Median   = median(val);
-           MAD = sort(abs(Median-val));
-           mid = round(length(MAD)/2);
-           if mid > 0
-           
-               SDrobust2= 1.5*MAD(mid);
-           
-           else
-               SDrobust2 = nan;
-           
-           end
-           
-           legend(['RobustSD = ',num2str(SDrobust2)],'Interpreter','latex')
-           subplot(3,1,3)
-           
-           [rms2,interval_center2,notnan2] = wd.RMS_timeseries(wd,FP.JD,val,20);
-           [a,inx] = sort(interval_center2);
-           t = datetime(interval_center2(inx),'convertfrom','jd')
-           
-           plot(t,rms2(inx),'k-o')
-           xlabel('JD','Interpreter','latex')
-           ylabel('RMS','Interpreter','latex')
-           tit = title(['RMS timeseries', wd.Name(Iobj,:)])
-           tit.Interpreter = 'latex'
-           
-
-           set(gcf, 'Position', get(0, 'ScreenSize'));
-        % save the plot as a PNG file
-           pause(7)
-           filename = [Args.SaveTo,'normalizedLC_',wd.Name(Iobj,:), '.png'];
-           saveas(gcf, filename);
-        
-           close ;
-          
- 
         
         
       

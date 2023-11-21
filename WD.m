@@ -2303,6 +2303,7 @@ end
                  Args.Index = 1;
                  Args.ID    = 1;
                  Args.FieldID = [];
+                 Args.SaveTo  = '~/Documents/WD_survey/270823/358+34/Detrend/'
     
               end
 
@@ -2369,17 +2370,18 @@ end
                   tic;
                   FP     = imProc.sources.forcedPhot(AI,'Coo',[obj.RA(Args.Index) obj.Dec(Args.Index)],'ColNames',{'RA','Dec','X','Y','Xstart','Ystart','Chi2dof','FLUX_PSF','FLUXERR_PSF','MAG_PSF','MAGERR_PSF','BACK_ANNULUS', 'STD_ANNULUS','FLUX_APER','FLAG_POS','FLAGS'});
                   to     = toc;
-                    
+
                   fprintf('\nFinished analyazing %s', obj.Name(Args.Index,:))
                   fprintf('\nFor subframe # %d',Args.ID)
                   fprintf([' \n only "',num2str(to) ,'" s'])
-                  PF = FP;
-                  
-                  R = lcUtil.zp_meddiff(PF,'MagField','MAG_PSF','MagErrField','MAGERR_PSF')
+                  %PF = FP;
+                  FileName = [Args.SaveTo,obj.Name(Args.Index,:),'_FP0.mat'];
+                  save(FileName,'FP', '-nocompression', '-v7.3')
+                 % R = lcUtil.zp_meddiff(PF,'MagField','MAG_PSF','MagErrField','MAGERR_PSF')
                   
            
-                  [MS,ApplyToMagFieldr] = applyZP(PF, R.FitZP,'ApplyToMagField','MAG_PSF');
-          
+                  %[MS,ApplyToMagFieldr] = applyZP(PF, R.FitZP,'ApplyToMagField','MAG_PSF');
+                  MS = [];
                   
        
                   

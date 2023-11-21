@@ -291,8 +291,11 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
         FLAG = ~FLAG(:);
         
         % remove NaNs and BAD FLAGs and SNR lower than 10
-        Flag = Flag & ~isnan(Y) & FLAG  & ~isnan(Args.InstMag(:)) & ErrY < 0.1;
+        if Iiter == 1
             
+       
+            Flag = Flag & ~isnan(Y) & FLAG  & ~isnan(Args.InstMag(:)) & ErrY < 0.05;
+        end  
             
      %   Flag = Flag & Y > 15;
       %  Flag = Flag & Y < 17.5;
@@ -374,7 +377,7 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
                          [val,inx] = find(bin_index == 1);
                          
                          Mrms = median(rms(inx));
-                         take = rms(inx) < 3 *Mrms;
+                         take = rms(inx) < 2 *Mrms;
                          
                              
                           store_flag(:,ref_index(inx(take))) = true;
@@ -410,11 +413,11 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
  %                    VarY   = NewErr(:).^2;
                  end
             
-  %               MatStdStar = repmat(StdStar, Nimage, 1);
+                 MatStdStar = repmat(StdStar, Nimage, 1);
             
    %              FlagResid = FlagResid(:);
-    %             FlagResid = store_flag(:);
-     %            Flag = Flag & FlagResid & MatStdStar(:)<Args.MaxStarStd;
+                 FlagResid = store_flag(:);
+                 Flag = Flag & FlagResid % & MatStdStar(:)<Args.MaxStarStd;
              end
         
         %std(ParZP - ZP)   % should be eq to MagErr/sqrt(Nimage)

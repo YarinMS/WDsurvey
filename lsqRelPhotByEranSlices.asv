@@ -1,4 +1,4 @@
-function Result=lsqRelPhotByEran(MS, Args)
+function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
     % Perform relative photometry calibration using the linear least square method.
     %   This function solves the following linear problem:
     %   m_ij = z_i + M_j + alpha*C + ... (see Ofek et al. 2011).
@@ -93,6 +93,10 @@ function Result=lsqRelPhotByEran(MS, Args)
         Args.CalibMag              = [];
         
         
+        Args.StartInd              = 1;
+        Args.EndInd                = MS.Nepoch
+        
+        
         Args.Sparse logical        = true;
         Args.ZP_PrefixName         = 'Z';
         Args.MeanMag_PrefixName    = 'M';
@@ -104,7 +108,8 @@ function Result=lsqRelPhotByEran(MS, Args)
         Args.ThresholdSigma        = 3;
         Args.resid_vs_magArgs cell = {};
         
-        
+        Args.obj                   = {};
+        Args.wdt                   =  1;        
         
         Args.BitDic       = BitDictionary;
         Args.PropFlags    = 'FLAGS';
@@ -112,8 +117,8 @@ function Result=lsqRelPhotByEran(MS, Args)
         Args.Operator      = @or; % @or | @and
     end
     
-   Args.InstMag     = MS.Data.MAG_PSF ;
-   Args.MagErr = MS.Data.MAGERR_PSF ;
+   Args.InstMag     = MS.Data.MAG_PSF(Args.StartInd:Args.EndInd,:) ;
+   Args.MagErr = MS.Data.MAGERR_PSF(Args.StartInd:Args.EndInd,:) ;
     
     
     if isempty(Args.InstMag)
@@ -174,7 +179,7 @@ function Result=lsqRelPhotByEran(MS, Args)
         % filter any critical flags
         BitClass = Args.BitDic.Class;
         Flags = BitClass(MS.Data.(Args.PropFlags));
-
+        Flags = Flags(Args.StartInd:Args.EndInd,:);
         FLAG = zeros(size(Flags));
         Nflag  = numel(Args.FlagsList);
         for Iflag = 1:1:Nflag
@@ -198,19 +203,12 @@ function Result=lsqRelPhotByEran(MS, Args)
         
         switch lower(Args.Method)
             case 'lscov'
-                if Iiter > 1 
-                   
-                     [Par, ParErr] = lscov(H(Flag,:), Y(Flag), 1./VarY(Flag), Args.Algo);
-                else
-                    
-                     [Par,ParErr] = lscov(H(Flag,:), Y(Flag)); 
-                end
-                
-              Resid = Y - H*Par;  % all residuals (including bad stars)
-            
+               [Par, ParErr] = lscov(H(Flag,:), Y(Flag), 1./VarY(Flag), Args.Algo);
+              %[Par,ParErr] = lscov(H(Flag,:), Y(Flag)); 
+              Model =  H*Par ;    
+              Resid = Y - Model;  % all residuals (including bad stars)
             otherwise
-                
-                error('Unknown Method option');
+               error('Unknown Method option');
         end
         
              ParZP  = Par(1:Nimage);
@@ -220,28 +218,64 @@ function Result=lsqRelPhotByEran(MS, Args)
              FlagSquare  = reshape(Flag,[Nimage, Nstar]);
              ResidSquare(~FlagSquare) = NaN;  % set anused stars to NaN
              StdStar     = std(ResidSquare, [], 1, 'omitnan');
+             
+             MS.SrcData.phot_g_mean_mag(1) = Args.obj.Mag(Args.wdt);
+             figure(777);
+             [rms1,meanmag1]  = CalcRMS(MS.SrcData.phot_g_mean_mag,ResidSquare,Args.obj,Args.wdt,'Marker','.k','Predicted',false);
+             
+             xlabel('Gaia g mag','Interpreter','latex')
+             ylabel('RMS','Interpreter','latex')
+             
+             IntervalLength = Args.EndInd - Args. StartInd ;
+             
+             GoodFlagSources = sum(FlagSquare) >= IntervalLength ;
+             
+             if sum(GoodFlagSources) < 5
+                 
+                 GoodFlagSources = sum(FlagSquare) >= 1
+                 
+                 if isempty(GoodFlagSources)
+                     
+                     fprintf('\nNo Stars to use')
+                     break;
+                     
+                 end
+                 
+             end
+             
+             hold on
+
+             pause(2);
+             semilogy(  MS.SrcData.phot_g_mean_mag(GoodFlagSources),rms1(GoodFlagSources),'o')
+             pause(2);
+             semilogy( MS.SrcData.phot_g_mean_mag(1),rms1(1),'G*') 
+             legend('All Targets','Used Targets','WD','Interpreter','latex','Location','best')
+             xlim([10,20])
+             pause(2);
+             close;
+            
+            
+            
         
              if Iiter<Args.Niter
                  % skip this step in the last iteration
-               
-                 
-                 
-                 
-                 %[FlagResid,Res] = imUtil.calib.resid_vs_mag(ParMag(:), StdStar(:)) %, Args.ThresholdSigma, Args.resid_vs_magArgs{:});
-                  %FlagResid = repmat(FlagResid(:),[1, Nimage]).';
+              % [FlagResid,Res] = imUtil.calib.resid_vs_mag(ParMag(:), StdStar(:)) %, Args.ThresholdSigma, Args.resid_vs_magArgs{:});
+               % FlagResid = repmat(FlagResid(:),[1, Nimage]).';
             
                  % calc VarY
-                 %if Args.UseMagStdErr
-                     
-              
-              %       NewErr = repmat(Res.InterpStdResid.', Nimage, 1);
-               %      VarY   = NewErr(:);
-                % end
+               %  if Args.UseMagStdErr
+               %      NewErr = repmat(Res.InterpStdResid.', Nimage, 1);
+               %      VarY   = NewErr(:).^2;
+               %  end
             
                  MatStdStar = repmat(StdStar, Nimage, 1);
+                 GoodFlags  =  false(size(FlagSquare));
+                 GoodFlags(:,GoodFlagSources) = true;
+                 GFlags = GoodFlags(:);
+                 
             
-                 %FlagResid = FlagResid(:);
-                 Flag = Flag  & MatStdStar(:)<Args.MaxStarStd +0.1 ;%& FlagResid;
+               %  FlagResid = FlagResid(:);
+                 Flag = Flag & GFlags & MatStdStar(:)<Args.MaxStarStd;
              end
         
         %std(ParZP - ZP)   % should be eq to MagErr/sqrt(Nimage)
@@ -263,8 +297,8 @@ function Result=lsqRelPhotByEran(MS, Args)
     Result.StdImage  = std(ResidSquare, [], 2, 'omitnan');
     
     if Args.Niter>1
-        [Result.AssymStd, Imin] = min(Res.InterpStdResid);
-        Result.MagAssymStd      = Res.Mag(Imin);
+       % [Result.AssymStd, Imin] = min(Res.InterpStdResid);
+       % Result.MagAssymStd      = Res.Mag(Imin);
     else
         Result.AssymStd    = NaN;
         Result.MagAssymStd = NaN;
