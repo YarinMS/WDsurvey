@@ -48,9 +48,9 @@ TargetsName1 = [
 
 % Initilize WD object
 
-e1  = WD(Targets1(:,1),Targets1(:,2),Targets1(:,3),TargetsName1,'/last02e/data1/archive/LAST.01.02.01/2023/08/27/proc/000540v0')
+e  = WD(Targets1(:,1),Targets1(:,2),Targets1(:,3),TargetsName1,'/last02e/data1/archive/LAST.01.02.01/2023/08/27/proc/000540v0')
 
-e1.LC_FP = [
+e.LC_FP = [
 18.02604
 19.063189
 19.274632
@@ -67,7 +67,7 @@ e1.LC_FP = [
 18.907557
 ];
 
-e1.LC_coadd = [
+e.LC_coadd = [
 0.66524506
 0.83859444
 1.1449165
@@ -85,35 +85,35 @@ e1.LC_coadd = [
 ]
 % find their CropID and find them in catalog data
       % no lim mag calculations
-[id,FieldId] = e1.Coo_to_Subframe(e1.Pathway,e1);
-e1  = e1.get_id(id(:,1));
-e1  = e1.get_fieldID(FieldId);
-[Index,cat_id] = e1.find_in_cat(e1);
-e1  = e1.get_cat_id(cat_id);
+[id,FieldId] = e.Coo_to_Subframe(e.Pathway,e);
+e  = e.get_id(id(:,1));
+e  = e.get_fieldID(FieldId);
+[Index,cat_id] = e.find_in_cat(e);
+e  = e.get_cat_id(cat_id);
 
 % catalog extracion
 
 [t_psf,y_psf,t_aper,y_aper,Info_psf,Info_aper, ... 
                flager,t_rms_aper,t_rms_psf,t_rms_flux,Rms_aper,Rms_psf, ... 
-               rms_flux,t_flux,f_flux,total_rms_flux,magerr,magerrPSF] = e1.get_LC_cat(e1,20,30);
+               rms_flux,t_flux,f_flux,total_rms_flux,magerr,magerrPSF] = e.get_LC_cat(e,20,30);
            
-e1.LC_psf   = {t_psf;y_psf;magerrPSF};
-e1.LC_aper  = {t_aper;y_aper;magerr};
-e1.Flux     = {t_flux;f_flux};
-e1.FluxRMS  = total_rms_flux;
-e1.InfoPsf  = Info_psf;
-e1.InfoAper = Info_aper;
-e1.RMS      = {t_rms_aper Rms_aper ; t_rms_psf Rms_psf; t_rms_flux rms_flux };
+e.LC_psf   = {t_psf;y_psf;magerrPSF};
+e.LC_aper  = {t_aper;y_aper;magerr};
+e.Flux     = {t_flux;f_flux};
+e.FluxRMS  = total_rms_flux;
+e.InfoPsf  = Info_psf;
+e.InfoAper = Info_aper;
+e.R      = {t_rms_aper Rms_aper ; t_rms_psf Rms_psf; t_rms_flux rms_flux };
 
 
 %% choose a target to Forced phot 
-for Itgt = 1 : numel(e1.RA)
+for Itgt = 1 : numel(e.RA)
     
-    if (e1.CropID(Itgt) == 10) && (Itgt ~= 4)
+    if (e.CropID(Itgt) == 10) && (Itgt ~= 4)
         
         wdt = Itgt ;
         
-       fprintf('Taking Target %s from SF 10\n ', e1.Name(wdt,:))
+       fprintf('Taking Target %s from SF 10\n ', e.Name(wdt,:))
        
        break;
        
@@ -122,12 +122,12 @@ for Itgt = 1 : numel(e1.RA)
 end
 
 
-target = e1.Name(wdt,:);
+target = e.Name(wdt,:);
 
 wdt = 12;
 
 %% apply forced photometry
-[AirMass,FP,MS,Robust_parameters] = e1.Forced1(e1,'Index',wdt,'FieldID',e1.FieldID(wdt),'ID',e1.CropID(wdt));
+[AirMass,FP,MS,Robust_parameters] = e.Forced1(e,'Index',wdt,'FieldID',e.FieldID(wdt),'ID',e.CropID(wdt));
 
 % COPY FP
 MS = FP.copy();
@@ -167,7 +167,7 @@ hold off
 [D,ref,Refstars,Mod] =  lsqRelPhotByEran(FP,'Niter', 1);
 d                = reshape(D.Resid,[FP.Nepoch,FP.Nsrc]);
 ref_index        = cell2mat(Refstars);
-[rms0,meanmag0]  = CalcRMS(FP.SrcData.phot_g_mean_mag,d,e1,wdt,'Marker','xk','Predicted',false)
+[rms0,meanmag0]  = CalcRMS(FP.SrcData.phot_g_mean_mag,d,e,wdt,'Marker','xk','Predicted',false)
 hold on
 FP.plotRMS('FieldX','MAG_PSF','PlotColor','blue','PlotSymbol','o')
 MS.plotRMS('FieldX','MAG_PSF','PlotColor','red')
@@ -178,10 +178,10 @@ lg.Interpreter= 'latex';
 xlim([10 , 20])
 hold off
 
-[DD,reff,FR,Mod] =  lsqRelPhotByEranV4(FP,'Niter', 2,'obj',e1,'wdt',wdt)
+[DD,reff,FR,Mod] =  lsqRelPhotByEranV4(FP,'Niter', 2,'obj',e,'wdt',wdt)
 dd         = reshape(DD.Resid,[FP.Nepoch,FP.Nsrc])
 model      = reshape(Mod,[FP.Nepoch,FP.Nsrc]);
-[rms1,meanmag1]  = CalcRMS(FP.SrcData.phot_g_mean_mag,dd,e1,wdt,'Marker','xk','Predicted',false)
+[rms1,meanmag1]  = CalcRMS(FP.SrcData.phot_g_mean_mag,dd,e,wdt,'Marker','xk','Predicted',false)
 hold on
 FP.plotRMS('FieldX','MAG_PSF','PlotColor','blue','PlotSymbol','o')
 MS.plotRMS('FieldX','MAG_PSF','PlotColor','red')
@@ -223,8 +223,8 @@ LgLbl{1} = sprintf('No ZP ; RobustSD : %.3f',RobustSD(FP.Data.MAG_PSF(:,ref_inde
 LgLbl{2} = sprintf('ZP meddiff ; RobustSD : %.3f',RobustSD(MS.Data.MAG_PSF(:,ref_index(ix))))
 legend(LgLbl(1:2),'Location','bestoutside','Interpreter','latex')
 set(gca , 'YDir','reverse')
-title(strcat('Relative calibration comparison. SF $$ \# \ $$' ,num2str(e1.CropID(wdt))),'Interpreter','latex') 
-xlabel(strcat('Source $$B_p$$ = ',num2str(e1.LC_FP(wdt))),'Interpreter','latex') %FP.SrcData.phot_bp_mean_mag(ref_index(ix)))),'Interpreter','latex')
+title(strcat('Relative calibration comparison. SF $$ \# \ $$' ,num2str(e.CropID(wdt))),'Interpreter','latex') 
+xlabel(strcat('Source $$B_p$$ = ',num2str(e.LC_FP(wdt))),'Interpreter','latex') %FP.SrcData.phot_bp_mean_mag(ref_index(ix)))),'Interpreter','latex')
 
 subplot(3,1,2)
 plot(FP.JD-dt,FP.Data.MAG_PSF(:,ref_index(ix)),'k.')
@@ -250,7 +250,7 @@ ylabel('Residuals')
 set(gcf, 'Position', get(0, 'ScreenSize'));
 pause(5);
 c = c+1;
-filename = ['~/Documents/WD_survey/270823/358+34/Detrend/target11_ref/',e1.Name(wdt,:),'_LC_REF',num2str(c),'.png']
+filename = ['~/Documents/WD_survey/270823/358+34/Detrend/target11_ref/',e.Name(wdt,:),'_LC_REF',num2str(c),'.png']
 saveas(gcf, filename)
 close ; 
 %%
@@ -276,7 +276,7 @@ LgLbl{1} = sprintf('No ZP ; RobustSD : %.3f',RobustSD(FP.Data.MAG_PSF(:,ref_inde
 LgLbl{2} = sprintf('ZP meddiff ; RobustSD : %.3f',RobustSD(MS.Data.MAG_PSF(:,ref_index(ix))))
 legend(LgLbl(1:2),'Location','bestoutside','Interpreter','latex')
 set(gca , 'YDir','reverse')
-title(strcat('Relative calibration comparison. SF $$ \# \ $$' ,num2str(e1.CropID(wdt))),'Interpreter','latex') 
+title(strcat('Relative calibration comparison. SF $$ \# \ $$' ,num2str(e.CropID(wdt))),'Interpreter','latex') 
 xlabel(strcat('Source $$B_p$$ = ',num2str(FP.SrcData.phot_bp_mean_mag(ref_index(ix)))),'Interpreter','latex')
 
 subplot(3,1,2)
@@ -302,7 +302,7 @@ set(gca , 'YDir','reverse')
 set(gcf, 'Position', get(0, 'ScreenSize'));
 pause(5);
 c = c+1;
-filename = ['~/Documents/WD_survey/270823/358+34/Detrend/target11_ref/',e1.Name(wdt,:),'_LC_REF',num2str(c),'.png']
+filename = ['~/Documents/WD_survey/270823/358+34/Detrend/target11_ref/',e.Name(wdt,:),'_LC_REF',num2str(c),'.png']
 saveas(gcf, filename)
 close ; 
 %%
