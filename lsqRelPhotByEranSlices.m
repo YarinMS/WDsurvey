@@ -193,12 +193,28 @@ function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
             
         FLAG = ~FLAG(:);
         
+        Flag2 = true(size(Args.InstMag));
+        
         % remove NaNs and BAD FLAGs and SNR lower than 10
+
+       
         
         if Iiter == 1 
             
+           for i = 1 : length(Args.StarProp{:})
+            
+               if isnan(Args.StarProp{1}(i)) 
+                
+                     Flag2(:,i) = false;
+            
+               end
+            
+           end
         
-            Flag = Flag & ~isnan(Y) & FLAG & (ErrY < Args.MaxStarStd);
+            Flag2 = Flag2(:);
+            
+        
+            Flag = Flag & ~isnan(Y) & FLAG & (ErrY < Args.MaxStarStd) & Flag2;
             
         end
             

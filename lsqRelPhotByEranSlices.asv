@@ -193,8 +193,30 @@ function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
             
         FLAG = ~FLAG(:);
         
+        Flag2 = true(size(Args.InstMag));
+        
         % remove NaNs and BAD FLAGs and SNR lower than 10
-        Flag = Flag & ~isnan(Y) & FLAG & (ErrY < Args.MaxStarStd);
+
+       
+        
+        if Iiter == 1 
+            
+           for i = 1 : length(Args.StarProp{:})
+            
+               if isnan(Args.StarProp{1}(i)) 
+                
+                     Flag2(:,i) = false;
+            
+               end
+            
+           end
+        
+            Flag2 = Flag2(:);
+            
+        
+            Flag = Flag & ~isnan(Y) & FLAG & (ErrY < Args.MaxStarStd) & Flag2;
+            
+        end
             
             
              
@@ -234,7 +256,7 @@ function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
                  
                  GoodFlagSources = sum(FlagSquare) >= 1
                  
-                 if isempty(GoodFlagSources)
+                 if sum(GoodFlagSources) < 5
                      
                      fprintf('\nNo Stars to use')
                      break;
@@ -275,7 +297,7 @@ function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
                  
             
                %  FlagResid = FlagResid(:);
-                 Flag = Flag & GFlags & MatStdStar(:)<Args.MaxStarStd;
+                 Flag = Flag & GFlags % & MatStdStar(:)<Args.MaxStarStd;
              end
         
         %std(ParZP - ZP)   % should be eq to MagErr/sqrt(Nimage)
