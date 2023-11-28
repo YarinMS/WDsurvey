@@ -176,7 +176,33 @@ function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
 
         
         
+        
+       % change H
+       Color_vec = H(:,length(H(1,:)));
+       
+       
+      % switch the coloumns 
+      for Is = length(H(1,:)):-1:1
+          
+          if Is > 1 
+              
+              H(:,Is)  = H(:,Is-1);
+              
+          else
+              
+              H(:,1) = Color_vec;
+              
+          end
+          
+      end
+          
+          
+          
+      end
+       
+                                                           
         % filter any critical flags
+        
         BitClass = Args.BitDic.Class;
         Flags = BitClass(MS.Data.(Args.PropFlags));
         Flags = Flags(Args.StartInd:Args.EndInd,:);
@@ -201,7 +227,7 @@ function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
         
         if Iiter == 1 
         
-           if  
+           if  ~isempty(Args.StarProp)
               for i = 1 : length(Args.StarProp{:})
             
                   if isnan(Args.StarProp{1}(i)) 
@@ -210,7 +236,8 @@ function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
             
                   end
             
-               end
+              end
+           end
         
             Flag2 = Flag2(:);
             

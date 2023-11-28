@@ -200,15 +200,17 @@ function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
        
         
         if Iiter == 1 
+        
+           if  ~isempty(Args.StarProp)
+              for i = 1 : length(Args.StarProp{:})
             
-           for i = 1 : length(Args.StarProp{:})
-            
-               if isnan(Args.StarProp{1}(i)) 
+                  if isnan(Args.StarProp{1}(i)) 
                 
-                     Flag2(:,i) = false;
+                        Flag2(:,i) = false;
             
-               end
+                  end
             
+              end
            end
         
             Flag2 = Flag2(:);
