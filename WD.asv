@@ -57,6 +57,8 @@ classdef WD
         InfoPsf
         InfoAper
         AirMass
+        Ndir
+        PathToDir
         
     end
     
@@ -2368,7 +2370,7 @@ end
 
               if flag
                   tic;
-                  FP     = imProc.sources.forcedPhot(AI,'Coo',[obj.RA(Args.Index) obj.Dec(Args.Index)],'ColNames',{'RA','Dec','X','Y','Xstart','Ystart','Chi2dof','FLUX_PSF','FLUXERR_PSF','MAG_PSF','MAGERR_PSF','BACK_ANNULUS', 'STD_ANNULUS','FLUX_APER','FLAG_POS','FLAGS'});
+                  FP     = imProc.sources.forcedPhot(AI,'Coo',[obj.RA(Args.Index) obj.Dec(Args.Index)],'ColNames',{'RA','Dec','X','Y','Xstart','Ystart','Chi2dof','FLUX_PSF','FLUXERR_PSF','MAG_PSF','MAGERR_PSF','BACK_ANNULUS', 'STD_ANNULUS','FLUX_APER','FLAG_POS','FLAGS','MAG_APER'});
                   to     = toc;
 
                   fprintf('\nFinished analyazing %s', obj.Name(Args.Index,:))
@@ -2406,7 +2408,7 @@ end
                       
                    
                    ObsCoo  = [ObsLon, ObsLat];
-                   [AirMass,~,~] = celestial.coo.airmass(FP.JD,RA*(pi/180),Dec*(pi/180),ObsCoo*(pi/180));
+                   [AirMass,~,~] = celestial.coo.airmass(FP.JD',RA*(pi/180),Dec*(pi/180),ObsCoo*(pi/180));
                       
                    Median   = median(FP.Data.MAG_PSF(:,1));
                    MAD = sort(abs(Median-FP.Data.MAG_PSF(:,1)));

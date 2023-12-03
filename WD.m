@@ -57,6 +57,8 @@ classdef WD
         InfoPsf
         InfoAper
         AirMass
+        Ndir
+        PathToDir
         
     end
     

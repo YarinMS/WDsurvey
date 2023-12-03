@@ -94,7 +94,254 @@ xlabel('Frames','Interpreter','latex')
 errorbar([1:20],S,S./SNR,'-*')
 errorbar([1:20],MSpsf.Data.FLUX_APER_3(:,index_psf),MSpsf.Data.FLUX_APER_3(:,index_psf)./MSpsf.Data.FLUX_APER_3(:,index_psf),MSpsf.Data.SN_2(:,index_psf),'-.')
 legend(LgLbl(3:6),'Location','best','Interpreter','latex')
-B
+
+
+bkg =[
+
+                   133.416
+                   133.618
+                   135.602
+                   134.269
+                   136.309
+                   135.484
+                   134.221
+                   134.734
+                   132.467
+                   135.093
+                   136.185
+                   135.204
+                     135.8
+                   134.065
+                   133.293
+                   135.923
+                   134.097
+                   136.071
+                    132.28
+                   133.887
+
+
+]
+
+
+y = [
+
+                 3034.9886
+                 3050.6709
+                 2935.1918
+                 2907.4357
+                 3093.4384
+                      2956
+                      3054
+                 3024.6007
+                 2925.6317
+                 2836.8496
+                 3007.5099
+                 3059.8146
+                 3064.4261
+                 3062.1265
+                 2994.5477
+                  2963.441
+                 2963.6295
+                 3070.9438
+                 3004.3816
+                  2928.597
+]
+
+
+
+
+
+s =[
+
+                  633.5006
+                  645.5469
+                  494.3558
+                  490.5937
+                  639.8764
+                   517.288
+                   638.022
+                  599.3887
+                  541.2257
+                  405.1756
+                  556.1799
+                  626.1426
+                  620.0261
+                  648.9565
+                  595.2737
+                   516.827
+                  549.8835
+                  621.6658
+                  623.3416
+                   518.631
+
+
+
+]
+
+snr = [
+          22.5116489255808
+          22.7643494286221
+           19.316701759198
+          19.2447007172413
+          22.6063048316298
+          19.8696671545834
+          22.5964542567219
+          21.7546731149183
+          20.4755373474493
+          17.0418152618637
+          20.7656355718382
+          22.3288443130063
+          22.1887486543247
+           22.829906264388
+          21.6848212143494
+          19.8522817767447
+          20.6515923186075
+          22.2202581284448
+          22.3103215337523
+          19.9249873003931
+
+]
+
+Targets2    = [
+355.95963749653237	32.545915834271376	12.966921
+356.4360575211984	34.18134734187404	18.028858
+357.3592105622017	33.58336931427102	16.824327
+356.08191659487477	34.124560965584266	18.991856
+357.3609283079529	33.849691894763524	18.721958
+356.8201459425641	34.03249578681111	17.828075
+355.9757638333049	31.461820549468484	18.071423
+357.7784948241913	32.30777095056558	18.955025
+]
+TargetsName2 = [
+'WDJ234350.72+323246.73',
+'WDJ234544.58+341050.85',
+'WDJ234926.19+333504.32',
+'WDJ234419.71+340729.22',
+'WDJ234926.58+335058.73',
+'WDJ234716.83+340157.33',
+'WDJ234354.19+312742.57',
+'WDJ235106.81+321828.52'
+]
+% Initilize WD object
+e2  = WD(Targets2(:,1),Targets2(:,2),Targets2(:,3),TargetsName2,'/last02e/data1/archive/LAST.01.02.01/2023/08/27/proc/000540v0')
+% first lim mag calculations
+[id,FieldId] = e2.Coo_to_Subframe(e2.Pathway,e2);
+e2  = e2.get_id(id(:,1));
+e2  = e2.get_fieldID(FieldId);
+[Index,cat_id] = e2.find_in_cat(e2);
+e2  = e2.get_cat_id(cat_id);
+e2  = WD(Targets2(:,1),Targets2(:,2),Targets2(:,3),TargetsName2,'/last02e/data2/archive/LAST.01.02.02/2023/08/22/proc/000525v0')
+% first lim mag calculations
+[id,FieldId] = e2.Coo_to_Subframe(e2.Pathway,e2);
+e2  = e2.get_id(id(:,1));
+e2  = e2.get_fieldID(FieldId);
+[Index,cat_id] = e2.find_in_cat(e2);
+e2  = e2.get_cat_id(cat_id);
+wdt = 6
+format longg
+e.RA
+e2.RA
+e2.Dec
+e2.Mag
+e2.RA(6)
+e2.Dec(6)
+
+
+MS1 = MatchedSources.read_rdir('*_sci_merged_MergedMat_*.hdf5');
+
+ms = MS1(12)
+% finding ZP for MAG_APER_3
+R = lcUtil.zp_meddiff(ms,'MagField','MAG_APER_3','MagErrField','MAGERR_APER_3');
+% finding ZP for MAG_PSF   ### please note that MAG_PSF dont have
+%'MAgFieldERR' so I use MAGERR_APER_2.
+Rpsf= lcUtil.zp_meddiff(ms,'MagField','MAG_PSF','MagErrField','MAGERR_PSF');
+[MSaper,ApplyToMagFieldr] = applyZP(ms, R.FitZP,'ApplyToMagField','MAG_APER_3');
+[MSpsf,ApplyToMagFieldr] = applyZP(ms, Rpsf.FitZP,'ApplyToMagField','MAG_PSF');
+% get LC by index :
+index_psf = MSpsf.coneSearch(e2.RA(6),e2.Dec(6)).Ind;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ms = MS1(10)
+% finding ZP for MAG_APER_3
+R = lcUtil.zp_meddiff(ms,'MagField','MAG_APER_3','MagErrField','MAGERR_APER_3');
+% finding ZP for MAG_PSF   ### please note that MAG_PSF dont have
+%'MAgFieldERR' so I use MAGERR_APER_2.
+Rpsf= lcUtil.zp_meddiff(ms,'MagField','MAG_PSF','MagErrField','MAGERR_PSF');
+[MSaper,ApplyToMagFieldr] = applyZP(ms, R.FitZP,'ApplyToMagField','MAG_APER_3');
+[MSpsf,ApplyToMagFieldr] = applyZP(ms, Rpsf.FitZP,'ApplyToMagField','MAG_PSF');
+% get LC by index :
+index_psf = MSpsf.coneSearch(obj.RA(j),obj.Dec(j)).Ind;
+index_aper = MSaper.coneSearch(e2.RA(6),e2.Dec(6)).Ind;
+LgLbl{3} = sprintf('Background  ; Avg = %.3f ; SD = %.3f ; Scatter = %.3f ',[mean(BG), std(BG),std(BG)/mean(BG)])
+LgLbl{4} = sprintf('3 arcsec Aper  ; Avg = %.3f ; SD = %.3f ;Scatter = %.3f',[mean(AA), std(AA),std(AA)/mean(AA)])
+LgLbl{5} = sprintf('Signal  ; Avg = %.3f ;  SD = %.3f  ; Scatter = %.3f  ',[mean(S),  std(S), std(S)/mean(S)])
+LgLbl{6} = sprintf('Cat PSF  ; Avg = %.3f ; SD = %.3f ; Scatter = %.3f',[mean(MSpsf.Data.FLUX_APER_3(:,index_psf)),std(MSpsf.Data.FLUX_APER_3(:,index_psf)),std(MSpsf.Data.FLUX_APER_3(:,index_psf))/mean(MSpsf.Data.FLUX_APER_3(:,index_psf))])
+plot(BG,'-s')
+hold on
+plot(AA,'-o')
+legend('BackGround','Aperture 3 arcsec ','Interpreter','latex')
+ylabel('Electrons','Interpreter','latex')
+xlabel('Frames','Interpreter','latex')
+errorbar([1:20],S,S./SNR,'-*')
+errorbar([1:20],MSpsf.Data.FLUX_APER_3(:,index_psf),MSpsf.Data.FLUX_APER_3(:,index_psf)./MSpsf.Data.FLUX_APER_3(:,index_psf),MSpsf.Data.SN_2(:,index_psf),'-.')
+legend(LgLbl(3:6),'Location','best','Interpreter','latex')
+
+
+
+
+
+LgLbl2{3} = sprintf('Background  ; Avg = %.3f ; SD = %.3f ; Scatter = %.3f ',[mean(18*bkg), std(18*bkg),std(18*bkg)/mean(18*bkg)])
+LgLbl2{4} = sprintf('3 arcsec Aper  ; Avg = %.3f ; SD = %.3f ;Scatter = %.3f',[mean(y), std(y),std(y)/mean(y)])
+LgLbl2{5} = sprintf('Signal  ; Avg = %.3f ;  SD = %.3f  ; Scatter = %.3f  ',[mean(s),  std(s), std(s)/mean(s)])
+LgLbl2{6} = sprintf('Cat PSF  ; Avg = %.3f ; SD = %.3f ; Scatter = %.3f',[mean(MSpsf.Data.FLUX_APER_3(:,index_psf)),std(MSpsf.Data.FLUX_APER_3(:,index_psf)),std(MSpsf.Data.FLUX_APER_3(:,index_psf))/mean(MSpsf.Data.FLUX_APER_3(:,index_psf))])
+plot(18*bkg,'-s')
+hold on
+plot(y,'-o')
+legend('BackGround','Aperture 3 arcsec ','Interpreter','latex')
+ylabel('Electrons','Interpreter','latex')
+xlabel('Frames','Interpreter','latex')
+title('B_p = 17.89','Interpreter','latex')
+errorbar([1:20],s,s./snr,'-*')
+
+
+
+errorbar([1:20],MSpsf.Data.FLUX_APER_3(:,index_psf),MSpsf.Data.FLUX_APER_3(:,index_psf)./MSpsf.Data.FLUX_APER_3(:,index_psf),MSpsf.Data.SN_2(:,index_psf),'-.')
+
+
+errorbar([1:20],MSaper.Data.FLUX_APER_3(:,index_aper),MSaper.Data.FLUX_APER_3(:,index_aper)./MSaper.Data.FLUX_APER_3(:,index_aper),MSaper.Data.SN_2(:,index_psf),'-.')
+
+
+
+legend(LgLbl2(3:6),'Location','best','Interpreter','latex')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 e.LC_coadd = [
 0.66524506
