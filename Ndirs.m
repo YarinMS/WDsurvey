@@ -18,8 +18,43 @@ arguments
     
 end
 
+
+
+%%
+
+Targets2    = [
+355.95963749653237	32.545915834271376	12.966921
+356.4360575211984	34.18134734187404	18.028858
+357.3592105622017	33.58336931427102	16.824327
+356.08191659487477	34.124560965584266	18.991856
+357.3609283079529	33.849691894763524	18.721958
+356.8201459425641	34.03249578681111	17.828075
+355.9757638333049	31.461820549468484	18.071423
+357.7784948241913	32.30777095056558	18.955025
+]
+TargetsName2 = [
+'WDJ234350.72+323246.73',
+'WDJ234544.58+341050.85',
+'WDJ234926.19+333504.32',
+'WDJ234419.71+340729.22',
+'WDJ234926.58+335058.73',
+'WDJ234716.83+340157.33',
+'WDJ234354.19+312742.57',
+'WDJ235106.81+321828.52'
+]
+Itgt = 2;
+Target  = WD(Targets2(Itgt,1),Targets2(Itgt,2),Targets2(Itgt,3),TargetsName2(Itgt,:),'/last02e/data2/archive/LAST.01.02.02/2023/08/22/proc/Exp/000525v0/')
+% first lim mag calculations
+[id,FieldId] = Target.Coo_to_Subframe(Target.Pathway,Target);
+Target  = Target.get_id(id(:,1));
+Target  = Target.get_fieldID(FieldId);
+[Index,cat_id] = Target.find_in_cat(Target);
+Target  = Target.get_cat_id(cat_id);
+
+
+
 %% Catalog loop
-       cd(Target.PathToDir);
+       cd(Target.Pathway);
        
        mS = MatchedSources.read_rdir('*_sci_merged_MergedMat_*.hdf5');
 
@@ -86,12 +121,29 @@ end
              
                           directory = dir;
                           LC = []
+                          RAcat = []
+                          Deccat = []
+                          Xcat  = []
+                          Ycat = []
+                          
+                          if Target.CropID > 9 
+                              
+                              Str = strcat('*0',num2str(Target.CropID),'_sci_proc_Cat*')
+                              
+                          else
+                              
+                             Str = strcat('*00',num2str(Target.CropID),'_sci_proc_Cat*')
+                               
             
+                          end
+                          
                           for i = 3 : length(directory)
+                          
+
                
                                  cd(directory(i).name)
        
-                                AC=AstroCatalog('*012_sci_proc_Cat*','HDU',2)
+                                AC=AstroCatalog(Str,'HDU',2)
                                 AC.convertCooUnits('deg')
                                 i
 % find index psf  :
@@ -100,10 +152,32 @@ end
     
                                          [RA, Dec] = AC(Iimg).getLonLat('deg');
 
-                                         [~,inx_cat1] = min(sqrt((Dec - Target.Dec).^2 + (RA - Target.RA).^2));
-    
+                                         [Dist,inx_cat1] = min(sqrt((Dec - Target.Dec).^2 + (RA - Target.RA).^2));
+                                         %inx_cat1
+                                         if Dist < 1e-4
+                                              %
 
-                                          LC = [LC ; AC(Iimg).Catalog(inx_cat1,47)];
+                                              LC = [LC ; AC(Iimg).Catalog(inx_cat1,47)];
+                                              RAcat = [RAcat; AC(Iimg).Catalog(inx_cat1,52)];
+                                              Deccat = [Deccat ; AC(Iimg).Catalog(inx_cat1,53)];
+                                              Xcat  = [Xcat ;AC(Iimg).Catalog(inx_cat1,45)];
+                                              Ycat = [Ycat;AC(Iimg).Catalog(inx_cat1,46)];
+                                          %AC(Iimg).Catalog(inx_cat1,45)
+                                          %AC(Iimg).Catalog(inx_cat1,46)
+                                         else
+                                              
+                                              LC = [LC ; nan];
+                                              RAcat = [RAcat; nan];
+                                              Deccat = [Deccat ; nan];
+                                              Xcat  = [Xcat ;nan ]
+                                              Ycat = [Ycat;nan];
+ 
+                                              
+                                              
+                                         end
+
+                                              
+                                          
   
 
                                  end
@@ -115,13 +189,21 @@ end
                              %% plot cat data
                              
                              t0 = ceil(ms_flux3.JD(1)) -0.5 ; 
+                             t0 = 0
+                             t = timeofday(datetime(ms_flux3.JD,'convertfrom','jd')) 
                              figure();
                              
                              subplot(2,1,1)
      
-                             plot(ms_flux3.JD - t0,ms_flux3.Data.FLUX_APER_3(:,index_psf),'k-o')
+                             %plot(ms_flux3.JD - t0,ms_flux3.Data.FLUX_APER_3(:,index_psf),'k-o')
+                             %hold on
+                             %plot(ms_flux3.JD - t0,LC,'r-s')
+
+                             
+                             
+                             plot(t,ms_flux3.Data.FLUX_APER_3(:,index_psf),'k-o')
                              hold on
-                             plot(ms_flux3.JD - t0,LC,'r-s')
+                             plot(t,LC,'r-s')
 
                              LG{20} = sprintf('Flux PSF  %s ; %.0f frames ; RobustSD = %.3f %',Target.Name ,20*Args.Ndir,RobustSD(LC)/mean(LC,'omitnan'))
                              LG{1} = sprintf('Flux Aper 3  %s ; %.0f frames ; RobustSD = %.3f %',Target.Name ,20*Args.Ndir,RobustSD(ms_flux3.Data.FLUX_APER_3(:,index_psf))/mean(ms_flux3.Data.FLUX_APER_3(:,index_psf),'omitnan'))
@@ -155,13 +237,22 @@ end
                              filename = ['~/Documents/WD_survey/261123/RefStars/Series/',num2str(Args.Ndir),'_frames_cat.png']
                              saveas(gcf, filename)
           
-          
+%%
+ms_psf.plotRMS('FieldX','MAG_PSF','PlotSymbol','.','PlotColor','#EDB120')
+hold on
+ms_flux3.plotRMS('FieldX','MAG_APER_3','PlotSymbol','.','PlotColor','#D95319')
+%FP2.plotRMS('FieldX','MAG_PSF','PlotSymbol','o','PlotColor','#0072BD')
+legend('Mag PSF','Mag Aper 3','Forced Phot uncalibrated','Interpreter','latex','Location','best')
+title(['RMS Vs MAG for 220 epochs ; N sources = ',num2str(length(ms_psf.Data.RA(1,:)))],'Interpreter','latex')
+xlim([10,20])
+
+%%
 
                              %% Forced section
 
               AI = [];
               
-              cd(Target.PathToDir)
+              cd(Target.Pathway)
               
               cd ../
              
@@ -232,17 +323,17 @@ end
                   %%
 FP3_ref = ForcedPhot.copy()
 FP2_ref = ForcedPhot.copy()
-Rz_ref = lcUtil.zp_meddiff(FP3_ref,'MagField','FLUX_PSF','MagErrField','FLUXERR_PSF')
-RZ_ref = lcUtil.zp_meddiff(FP2_ref,'MagField','FLUX_APER_2','MagErrField','FLUXERR_PSF')                 
-[FP3_ref,ApplyToMagFieldr] = applyZP(FP3_ref, Rz_ref.FitZP,'ApplyToMagField','FLUX_PSF');
-[FP2_ref,ApplyToMagFieldr] = applyZP(FP2_ref, RZ_ref.FitZP,'ApplyToMagField','FLUX_APER_2');
+%Rz_ref = lcUtil.zp_meddiff(FP3_ref,'MagField','FLUX_PSF','MagErrField','FLUXERR_PSF')
+%RZ_ref = lcUtil.zp_meddiff(FP2_ref,'MagField','FLUX_APER_2','MagErrField','FLUXERR_PSF')                 
+%[FP3_ref,ApplyToMagFieldr] = applyZP(FP3_ref, Rz_ref.FitZP,'ApplyToMagField','FLUX_PSF');
+%[FP2_ref,ApplyToMagFieldr] = applyZP(FP2_ref, RZ_ref.FitZP,'ApplyToMagField','FLUX_APER_2');
 
 FP1_ref = ForcedPhot.copy()
 FP4_ref = ForcedPhot.copy()
-R1_ref = lcUtil.zp_meddiff(FP1_ref,'MagField','FLUX_APER_1','MagErrField','FLUXERR_PSF')
-R4_ref = lcUtil.zp_meddiff(FP4_ref,'MagField','FLUX_APER_3','MagErrField','FLUXERR_PSF')                 
-[FP1_ref,ApplyToMagFieldr] = applyZP(FP1_ref, R1_ref.FitZP,'ApplyToMagField','FLUX_APER_1');
-[FP4_ref,ApplyToMagFieldr] = applyZP(FP4_ref, R4_ref.FitZP,'ApplyToMagField','FLUX_APER_3');
+%R1_ref = lcUtil.zp_meddiff(FP1_ref,'MagField','FLUX_APER_1','MagErrField','FLUXERR_PSF')
+%R4_ref = lcUtil.zp_meddiff(FP4_ref,'MagField','FLUX_APER_3','MagErrField','FLUXERR_PSF')                 
+%[FP1_ref,ApplyToMagFieldr] = applyZP(FP1_ref, R1_ref.FitZP,'ApplyToMagField','FLUX_APER_1');
+%[FP4_ref,ApplyToMagFieldr] = applyZP(FP4_ref, R4_ref.FitZP,'ApplyToMagField','FLUX_APER_3');
 
 
 
@@ -327,6 +418,48 @@ title(['FLUX APER 3 Nepoch = ',num2str(Args.Ndir*20)],'Interpreter','latex')
                              filename = ['~/Documents/WD_survey/261123/RefStars/Series/',num2str(Args.Ndir),'_frames_Forced.png']
                              saveas(gcf, filename)
 
+                             
+                             
+                             
+                             
+                             
+                             
+                             %%
+figure();
+plot(ms_psf.JD,ms_psf.Data.X1(:,index_psf),'-o')
+
+hold on
+plot(FP1_ref.JD,FP1_ref.Data.X(:,1))
+plot(ms_psf.JD,Xcat,'x')
+
+figure();
+plot(ms_psf.JD,ms_psf.Data.Y1(:,index_psf),'-o')
+
+hold on
+plot(FP1_ref.JD,FP1_ref.Data.Y(:,1))
+plot(ms_psf.JD,Ycat,'x')
+
+
+
+%% calculations
+IND = []
+for i = 1 : length(RA1)
+    
+   toindex = ms.coneSearch(RA1(i),DEC1(i));
+   IND = [IND ; toindex.Ind];
+   
+end
+    
+
+%%
+
+
+
+
 
 end
+
+
+
+%% find xstddev
 
