@@ -1,4 +1,4 @@
-function [Obj] = FitZPFlagsNan(Obj,Args)
+function [Obj] = FitZP2(Obj,Args)
     % Fit zero-point(ZP) for sources with specified conditions.
     %     First turn hard flags to NaN. Then applies the ZP correction
     %     According to sources with full magnitude data and removes bad data
@@ -24,9 +24,11 @@ function [Obj] = FitZPFlagsNan(Obj,Args)
     arguments
         Obj MatchedSources
         Args.MinNumSrc         = 20;
-        Args.MagField char     = 'MAG_APER_2';
-        Args.MagErrField char  = 'MAGERR_APER_2';
+        Args.MagField char     = 'MAG_PSF';
+        Args.MagErrField char  = 'MAGERR_PSF';
         Args.HardFlagsMask     = outsource.FlagIdentification(Obj);
+        Args.Title  = []
+        Args.Title2 = 'ZP - SysRem RMS results only Good Sources (PSF)'
     end
 
     MSCopy = copy(Obj);
@@ -39,22 +41,10 @@ function [Obj] = FitZPFlagsNan(Obj,Args)
     end
     MSCopy.Data.(Args.MagField) = Mag(:,mask);
     MSCopy.Data.(Args.MagErrField) = MSCopy.Data.(Args.MagErrField)(:,mask);
-    R = lcUtil.zp_meddiff(MSCopy,'MagField','MAG_PSF' ,'MagErrField','MAGERR_PSF');
+    R = lcUtil.zp_meddiff(MSCopy,'MagField',Args.MagField ,'MagErrField',Args.MagErrField);
     format long;
-    Obj.applyZP(R.FitZP,'ApplyToMagField', 'MAG_PSF' );
-    
-    ms = Obj.copy();
-    
-    Rs = lcUtil.zp_meddiff(MSCopy,'MagField','MAG_APER_2' ,'MagErrField','MAGERR_APER_2');
+    Obj.applyZP(R.FitZP,'ApplyToMagField', Args.MagField );
 
-    ms.applyZP(Rs.FitZP,'ApplyToMagField', 'MAG_APER_2' );
-    figure(2);
-    hold on
-    Obj.plotRMS('PlotSymbol','.','PlotColor','black','FieldX','MAG_PSF')
-    
-    figure(3);
-    hold on
-    ms.plotRMS('PlotSymbol','.','PlotColor','black','FieldX','MAG_APER_2')
     
     
     %% Throw out bad data
@@ -64,16 +54,41 @@ function [Obj] = FitZPFlagsNan(Obj,Args)
     SourceNum = (1:Obj.Nsrc);
     Obj.addMatrix(SourceNum(~ToMuchNaNMask),'SourceNum');
     Obj.addMatrix(sum(~ToMuchNaNMask),'NewNsrc');
+        
+    hold on 
+    Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField)
+    
+    ax = Obj.plotRMS('PlotSymbol','+','PlotColor','black','FieldX',Args.MagField).XData;
+    ay = Obj.plotRMS('PlotSymbol','+','PlotColor','black','FieldX',Args.MagField).YData;
     
     %Sysrem on good data only
-    Obj.sysrem('MagFields' ,{'MAG_PSF'} , 'MagErrFields',{'MAGERR_PSF'},'sysremArgs',{'Niter',2});
-    ms.sysrem('MagFields' ,{'MAG_APER_2'} , 'MagErrFields',{'MAGERR_APER_2'},'sysremArgs',{'Niter',2})
+    Obj.sysrem('MagFields' ,{Args.MagField} , 'MagErrFields',{Args.MagErrField},'sysremArgs',{'Niter',2});
+    hold on 
+    Obj.plotRMS('PlotSymbol','+','PlotColor','black','FieldX',Args.MagField)
+    %title(sprintf('FitZPFlags with only good sources  %s ',char(Args.MagField)),'Interpreter','latex')
+    title(Args.Title,'Interpreter','latex')
+    legend('No ZP','ZP','ZP + 2 SysRem','Interpreter' , 'latex')
+    xlim([10,20])
+    ylim([1e-3,1.2])            
+            
     
-    figure(2);
-    hold on
-    Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX','MAG_PSF')
     
-    figure(3);
-    hold on
-    ms.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX','MAG_APER_2')
+    figure();
+    
+    bx = Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField).XData;
+    by = Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField).YData;
+    
+    
+    
+    figure(); semilogy(ax,ay-by,'.')
+    title(Args.Title2,'Interpreter','latex')
+    xlabel('MAG','Interpreter','latex')
+    ylabel('$RMS_{ZP} - RMS_{ZP+SysRem}$','Interpreter','latex')
+    hline(0.01)
+    legend('$RMS_{ZP} - RMS_{ZP+SysRem}$','$y = 0.01$', 'Interpreter','latex')
+    
+    
+    
+    
+
 end
