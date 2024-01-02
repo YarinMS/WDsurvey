@@ -84,10 +84,25 @@ classdef WDs
                 
             end
             
+            if Args.getCatData
+
+                [obj.Data.Catalog.CatID,obj.Data.Catalog.InCat] = FindInCat(obj) ;
+                obj.Data.Catalog.MS     = createMS(obj) ;
+          
+                
+                if Args.applyZP
+ 
+                        obj.Data.Catalog.APER_2 = msZP(obj,'MAGField','MAG_APER_2','MagErrField','MAGERR_APER_2') ;                        
+                        obj.Data.Catalog.PSF    = msZP(obj,'MAGField','MAG_PSF','MagErrField','MAGERR_PSF') ;
+                        obj.Data.Catalog.APER_22 = msZP(obj,'MAGField','MAG_APER_2','MagErrField','MAGERR_APER_2') ;                        
+                        obj.Data.Catalog.PSF2    = msZP(obj,'MAGField','MAG_PSF','MagErrField','MAGERR_PSF') ;
+                end
+            end
+            
             if ~isempty(Args.Batch)
                 
-                Args.getCatData = false;
-                [obj.Data.Catalog.CatID,obj.Data.Catalog.InCat] = FindInCat(obj) ;
+                
+                %[obj.Data.Catalog.CatID,obj.Data.Catalog.InCat] = FindInCat(obj) ;
                 % obj.Data.Catalog.MS    = createMSbacth(obj) ;
                 Args.getForcedData     = false;
                  for Iobj = 1 : obj.Nsrc
@@ -106,6 +121,7 @@ classdef WDs
                             
                             %obj.Data.Forced.PSFzp{Iobj,Iiter} = FP_ZP.copy();
                             
+                            
                         end
                     end
                 
@@ -116,18 +132,7 @@ classdef WDs
                 
             end
         
-            if Args.getCatData
-
-                [obj.Data.Catalog.CatID,obj.Data.Catalog.InCat] = FindInCat(obj) ;
-                obj.Data.Catalog.MS     = createMS(obj) ;
-                
-                if Args.applyZP
- 
-                        obj.Data.Catalog.APER_2 = msZP(obj,'MAGField','MAG_APER_2','MagErrField','MAGERR_APER_2') ;                        
-                        obj.Data.Catalog.PSF    = msZP(obj,'MAGField','MAG_PSF','MagErrField','MAGERR_PSF') ;
-                    
-                end
-            end
+            
             
             if Args.getForcedData
                 
@@ -448,7 +453,7 @@ classdef WDs
                                   fprintf('\nCoord of source # %i Found in subframe %i\nTarget name : %s',Iobj,CropID{Iobj,1},obj.Name(Iobj,:))
                                   
                              else
-                                  CropID{Iobj,length(CropID{Iobj})+1} = ai(Iimage).HeaderData.Key.CROPID ; 
+                                  CropID{Iobj,length(CropID{Iobj})+1} = ai(Iimage).Data.Key.CROPID ; 
                                   fprintf('\nTarget # %i Appear in subframes: %i %i %i %i\n ',Iobj,[CropID{Iobj,:}])
                              end
                              
@@ -999,7 +1004,7 @@ classdef WDs
                 
             
         counter = 0;      
-        for Ibatch = 1 : 3 %Nbatch
+        for Ibatch = 1 : Nbatch
             
             AI = [];
             
@@ -1042,7 +1047,7 @@ classdef WDs
             
             %%%%%%%%% ADD FLAGS you have to ask for MASK in the pipeline
             tic ; 
-            FP{1,Ibatch} = imProc.sources.forcedPhot(AI,'Coo',[obj.RA(Iobj) obj.Dec(Iobj)],'ColNames',{'RA','Dec','X','Y','Xstart','Ystart','Chi2dof','FLUX_PSF','FLUXERR_PSF','MAG_PSF','MAGERR_PSF','BACK_ANNULUS', 'STD_ANNULUS','FLUX_APER','FLAG_POS'});
+            FP{1,Ibatch} = imProc.sources.forcedPhot(AI,'Coo',[obj.RA(Iobj) obj.Dec(Iobj)],'ColNames',{'RA','Dec','X','Y','Xstart','Ystart','Chi2dof','FLUX_PSF','FLUXERR_PSF','MAG_PSF','MAGERR_PSF','BACK_ANNULUS', 'STD_ANNULUS','FLUX_APER','FLAG_POS','FLAGS'});
             to     = toc;
 
             fprintf('\nFinished analyazing %s Batch # %i / %i', obj.Name(Iobj,:),Ibatch,Nbatch)
@@ -1055,7 +1060,7 @@ classdef WDs
             
         
         
-        function obj = plotRMSComparison(obj, Args)
+        function [obj,LC,jd] = plotRMSComparison(obj, Args)
             
             arguments
                 
@@ -1075,111 +1080,136 @@ classdef WDs
     
               
               Dim = size(Object);
-              
+              LC = [];
+              jd = [];
               for Ibatch = 1 : Dim(2)
+                  flag = true;
                   
                   C{1,Ibatch}    = Object{Ibatch}.copy()
-                 % MSmodel2{1,Ibatch}  = FitZP2(  C{1,Ibatch} ,'MagField','MAG_PSF','MagErrField','MAGERR_PSF','title',' only good sources MAG PSF (1 visit)','Title2','ZP - SysRem RMS results  - PSF (1 Visit)')
-            
-                  Csys{1,Ibatch} = C{1,Ibatch}.sysrem('sysremArgs',{'Niter',2},'MagFields' ,{'MAG_PSF'} , 'MagErrFields',{'MAGERR_PSF'});
- %%                 
-                  figure;
-                  subplot(1,2,1)
-                  hold on;
-                  a = Object{1,Ibatch} .plotRMS('FieldX', 'MAG_PSF', 'PlotSymbol', '+', 'PlotColor', 'red');
-                  b = Csys{1,Ibatch} .plotRMS('FieldX', 'MAG_PSF', 'PlotSymbol', 'o', 'PlotColor', 'black');
-                  semilogy(a.XData(1),a.YData(1),'.','color','cyan','MarkerSize',20)
-                  legend('Original RMS', 'Sysrem RMS',sprintf('WD RMS =  %.3f',a.YData(1)),'Interpreter','latex','Location','best');
-                  xlabel('Mag','Interpreter','latex');
-                  ylabel('RMS','Interpreter','latex'); 
-                  title(sprintf( 'RMS Comparison - Forced PSF + SysRem  . Double Visit %i / %i',Ibatch,Dim(2)),'Interpreter','latex');
-                  xlim([10,20])
-                  ylim([1e-3,5])
-                  hold off;
-                  subplot(1,2,2)
+                  
+                  [MSmodel2{1,Ibatch},D{1,Ibatch}]  = FitZP2(  C{1,Ibatch} ,'MagField','MAG_PSF','MagErrField','MAGERR_PSF','title',' only good sources MAG PSF (1 visit)','Title2','ZP - SysRem RMS results  - PSF (1 Visit)');
+                  %MSmodel2
+                  % Csys{1,Ibatch} = C{1,Ibatch}.sysrem('sysremArgs',{'Niter',2},'MagFields' ,{'MAG_PSF'} , 'MagErrFields',{'MAGERR_PSF'});
+                  if ~isnan(D{1,Ibatch}.JD)  
+                        figure('color','white','Position',[10 10 1120 840 ]);
+                        subplot(1,2,1)
+                        hold on;
+                  
+                        a = D{1,Ibatch}.plotRMS('FieldX', 'MAG_PSF', 'PlotSymbol', '+', 'PlotColor', 'red');
+                        b = MSmodel2{1,Ibatch} .plotRMS('FieldX', 'MAG_PSF', 'PlotSymbol', 'o', 'PlotColor', 'black');
+                        semilogy(a.XData(1),a.YData(1),'.','color','cyan','MarkerSize',20)
+                        hline(1/5);
+                        xline(19);
+                        legend('Original RMS', 'Sysrem RMS',sprintf('WD RMS =  %.3f',a.YData(1)),'SNR = 5','Mag = 19','Interpreter','latex','Location','best');
+                        xlabel('Mag','Interpreter','latex');
+                        ylabel('RMS','Interpreter','latex'); 
+                        title(sprintf( 'RMS Comparison - Forced PSF + SysRem  . Double Visit %i / %i',Ibatch,Dim(2)),'Interpreter','latex');
+                        xlim([10,20])
+                        ylim([1e-3,5])
+                        hold off;
+                        subplot(1,2,2)
                   %a = C{1,Ibatch} .plotRMS('FieldX', 'MAG_PSF', 'PlotSymbol', '+', 'PlotColor', 'red');
                   %b = Csys{1,Ibatch} .plotRMS('FieldX', 'MAG_PSF', 'PlotSymbol', 'o', 'PlotColor', 'black');
-                  semilogy(a.XData,a.YData-b.YData,'o')
-                  hline(0.01)
-                  hold on 
-                  if a.YData(1) < b.YData(1)
-                      semilogy(a.XData(1),b.YData(1)-a.YData(1),'.','Color','red','MarkerSize',20)
-                      legend('RMS difference', '0.01',sprintf('WD RMS difference = %.3f',a.YData(1)-b.YData(1)),'Interpreter','latex','Location','best');
+                        semilogy(a.XData,a.YData-b.YData,'o')
+                        hline(0.01)
+                        hold on 
+                        if a.YData(1) < b.YData(1)
+                              semilogy(a.XData(1),b.YData(1)-a.YData(1),'.','Color','red','MarkerSize',20)
+                              legend('RMS difference', '0.01',sprintf('WD RMS difference = %.3f',a.YData(1)-b.YData(1)),'Interpreter','latex','Location','best');
                       
-                  else
-                        semilogy(a.XData(1),a.YData(1)-b.YData(1),'.','Color','magenta','MarkerSize',20)
-                        legend('RMS difference', '0.01',sprintf('WD RMS difference = %.3f',a.YData(1)-b.YData(1)),'Interpreter','latex','Location','best');
+                        else
+                              semilogy(a.XData(1),a.YData(1)-b.YData(1),'.','Color','magenta','MarkerSize',20)
+                              legend('RMS difference', '0.01',sprintf('WD RMS difference = %.3f',a.YData(1)-b.YData(1)),'Interpreter','latex','Location','best');
                       
-                  end
+                        end
 
                   
-                  xlabel('Mag','Interpreter','latex');
-                  ylabel('RMS','Interpreter','latex'); 
-                  title('Difference in RMS $$ RMS_{psf} - RMS_{psf+sysrem} $$','Interpreter','latex');
-                  xlim([10,20])
+                        xlabel('Mag','Interpreter','latex');
+                        ylabel('RMS','Interpreter','latex'); 
+                        title('Difference in RMS $$ RMS_{psf} - RMS_{psf+sysrem} $$','Interpreter','latex');
+                        xlim([10,20])
                   
-                  set(gcf, 'Position', get(0, 'ScreenSize'));
-                  pause(5);
+                        set(gcf, 'Position', get(0, 'ScreenSize'));
+                        pause(1);
                   
-                  filename = sprintf('%s/RMS_Forced_sysrem_WD_%i_Visit_%i_of_%i.png',Args.SaveTo,WDidx,Ibatch,Dim(2))
-                  saveas(gcf, filename)
-                  close;
+                        filename = sprintf('%s/RMS_Forced_sysrem_WD_%i_Visit_%i_of_%i.png',Args.SaveTo,WDidx,Ibatch,Dim(2))
+                        saveas(gcf, filename)
+                        close;
                   
                   
-                  figure;
-                  subplot(2,1,1)
-                  hold on;
+                        figure('color','white','Position',[10 10 1120 840 ]);
+                  %subplot(2,1,1)
+                        hold on;
                   %a = Object{1,Ibatch} .plotRMS('FieldX', 'MAG_PSF', 'PlotSymbol', '+', 'PlotColor', 'red');
                   %b = Csys{1,Ibatch} .plotRMS('FieldX', 'MAG_PSF', 'PlotSymbol', 'o', 'PlotColor', 'black');
                   %semilogy(a.XData(1),a.YData(1),'.','color','cyan','MarkerSize',20)
-                  [t,Sorted] = sort(Object{1,Ibatch}.JD);
-                  y = Object{1,Ibatch}.Data.MAG_PSF(Sorted,1);
-                  plot(t,y,'-o')
-                  hold on;
-                  [tsys,Sortedsys] = sort(Csys{1,Ibatch}.JD)
-                  ysys = Csys{1,Ibatch}.Data.MAG_PSF(Sortedsys,1);
-                  plot(tsys,ysys,'-o')
+                       [t,Sorted] = sort(Object{1,Ibatch}.JD);
                   
-                  set(gca,'YDir','reverse')
-                  legend(sprintf('WD Forced PSF RobustSD =   %.3f',RobustSD(y)),sprintf('WD Forced PSF + sysrem RobustSD =   %.3f',RobustSD(ysys)),'Interpreter','latex','Location','best');
-                  xlabel('JD','Interpreter','latex');
-                  ylabel('Inst Mag','Interpreter','latex'); 
-                  title(sprintf( 'WD %i - Forced PSF   . $B_p$ = %.3f , CropID :',WDidx,obj.G_Bp(WDidx)),obj.CropID(WD),'Interpreter','latex');
+                       t0 = round(t(1)) + 0.5 ; 
+                       y = D{1,Ibatch}.Data.MAG_PSF(Sorted,1);
+                       plot(t-t0,y,'-o')
+                       hold on;
+                       [tsys,Sortedsys] = sort(MSmodel2{1,Ibatch}.JD);
+                       ysys = MSmodel2{1,Ibatch}.Data.MAG_PSF(Sortedsys,1);
+                       plot(tsys-t0,ysys,'-o')
+                  
+                       set(gca,'YDir','reverse')
+                       legend(sprintf('WD Forced PSF RobustSD =   %.3f',RobustSD(y)),sprintf('WD Forced PSF + sysrem RobustSD =   %.3f',RobustSD(ysys)),'Interpreter','latex','Location','best');
+                       xlabel(['JD - ',num2str(t0)],'Interpreter','latex');
+                       ylabel('Inst Mag','Interpreter','latex'); 
+                       title(sprintf( 'WD %i - Forced PSF   . $B_p$ = %.3f',WDidx,obj.G_Bp(WDidx)),'Interpreter','latex');
                   %xlim([10,20])
                   %ylim([1e-3,5])
-                  hold off;
-                  subplot(2,1,2)
+                       hold off;
+                 % subplot(2,1,2)
                   
      
                   %set(gca,'YDir','reverse')
                   %legend(sprintf('WD Forced PSF + sysrem RobustSD =   %.3f',RobustSD(ysys)),'Interpreter','latex','Location','best');
                  % xlabel('JD','Interpreter','latex');
                   %ylabel('Inst Mag','Interpreter','latex'); 
-                  title(sprintf( 'WD %i - Forced PSF + SysRem -   . $B_p$ = %.3f',WDidx,obj.G_Bp(WDidx)),'Interpreter','latex');
+                 % title(sprintf( 'WD %i - Forced PSF + SysRem -   . $B_p$ = %.3f',WDidx,obj.G_Bp(WDidx)),'Interpreter','latex');
     
    
                   
-                  set(gcf, 'Position', get(0, 'ScreenSize'));
-                  pause(5);
+                       set(gcf, 'Position', get(0, 'ScreenSize'));
+                       pause(1);
                   
-                  filename = sprintf('%s/LC_Forced_sysrem_WD_%i_Visit_%i_of_%i.png',Args.SaveTo,WDidx,Ibatch,Dim(2))
-                  saveas(gcf, filename)
-                  close;
+                       filename = sprintf('%s/LC_Forced_sysrem_WD_%i_Visit_%i_of_%i.png',Args.SaveTo,WDidx,Ibatch,Dim(2));
+                       saveas(gcf, filename)
+                       close;
+                       
+                       
+                  else
+                      
+                      fprintf('Nan Vector on visit %i',Ibatch)
+                      flag = false;
+                      
+                  end
+                  
+                  if ~isnan(MSmodel2{1,Ibatch}.JD)
+                       LC = [LC ; MSmodel2{1,Ibatch}.Data.MAG_PSF(:,1)];
+                       jd = [jd ; MSmodel2{1,Ibatch}.JD' ] ;
+                       
+                  end
                   
            
                   
 
-    %%
+  
                   
               end
     
 
               
 
-             
+              if ~isempty(obj.CropID{WDidx}) 
               
-              % Store Csys in a new field in E
-              obj.Data.ForcedBatch.MSsys{WDidx, Iiter} = Csys;
+                  obj.Data.ForcedBatch.MSsys{WDidx, Iiter} = MSmodel2;
+                  
+              else
+                  obj.Data.ForcedBatch.MSsys{WDidx, Iiter} = {NaN};
+              end
 end
 
         

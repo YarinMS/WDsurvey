@@ -18,7 +18,8 @@ function MS = ApplyMask(MS,Args)
     arguments
        MS
        Args.Mask
-       Args.Fields = {'MAG_APER_3','MAGERR_APER_3','MAG_PSF','MAGERR_PSF','FLAGS'};
+       %Args.Fields = {'MAG_APER_3','MAGERR_APER_3','MAG_PSF','MAGERR_PSF','FLAGS'};
+       Args.Fields = {'MAG_PSF','MAGERR_PSF','FLAGS'};
        Args.Value  = 'erash';
     end
     if Args.Value == 'erash'

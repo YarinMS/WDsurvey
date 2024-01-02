@@ -1,4 +1,4 @@
-function [Obj,RawObj] = FitZP2(Obj,Args)
+function [Obj,RawObj] = FitZP2Cat(Obj,Args)
     % Fit zero-point(ZP) for sources with specified conditions.
     %     First turn hard flags to NaN. Then applies the ZP correction
     %     According to sources with full magnitude data and removes bad data
@@ -33,19 +33,26 @@ function [Obj,RawObj] = FitZP2(Obj,Args)
 
     MSCopy = copy(Obj);
     %% ZP according sources with full data
-   % Mag = MSCopy.Data.(Args.MagField);
-   % Mag(Args.HardFlagsMask) = NaN;
-  %  mask = sum(~isnan(Mag),1) == MSCopy.Nepoch;%mask for source without any NaN
-  %  if sum(mask) < Args.MinNumSrc
-  %      fprintf('Not enough sources that meet the conditions');
-  %      mask = true(size(mask));
-  %  else
-  %  MSCopy.Data.(Args.MagField) = Mag(:,mask);
-  %  MSCopy.Data.(Args.MagErrField) = MSCopy.Data.(Args.MagErrField)(:,mask);
-  %  R = lcUtil.zp_meddiff(MSCopy,'MagField',Args.MagField ,'MagErrField',Args.MagErrField);
-  %  format long;
-  %  Obj.applyZP(R.FitZP,'ApplyToMagField', Args.MagField );
-  %  end
+    Mag = MSCopy.Data.(Args.MagField);
+    Mag(Args.HardFlagsMask) = NaN;
+    mask = sum(~isnan(Mag),1) == MSCopy.Nepoch;%mask for source without any NaN
+    sum(mask)
+    if sum(mask) < Args.MinNumSrc
+        fprintf('Not enough sources that meet the conditions');
+        mask = true(size(mask));
+        MSCopy.Data.(Args.MagField) = Mag(:,mask);
+    MSCopy.Data.(Args.MagErrField) = MSCopy.Data.(Args.MagErrField)(:,mask);
+    R = lcUtil.zp_meddiff(MSCopy,'MagField',Args.MagField ,'MagErrField',Args.MagErrField);
+    format long;
+    Obj.applyZP(R.FitZP,'ApplyToMagField', Args.MagField );
+
+    else
+    MSCopy.Data.(Args.MagField) = Mag(:,mask);
+    MSCopy.Data.(Args.MagErrField) = MSCopy.Data.(Args.MagErrField)(:,mask);
+    R = lcUtil.zp_meddiff(MSCopy,'MagField',Args.MagField ,'MagErrField',Args.MagErrField);
+    format long;
+    Obj.applyZP(R.FitZP,'ApplyToMagField', Args.MagField );
+    end
 
     
     
@@ -57,37 +64,40 @@ function [Obj,RawObj] = FitZP2(Obj,Args)
     Obj.addMatrix(SourceNum(~ToMuchNaNMask),'SourceNum');
     Obj.addMatrix(sum(~ToMuchNaNMask),'NewNsrc');
         
-    %hold on 
-    %Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField)
-    
-   % ax = Obj.plotRMS('PlotSymbol','+','PlotColor','black','FieldX',Args.MagField).XData;
-   % ay = Obj.plotRMS('PlotSymbol','+','PlotColor','black','FieldX',Args.MagField).YData;
+    hold on 
+    Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField)
+     
+    ax = Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField).XData;
+    ay = Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField).YData;
     RawObj = Obj.copy()
     %Sysrem on good data only
     Obj.sysrem('MagFields' ,{Args.MagField} , 'MagErrFields',{Args.MagErrField},'sysremArgs',{'Niter',2});
-    %hold on 
-    %Obj.plotRMS('PlotSymbol','+','PlotColor','black','FieldX',Args.MagField)
-    %title(sprintf('FitZPFlags with only good sources  %s ',char(Args.MagField)),'Interpreter','latex')
-    %title(Args.Title,'Interpreter','latex')
-    %legend('No ZP','ZP','ZP + 2 SysRem','Interpreter' , 'latex')
-   % xlim([10,20])
-   % ylim([1e-3,1.2])            
+    hold on 
+    Obj.plotRMS('PlotSymbol','+','PlotColor','black','FieldX',Args.MagField)
+    title(sprintf('FitZPFlags with only good sources  %s ',char(Args.MagField)),'Interpreter','latex')
+    title(Args.Title,'Interpreter','latex')
+    hline(1/20)
+    xline()
+    legend('No ZP','ZP','ZP + 2 SysRem','SNR = 5','Interpreter' , 'latex')
+    
+    xlim([10,20])
+    ylim([1e-3,1.2])            
             
     
     
-  %  figure();
+    figure();
     
-  %  bx = Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField).XData;
-  %  by = Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField).YData;
+    bx = Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField).XData;
+    by = Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField).YData;
     
     
     
-  %  figure(); semilogy(ax,ay-by,'.')
-  %  title(Args.Title2,'Interpreter','latex')
-  %  xlabel('MAG','Interpreter','latex')
-   % ylabel('$RMS_{ZP} - RMS_{ZP+SysRem}$','Interpreter','latex')
-   % hline(0.01)
-    %legend('$RMS_{ZP} - RMS_{ZP+SysRem}$','$y = 0.01$', 'Interpreter','latex')
+    figure(); semilogy(ax,ay-by,'.')
+    title(Args.Title2,'Interpreter','latex')
+    xlabel('MAG','Interpreter','latex')
+    ylabel('$RMS_{ZP} - RMS_{ZP+SysRem}$','Interpreter','latex')
+    hline(0.01)
+    legend('$RMS_{ZP} - RMS_{ZP+SysRem}$','$y = 0.01$', 'Interpreter','latex')
     
     
     

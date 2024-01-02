@@ -509,14 +509,14 @@ classdef WD
                          ds9.plot(64,150,'r','Size',1,'text',['sub frame #',num2str(subframe)]);
                          info = obj.Name(idx,:);
                          ds9.read2fits(info);
-                         fprintf(['Saved a tiny region around ', obj.Name(idx,:),'\n'])
+                         fprintf(['\nSaved a tiny region around ', obj.Name(idx,:),'\n'])
                     end
                 end
                 
             else
                 
                 if (y > 1726 - 128) || (y < 128)
-                    fprintf(['Target on the edge. RA = ',num2str(target_ra),' Dec = ', num2str(target_dec),' subframe #',num2str(subframe),'( ',num2str(x),',',num2str(y),'\n'])
+                    fprintf(['\nTarget on the edge. RA = ',num2str(target_ra),' Dec = ', num2str(target_dec),' subframe #',num2str(subframe),'( ',num2str(x),',',num2str(y),'\n'])
                     if y > 64
                         if y < 1726 - 64
                             flag = false;
