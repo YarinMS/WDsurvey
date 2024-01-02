@@ -13,7 +13,7 @@ arguments
 end
 
 
-Gaiag(1)   = wd.Mag(wdt);
+%Gaiag(1)   = wd.Mag(wdt);
 Predicted  = mean(Mat,'omitnan');
 Err        = Mat - Predicted;
 Npts       = length(Err(:,1));
