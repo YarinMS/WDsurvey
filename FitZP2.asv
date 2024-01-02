@@ -33,19 +33,17 @@ function [Obj,RawObj] = FitZP2(Obj,Args)
 
     MSCopy = copy(Obj);
     %% ZP according sources with full data
-   % Mag = MSCopy.Data.(Args.MagField);
-   % Mag(Args.HardFlagsMask) = NaN;
-  %  mask = sum(~isnan(Mag),1) == MSCopy.Nepoch;%mask for source without any NaN
-  %  if sum(mask) < Args.MinNumSrc
-  %      fprintf('Not enough sources that meet the conditions');
-  %      mask = true(size(mask));
-  %  else
-  %  MSCopy.Data.(Args.MagField) = Mag(:,mask);
-  %  MSCopy.Data.(Args.MagErrField) = MSCopy.Data.(Args.MagErrField)(:,mask);
-  %  R = lcUtil.zp_meddiff(MSCopy,'MagField',Args.MagField ,'MagErrField',Args.MagErrField);
-  %  format long;
-  %  Obj.applyZP(R.FitZP,'ApplyToMagField', Args.MagField );
-  %  end
+    Mag = MSCopy.Data.(Args.MagField);
+    Mag(Args.HardFlagsMask) = NaN;
+    mask = sum(~isnan(Mag),1) == MSCopy.Nepoch;%mask for source without any NaN
+    if sum(mask) < Args.MinNumSrc
+        fprintf('Not enough sources that meet the conditions');
+    end
+    MSCopy.Data.(Args.MagField) = Mag(:,mask);
+    MSCopy.Data.(Args.MagErrField) = MSCopy.Data.(Args.MagErrField)(:,mask);
+    R = lcUtil.zp_meddiff(MSCopy,'MagField',Args.MagField ,'MagErrField',Args.MagErrField);
+    format long;
+    Obj.applyZP(R.FitZP,'ApplyToMagField', Args.MagField );
 
     
     
