@@ -84,7 +84,7 @@ for Iobj = 1 : Nobj
            m1 = FP.Data.MAG_PSF(i,1);
     
 
-           if ~isnan(s1)
+           if ~isnan(s1) && ~isnan(m1)
                 if (abs(s1) > threshold)  || (m1 > MagThreshold)
         
                      FP.Data.MAGERR_PSF(i,:) = nan;

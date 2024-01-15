@@ -57,6 +57,8 @@ classdef WD
         InfoPsf
         InfoAper
         AirMass
+        Ndir
+        PathToDir
         
     end
     
@@ -507,14 +509,14 @@ classdef WD
                          ds9.plot(64,150,'r','Size',1,'text',['sub frame #',num2str(subframe)]);
                          info = obj.Name(idx,:);
                          ds9.read2fits(info);
-                         fprintf(['Saved a tiny region around ', obj.Name(idx,:),'\n'])
+                         fprintf(['\nSaved a tiny region around ', obj.Name(idx,:),'\n'])
                     end
                 end
                 
             else
                 
                 if (y > 1726 - 128) || (y < 128)
-                    fprintf(['Target on the edge. RA = ',num2str(target_ra),' Dec = ', num2str(target_dec),' subframe #',num2str(subframe),'( ',num2str(x),',',num2str(y),'\n'])
+                    fprintf(['\nTarget on the edge. RA = ',num2str(target_ra),' Dec = ', num2str(target_dec),' subframe #',num2str(subframe),'( ',num2str(x),',',num2str(y),'\n'])
                     if y > 64
                         if y < 1726 - 64
                             flag = false;
@@ -1216,7 +1218,7 @@ classdef WD
                times_vec      = zeros(Nobs,24)*nan;
                LimMag_vec     = zeros(Nobs,24)*nan;
                Subframe_index = ones(24,1);  
-               fprintf('choose  field ID to analyze \n')
+               fprintf('Analayzinf field : %s ',obj.FieldID)
                flag = true;
            end
            
@@ -2303,6 +2305,7 @@ end
                  Args.Index = 1;
                  Args.ID    = 1;
                  Args.FieldID = [];
+                 Args.SaveTo  = '~/Documents/WD_survey/270823/358+34/Detrend/'
     
               end
 
@@ -2367,19 +2370,20 @@ end
 
               if flag
                   tic;
-                  FP     = imProc.sources.forcedPhot(AI,'Coo',[obj.RA(Args.Index) obj.Dec(Args.Index)],'ColNames',{'RA','Dec','X','Y','Xstart','Ystart','Chi2dof','FLUX_PSF','FLUXERR_PSF','MAG_PSF','MAGERR_PSF','BACK_ANNULUS', 'STD_ANNULUS','FLUX_APER','FLAG_POS','FLAGS'});
+                  FP     = imProc.sources.forcedPhot(AI,'Coo',[obj.RA(Args.Index) obj.Dec(Args.Index)],'ColNames',{'RA','Dec','X','Y','Xstart','Ystart','Chi2dof','FLUX_PSF','FLUXERR_PSF','MAG_PSF','MAGERR_PSF','BACK_ANNULUS', 'STD_ANNULUS','FLUX_APER','FLAG_POS','FLAGS','MAG_APER'});
                   to     = toc;
-                    
+
                   fprintf('\nFinished analyazing %s', obj.Name(Args.Index,:))
                   fprintf('\nFor subframe # %d',Args.ID)
                   fprintf([' \n only "',num2str(to) ,'" s'])
-                  PF = FP;
-                  
-                  R = lcUtil.zp_meddiff(PF,'MagField','MAG_PSF','MagErrField','MAGERR_PSF')
+                  %PF = FP;
+                  FileName = [Args.SaveTo,obj.Name(Args.Index,:),'_FP0.mat'];
+                  save(FileName,'FP', '-nocompression', '-v7.3')
+                 % R = lcUtil.zp_meddiff(PF,'MagField','MAG_PSF','MagErrField','MAGERR_PSF')
                   
            
-                  [MS,ApplyToMagFieldr] = applyZP(PF, R.FitZP,'ApplyToMagField','MAG_PSF');
-          
+                  %[MS,ApplyToMagFieldr] = applyZP(PF, R.FitZP,'ApplyToMagField','MAG_PSF');
+                  MS = [];
                   
        
                   
@@ -2404,7 +2408,7 @@ end
                       
                    
                    ObsCoo  = [ObsLon, ObsLat];
-                   [AirMass,~,~] = celestial.coo.airmass(FP.JD,RA*(pi/180),Dec*(pi/180),ObsCoo*(pi/180));
+                   [AirMass,~,~] = celestial.coo.airmass(FP.JD',RA*(pi/180),Dec*(pi/180),ObsCoo*(pi/180));
                       
                    Median   = median(FP.Data.MAG_PSF(:,1));
                    MAD = sort(abs(Median-FP.Data.MAG_PSF(:,1)));

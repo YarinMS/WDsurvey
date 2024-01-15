@@ -46,10 +46,10 @@ TargetsName1 = [
 
 % Initilize WD object
 
-e1  = WD(Targets1(:,1),Targets1(:,2),Targets1(:,3),TargetsName1,'/last02e/data1/archive/LAST.01.02.01/2023/08/27/proc/000540v0')
+e2  = WD(Targets1(:,1),Targets1(:,2),Targets1(:,3),TargetsName1,'/last02e/data1/archive/LAST.01.02.01/2023/08/27/proc/000540v0')
 
-e1.LC_FP = [
- 18.02604
+e2.LC_FP = [
+18.02604
 19.063189
 19.274632
 17.035667
@@ -65,7 +65,7 @@ e1.LC_FP = [
 18.907557
 ];
 
-e1.LC_coadd = [
+e2.LC_coadd = [
 0.66524506
 0.83859444
 1.1449165
@@ -86,25 +86,25 @@ e1.LC_coadd = [
 
 
 % first lim mag calculations
-[id,FieldId] = e1.Coo_to_Subframe(e1.Pathway,e1);
-e1  = e1.get_id(id(:,1));
-e1  = e1.get_fieldID(FieldId);
-[Index,cat_id] = e1.find_in_cat(e1);
-e1  = e1.get_cat_id(cat_id);
+[id,FieldId] = e2.Coo_to_Subframe(e2.Pathway,e2);
+e2  = e2.get_id(id(:,1));
+e2  = e2.get_fieldID(FieldId);
+[Index,cat_id] = e2.find_in_cat(e2);
+e2  = e2.get_cat_id(cat_id);
 %e  = e.get_LC
 % catalog extracion
 
 [t_psf,y_psf,t_aper,y_aper,Info_psf,Info_aper, ... 
                flager,t_rms_aper,t_rms_psf,t_rms_flux,Rms_aper,Rms_psf, ... 
-               rms_flux,t_flux,f_flux,total_rms_flux,magerr,magerrPSF] = e1.get_LC_cat(e1,20,30);
+               rms_flux,t_flux,f_flux,total_rms_flux,magerr,magerrPSF] = e2.get_LC_cat(e2,20,30);
            
-e1.LC_psf   = {t_psf;y_psf;magerrPSF};
-e1.LC_aper  = {t_aper;y_aper;magerr};
-e1.Flux     = {t_flux;f_flux};
-e1.FluxRMS  = total_rms_flux;
-e1.InfoPsf  = Info_psf;
-e1.InfoAper = Info_aper;
-e1.RMS      = {t_rms_aper Rms_aper ; t_rms_psf Rms_psf; t_rms_flux rms_flux };
+e2.LC_psf   = {t_psf;y_psf;magerrPSF};
+e2.LC_aper  = {t_aper;y_aper;magerr};
+e2.Flux     = {t_flux;f_flux};
+e2.FluxRMS  = total_rms_flux;
+e2.InfoPsf  = Info_psf;
+e2.InfoAper = Info_aper;
+e2.RMS      = {t_rms_aper Rms_aper ; t_rms_psf Rms_psf; t_rms_flux rms_flux };
 
 %figure();
 
@@ -123,10 +123,10 @@ e1.RMS      = {t_rms_aper Rms_aper ; t_rms_psf Rms_psf; t_rms_flux rms_flux };
 
 %%  Lim mag from header:
 
-LimMag  = WD([],[],[],[],e1.Pathway)
+LimMag  = WD([],[],[],[],e2.Pathway)
 
 %choose field ID :
-LimMag.FieldID = e1.FieldID(1);
+LimMag.FieldID = e2.FieldID(1);
 
 % limmag per subframe
 
@@ -141,4 +141,10 @@ LimMag.FieldID = e1.FieldID(1);
 
 % GetData
 
-wd1 = GetDataV6(e1 ,'SaveTo', '~/Documents/WD_survey/270823/358+34/','time_1immag',time_1,'limmag',limmag)
+wd1 = GetDataWref(e2 ,'SaveTo',...
+    '~/Documents/WD_survey/270823/358+34/zp/','time_1immag',...
+    time_1,'limmag',limmag)
+
+
+
+
