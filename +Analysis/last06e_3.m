@@ -30,11 +30,11 @@ TargetsName = [
 
 % Initilize WD object
 
-e  = WD(Targets(:,1),Targets(:,2),Targets(:,3),TargetsName,'/last06e/data1/archive/LAST.01.06.01/2023/08/21/proc/15')
+e1  = WD(Targets(:,1),Targets(:,2),Targets(:,3),TargetsName,'/last06e/data1/archive/LAST.01.06.01/2023/08/21/proc/15')
 
 % GetData
 
-e1 = GetData(e)
+e1 = GetData(e1)
 
 
 %% 270823
@@ -123,6 +123,22 @@ e1  = e1.get_id(id(:,1));
 e1  = e1.get_fieldID(FieldId);
 % [Index,cat_id] = WD.find_in_cat(WD);
 % WD  = WD.get_cat_id(cat_id);
+% catalog extracion
+
+[t_psf,y_psf,t_aper,y_aper,Info_psf,Info_aper, ... 
+               flager,t_rms_aper,t_rms_psf,t_rms_flux,Rms_aper,Rms_psf, ... 
+               rms_flux,t_flux,f_flux,total_rms_flux,magerr,magerrPSF] = e1.get_LC_cat(e1,20,30);
+           
+e1.LC_psf   = {t_psf;y_psf;magerrPSF};
+e1.LC_aper  = {t_aper;y_aper;magerr};
+e1.Flux     = {t_flux;f_flux};
+e1.FluxRMS  = total_rms_flux;
+e1.InfoPsf  = Info_psf;
+e1.InfoAper = Info_aper;
+e1.R      = {t_rms_aper Rms_aper ; t_rms_psf Rms_psf; t_rms_flux rms_flux };
+
+
+
 
 %%  Lim mag from header:
 
@@ -145,3 +161,43 @@ LimMag.FieldID = e1.FieldID(1);
 % GetData
 
 wd1 = GetDataV4(e1 ,'SaveTo', '~/Documents/WD_survey/270823/355+45b/','time_1immag',time_1,'limmag',limmag)
+
+
+
+%%
+%Manual phot 
+Targets2 = [
+345.3170124674257	23.383896269230608	16.03735
+345.0934981501417	22.07149651667664	17.37438
+345.60245275554496	21.864845894962393	17.739908
+
+]
+
+TargetsName2 = [
+'WDJ230116.04+232301.71',
+'WDJ230022.08+220414.76',
+'WDJ230224.73+215154.44'
+]
+
+w =  WD(Targets2(:,1),Targets2(:,2),Targets2(:,3),TargetsName2,'/last06e/data1/archive/LAST.01.06.01/2023/09/04/proc/225057v0')
+
+% first lim mag calculations
+[id,FieldId] = w.Coo_to_Subframe(w.Pathway,w);
+w  = w.get_id(id(:,1));
+w  = w.get_fieldID(FieldId);
+ [Index,cat_id] = w.find_in_cat(w);
+ w  = w.get_cat_id(cat_id);
+% catalog extracion
+
+[t_psf,y_psf,t_aper,y_aper,Info_psf,Info_aper, ... 
+               flager,t_rms_aper,t_rms_psf,t_rms_flux,Rms_aper,Rms_psf, ... 
+               rms_flux,t_flux,f_flux,total_rms_flux,magerr,magerrPSF] = w.get_LC_cat(w,20,30);
+           
+w.LC_psf   = {t_psf;y_psf;magerrPSF};
+w.LC_aper  = {t_aper;y_aper;magerr};
+w.Flux     = {t_flux;f_flux};
+w.FluxRMS  = total_rms_flux;
+w.InfoPsf  = Info_psf;
+w.InfoAper = Info_aper;
+w.R      = {t_rms_aper Rms_aper ; t_rms_psf Rms_psf; t_rms_flux rms_flux };
+
