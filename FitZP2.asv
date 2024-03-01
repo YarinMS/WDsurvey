@@ -1,0 +1,94 @@
+function [Obj,RawObj] = FitZP2(Obj,Args)
+    % Fit zero-point(ZP) for sources with specified conditions.
+    %     First turn hard flags to NaN. Then applies the ZP correction
+    %     According to sources with full magnitude data and removes bad data
+    %     i.e with more than 0.75% NaN. Finally it performs the Sysrem algorithm
+    %     on the remaining good data.
+    % Input  : - A MatchedSources object.
+    %          * ...,key,val,...
+    %            'MinNumSrc' - Minimum number of sources required to perform
+    %                the ZP fit. Default is 20.
+    %            'MagField' - Name of the field containing magnitude data.
+    %                Default is 'MAG_APER_3'.
+    %            'MagErrField' - Name of the field containing magnitude
+    %                error data. Default is 'MAGERR_APER_3'.
+    %            'HardFlagsMask' - Mask for identifying bad data using the
+    %                FlagIdentification function. Default is determined by
+    %                FlagIdentification.
+    %
+    % Output : The updated MatchedSources object with ZP applied to sources
+    %           meeting the specified conditions.  
+    % Author: Yehuda Stern (September 2023).
+    % Example: sourcesObj = FitZPFlagsNan(sourcesObj);
+
+    arguments
+        Obj MatchedSources
+        Args.MinNumSrc         = 2;
+        Args.MagField char     = 'MAG_PSF';
+        Args.MagErrField char  = 'MAGERR_PSF';
+        Args.HardFlagsMask     = outsource.FlagIdentification(Obj);
+        Args.Title  = []
+        Args.Title2 = 'ZP - SysRem RMS results only Good Sources (PSF)'
+    end
+
+    MSCopy = copy(Obj);
+    %% ZP according sources with full data
+    Mag = MSCopy.Data.(Args.MagField);
+    Mag(Args.HardFlagsMask) = NaN;
+    mask = sum(~isnan(Mag),1) == MSCopy.Nepoch;%mask for source without any NaN
+    if sum(mask) < Args.MinNumSrc
+        fprintf('Not enough sources that meet the conditions');
+    end
+    MSCopy.Data.(Args.MagField) = Mag(:,mask);
+    MSCopy.Data.(Args.MagErrField) = MSCopy.Data.(Args.MagErrField)(:,mask);
+    R = lcUtil.zp_meddiff(MSCopy,'MagField',Args.MagField ,'MagErrField',Args.MagErrField);
+    format long;
+    Obj.applyZP(R.FitZP,'ApplyToMagField', Args.MagField );
+
+    
+    
+    %% Throw out bad data
+    outsource.ApplyMask(Obj, 'Mask',Args.HardFlagsMask,'Fields',{Args.MagField,Args.MagErrField}, 'Value', NaN);
+    ToMuchNaNMask=sum(isnan(Obj.Data.(Args.MagField)),1)/Obj.Nepoch > 0.75;%mask for source withmore than 0.75% NaN
+    outsource.ApplyMask(Obj, 'Mask',~ToMuchNaNMask, 'Value', 'erash');
+    SourceNum = (1:Obj.Nsrc);
+    Obj.addMatrix(SourceNum(~ToMuchNaNMask),'SourceNum');
+    Obj.addMatrix(sum(~ToMuchNaNMask),'NewNsrc');
+        
+    %hold on 
+    %Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField)
+    
+   % ax = Obj.plotRMS('PlotSymbol','+','PlotColor','black','FieldX',Args.MagField).XData;
+   % ay = Obj.plotRMS('PlotSymbol','+','PlotColor','black','FieldX',Args.MagField).YData;
+    RawObj = Obj.copy()
+    %Sysrem on good data only
+    Obj.sysrem('MagFields' ,{Args.MagField} , 'MagErrFields',{Args.MagErrField},'sysremArgs',{'Niter',2});
+    %hold on 
+    %Obj.plotRMS('PlotSymbol','+','PlotColor','black','FieldX',Args.MagField)
+    %title(sprintf('FitZPFlags with only good sources  %s ',char(Args.MagField)),'Interpreter','latex')
+    %title(Args.Title,'Interpreter','latex')
+    %legend('No ZP','ZP','ZP + 2 SysRem','Interpreter' , 'latex')
+   % xlim([10,20])
+   % ylim([1e-3,1.2])            
+            
+    
+    
+  %  figure();
+    
+  %  bx = Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField).XData;
+  %  by = Obj.plotRMS('PlotSymbol','s','PlotColor','blue','FieldX',Args.MagField).YData;
+    
+    
+    
+  %  figure(); semilogy(ax,ay-by,'.')
+  %  title(Args.Title2,'Interpreter','latex')
+  %  xlabel('MAG','Interpreter','latex')
+   % ylabel('$RMS_{ZP} - RMS_{ZP+SysRem}$','Interpreter','latex')
+   % hline(0.01)
+    %legend('$RMS_{ZP} - RMS_{ZP+SysRem}$','$y = 0.01$', 'Interpreter','latex')
+    
+    
+    
+    
+
+end

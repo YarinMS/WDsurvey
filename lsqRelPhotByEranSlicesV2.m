@@ -176,7 +176,33 @@ function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
 
         
         
+        
+       % change H
+       Color_vec = H(:,length(H(1,:)));
+       
+       
+      % switch the coloumns 
+      for Is = length(H(1,:)):-1:1
+          
+          if Is > 1 
+              
+              H(:,Is)  = H(:,Is-1);
+              
+          else
+              
+              H(:,1) = Color_vec;
+              
+          end
+          
+      end
+          
+          
+          
+      end
+       
+                                                           
         % filter any critical flags
+        
         BitClass = Args.BitDic.Class;
         Flags = BitClass(MS.Data.(Args.PropFlags));
         Flags = Flags(Args.StartInd:Args.EndInd,:);
@@ -193,8 +219,32 @@ function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
             
         FLAG = ~FLAG(:);
         
+        Flag2 = true(size(Args.InstMag));
+        
         % remove NaNs and BAD FLAGs and SNR lower than 10
-        Flag = Flag & ~isnan(Y) & FLAG & (ErrY < Args.MaxStarStd);
+
+       
+        
+        if Iiter == 1 
+        
+           if  ~isempty(Args.StarProp)
+              for i = 1 : length(Args.StarProp{:})
+            
+                  if isnan(Args.StarProp{1}(i)) 
+                
+                        Flag2(:,i) = false;
+            
+                  end
+            
+              end
+           end
+        
+            Flag2 = Flag2(:);
+            
+        
+            Flag = Flag & ~isnan(Y) & FLAG & (ErrY < Args.MaxStarStd) & Flag2;
+            
+        end
             
             
              
@@ -207,6 +257,16 @@ function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
               %[Par,ParErr] = lscov(H(Flag,:), Y(Flag)); 
               Model =  H*Par ;    
               Resid = Y - Model;  % all residuals (including bad stars)
+            case 'cgs'
+                % congugate gradient method
+                A      = H(Flag,:).'*H(Flag,:);
+                YY     = H(Flag,:).' * Y(Flag);
+                Par    = cgs(A, YY);
+                ParErr = nan(size(Par));
+                Resid  = Y - H*Par;
+                Model  = H*Par; 
+
+            
             otherwise
                error('Unknown Method option');
         end
@@ -234,7 +294,7 @@ function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
                  
                  GoodFlagSources = sum(FlagSquare) >= 1
                  
-                 if isempty(GoodFlagSources)
+                 if sum(GoodFlagSources) < 5
                      
                      fprintf('\nNo Stars to use')
                      break;
@@ -275,7 +335,7 @@ function [Result,Model,GoodFlagSources]=lsqRelPhotByEranSlices(MS, Args)
                  
             
                %  FlagResid = FlagResid(:);
-                 Flag = Flag & GFlags & MatStdStar(:)<Args.MaxStarStd;
+                 Flag = Flag & GFlags % & MatStdStar(:)<Args.MaxStarStd;
              end
         
         %std(ParZP - ZP)   % should be eq to MagErr/sqrt(Nimage)
