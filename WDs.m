@@ -453,7 +453,7 @@ classdef WDs
                                   fprintf('\nCoord of source # %i Found in subframe %i\nTarget name : %s',Iobj,CropID{Iobj,1},obj.Name(Iobj,:))
                                   
                              else
-                                  CropID{Iobj,length(CropID{Iobj})+1} = ai(Iimage).Data.Key.CROPID ; 
+                                  CropID{Iobj,length(CropID{Iobj})+1} = ai(Iimage).HeaderData.Key.CROPID ; 
                                   fprintf('\nTarget # %i Appear in subframes: %i %i %i %i\n ',Iobj,[CropID{Iobj,:}])
                              end
                              
