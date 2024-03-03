@@ -69,7 +69,40 @@ TargetList = [
 
 Pathway = [DataPath,'/161101v0']
 
-e = WDs(Pathway,Names,TargetList(:,1)	,TargetList(:,2)	,TargetList(:,3)    ,TargetList(:,4)	,TargetList(:,5),'Batch',2)
+e = WDs(Pathway,Names,TargetList(:,1)	,TargetList(:,2)	,TargetList(:,3)    ,TargetList(:,4)	,TargetList(:,5),'Batch',[],'getForcedData',false)
 
 
+%% plot a source to check it
 
+Idx = 2 ;
+SourceIdx = e.Data.Catalog.MS{Idx}.coneSearch(e.RA(Idx),e.Dec(Idx)).Ind
+
+t = e.Data.Catalog.MS{Idx}.JD;
+y_noZP = e.Data.Catalog.MS{Idx}.Data.MAG_PSF(:,SourceIdx);
+
+figure('Color','white');
+plot(t,y_noZP,'o')
+hold on
+
+t = e.Data.Catalog.PSF{Idx}.JD;
+y_ZPpsf = e.Data.Catalog.PSF{Idx}.Data.MAG_PSF(:,SourceIdx);
+plot(t,y_ZPpsf,'x')
+hold off
+
+%% RMS plot
+
+figure('Color','white')
+
+RMSnoZP  = e.Data.Catalog.PSF{Idx}.plotRMS('FieldX','MAG_PSF','PlotColor','red')
+hold on
+RMSnoZP  = e.Data.Catalog.MS{Idx}.plotRMS('FieldX','MAG_PSF','PlotColor','black')
+
+% with sysrem:
+
+flags = BitDictionary.BitDic.Class(e.Data.Catalog.MS{Idx})
+
+BitMask =  BitDictionary.BitDic.Class
+
+%%
+
+AC = AstroCatalog('LAST.01.01.01_20231215.181744.193_clear_074+56_001_001_015_sci_proc_Cat_1.fits')

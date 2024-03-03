@@ -67,14 +67,15 @@ TargetList = [
 
 
 
+Pathway = [DataPath,'/161101v0']
+
+e = WDs(Pathway,Names,TargetList(:,1)	,TargetList(:,2)	,TargetList(:,3)    ,TargetList(:,4)	,TargetList(:,5),'Batch',[],'getForcedData',false)
 
 
+%% plot a source to check it
 
-% First initilize with Path,Name,RA,DEC,.....
+Idx = 2 ;
+SourceIdx = e.Data.Catalog.MS{Idx}.coneSearch(e.RA(Idx),e.Dec(Idx)).Ind
 
-Pathway = '/last03e/data1/archive/LAST.01.03.01/2023/12/14/proc/153557v0'
-
-e = WDs(Pathway,Names,TargetList(:,1)	,TargetList(:,2)	,TargetList(:,3)    ,TargetList(:,4)	,TargetList(:,5),'Batch',2)
-
-
-
+t = e.Data.Catalog.MS{Idx}.JD;
+y_noZP = e.Data.Catalog.MS{Idx}.Data.Ma
