@@ -11,6 +11,7 @@ arguments
     Args.Field  = ''; 
     Args.SubFrame = ''; % '015' or '009'
     Args.plot     = true;
+    Args.getAirmass = false;
     
     
 end
@@ -115,7 +116,18 @@ if Args.Header
         
         
         
+    if Args.getAirmass 
+        
+        [Airmass,Time] = getAirmass(Result);
+        
+        [~,timeInd] = sort(Time);
+        Result.AMtime = Time(timeInd);
+        Result.AM     = Airmass(timeInd);
+        
+    end
     
+
+        
       
     
 

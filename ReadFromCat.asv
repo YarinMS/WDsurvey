@@ -11,6 +11,7 @@ arguments
     Args.Field  = ''; 
     Args.SubFrame = ''; % '015' or '009'
     Args.plot     = true;
+    Args.getAirmass = false;
     
     
 end
@@ -103,18 +104,29 @@ if Args.Header
         subplot(3,1,2)
         plot(t,Result.LimMag)
         xlabel('Time','Interpreter','latex')
+        set(gca,'YDir','reverse')
         
         ylabel('Lim Mag [mag]','Interpreter','latex')
         subplot(3,1,3)
         plot(RA(sorted), DEC(sorted))
-        xlabel('Time','Interpreter','latex')
+        xlabel('RA [deg]','Interpreter','latex')
         
-        ylabel('Coords [deg]','Interpreter','latex')
+        ylabel('DEC [deg]','Interpreter','latex')
     end
         
         
         
+    if Args.getAirmass 
+        
+        [Airmass,Time] = getAirmass(Result.JD,Result);
+        
+    end
     
+    [~,timeInd] = sort(Time);
+    Time = Time(timWInd);
+    
+    
+        
       
     
 

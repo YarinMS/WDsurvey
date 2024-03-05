@@ -1,0 +1,21 @@
+function [AirMass] = getAirmass(obj,Args)
+
+arguments 
+    
+    obj
+    Args.Results
+    
+    
+end
+
+ObsLon = 35.04085833;
+ObsLat = 30.0530725 ;
+t = obj.JD;
+Coords = Args.Results.Coord;
+
+ObsCoo  = [ObsLon, ObsLat];
+[AirMass,~,~] = celestial.coo.airmass(t,Coords(:,1)*(pi/180),Coords(:,2)*(pi/180),ObsCoo*(pi/180));
+
+plot(datetime(t,'convertfrom','jd'),AirMass,'.')
+set(gca,'YDir','reverse')
+end
