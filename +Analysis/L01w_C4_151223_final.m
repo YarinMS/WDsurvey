@@ -9,7 +9,7 @@ addpath('/home/ocs/Documents/WDsurvey/')
 
 %% List Fields In Path
 
-DataPath = '/last01w/data1/archive/LAST.01.01.03/2023/12/14/proc';
+DataPath = '/last01w/data2/archive/LAST.01.01.04/2023/12/14/proc';
 
 cd(DataPath)
 
@@ -752,7 +752,6 @@ for Iwd = 1 : length(E.RA)
     
     
 end
-
 
 
 
