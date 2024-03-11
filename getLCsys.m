@@ -237,9 +237,9 @@ if Args.plot
         
     end
 hold off
-Title  = sprintf('%s $G_{B_p}$ = %.2f ',Args.Serial,Args.WD.G_Bp(Args.wdIdx));
+Title  = sprintf('$ %s \\  G_{B_p} = %.2f $',Args.Serial,Args.WD.G_Bp(Args.wdIdx));
 title(Title,'Interpreter','latex');
-
+set(gca,'YDir','reverse')
  lglbl{1} = sprintf('ZP rms = %.3f',sigma);
  lglbl{2} = sprintf('SysRem rms = %.3f',sigmas);
  legend(lglbl{1},num2str(threshold_values(1)),num2str(threshold_values(2)),num2str(threshold_values(3)),lglbl{2},'Interpreter','latex','Location','best')
@@ -252,7 +252,7 @@ Event = false;
 if (~isempty(MarkedEventss)) | (~isempty(MarkedEvents))
     
          Event = true;
-         figure('Color','white');
+         figure('Color','white','Units', 'inches', 'Position', [0, 0, 10, 4]);
          plot(t,y_zp,'cs')
          hold on
          plot(t,y_sys,'k.')
@@ -263,22 +263,80 @@ if (~isempty(MarkedEventss)) | (~isempty(MarkedEvents))
          plot(t(MarkedEventss),y_sys(MarkedEventss),'ro','MarkerSize',8,'DisplayName','Events zp')
          plot(t(MarkedEvents),y_zp(MarkedEvents),'mo','MarkerSize',8,'DisplayName','Events sysrem')
          
+         if ~isnan(Med)
+        
+
+        for i = 1:length(threshold_values)
+           if i == 2
+               yline(threshold_values(i), '-', 'Color', [0.05 0.05 0.05],'DisplayName','Median'); % '--' for dashed style, 'r' for red color
+           else
+              
+            
+               yline(threshold_values(i), '--', 'Color', [0.65 0.65 0.65],'DisplayName','Threshold'); % '--' for dashed style, 'r' for red color
+           end
+        
+        end
+    end
+         
          set(gca,'YDir','reverse')
          B_p = Args.WD.G_Bp(Args.wdIdx);
          coords = [Args.WD.RA(Args.wdIdx),Args.WD.Dec(Args.wdIdx)];
          WDname = Args.WD.Name(Args.wdIdx,1:8);
-         Title  = sprintf('%s $G_{B_p}$ = %.2f ; (ra,dec) = %.3f , %.3f',WDname,B_p,coords(1),coords(2))
-         title(Title,'Interpreter','latex')
+         Title  = sprintf('$ %s \\ G_{B_p} = %.2f \\ ; \\ (ra,dec) = %.3f , %.3f $',WDname,B_p,coords(1),coords(2))
+         tit = title(Title,'Interpreter','latex')
+   
          xlabel('Time','Interpreter','latex')
          ylabel('Magnitude','Interpreter','latex')
          
          
          save_to   = Args.SaveTo % '/home/ocs/Documents/WD_survey/Thesis/'
          file_name = [Args.Serial,'.png']
+         sfile = strcat(save_to,file_name);
 
-         save(gca,[save_to,file_name]) ;
+         saveas(gcf,sfile) ;
          pause(5)
          close();
+         
+         figure('Color','white');
+
+
+RMSzp = MS.plotRMS('FieldX','MAG_PSF','plotColor',[0.9 0.9 0.9],'PlotSymbol',['x']);
+Xdata = RMSzp.XData;
+Ydata = RMSzp.YData;
+
+hold on
+
+model.plotRMS('FieldX','MAG_PSF','plotColor','red','PlotSymbol',['x']);
+% semilogy(Xdata(~NaNcut),Ydata(~NaNcut),'b.')
+
+ms.sysrem('MagFields' ,{'MAG_PSF'} , 'MagErrFields',{'MAGERR_PSF'},'sysremArgs',{'Niter',2});
+
+RMSsys = ms.plotRMS('FieldX','MAG_PSF','plotColor','cyan','PlotSymbol',['.']);
+xdata  = RMSsys.XData;
+ydata  = RMSsys.YData;
+
+%clear MS
+% Mark your WD
+semilogy(Xdata(Args.SourceIdx),Ydata(Args.SourceIdx),'p','MarkerSize',10,'MarkerFaceColor','cyan','MarkerFaceColor','black')
+semilogy(xdata(NewIdx),ydata(NewIdx),'p','MarkerSize',10,'MarkerFaceColor','cyan','MarkerFaceColor','black')
+
+
+
+
+Leg = legend('No zp','ZP','SysRem',['rms zp = ',num2str(Ydata(Args.SourceIdx))],['rms sys = ',num2str(ydata(NewIdx))],'Location','best');
+title('RMS MAG PSF','Interpreter','latex')
+pause(2)
+
+file_name = [Args.Serial,'_RMSplot.png']
+sfile = strcat(save_to,file_name);
+
+saveas(gcf,sfile) ;
+close();
+
+
+
+
+         
 
 end
 
