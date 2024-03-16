@@ -1310,13 +1310,15 @@ end
 Tab = table(E.Name, E.RA, E.Dec, E.G_Bp, T, ...
     'VariableNames', {'WD_Name', 'RA', 'Dec', 'B_p_Magnitude', 'Observation_Time'});
 
-monthyear = date;
+
+%% Save table
+monthyear       = date;
 montyear.Format = 'MMM-uuuu';
-['Table_Results_',FieldNames{FieldIdx(1)},'_',char(date.Day),'_',char(date2.Day),'-',char(monthyear)]
-save_path = [save_to,'/observed_wds_data.csv';
+TabName         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'.csv']
+save_path = [save_to,TabName];
 
 % Save table to a file
-writetable(T, save_path);
+save(save_path,'TabName','-
 
 %% Save Results
 

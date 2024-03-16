@@ -9,7 +9,7 @@ addpath('/home/ocs/Documents/WDsurvey/')
 
 %% List Fields In Path
 
-DataPath = '/last05e/data1/archive/LAST.01.05.01/2024/03/08/proc';
+DataPath = '/last05e/data1/archive/LAST.01.05.01/2024/03/11/proc';
 
 cd(DataPath)
 
@@ -72,7 +72,7 @@ Results  = ReadFromCat(DataPath,'Field',FieldNames{FieldIdx(1)},'SubFrame',Subfr
 date = datetime(Results.JD(1),'convertfrom','jd')
 
 save_to   = '/home/ocs/Documents/WD_survey/Thesis/'
-file_name = ['Field_Results_',FieldNames{1},'_',char(date),'.mat']
+file_name = ['Field_Results_',FieldNames{FieldIdx(1)},'_',char(date),'.mat']
 
 save([save_to,file_name],'Results','-v7.3') ;
 
@@ -658,7 +658,7 @@ Results.VisMap = {}
 Vistat = {};
 % Chose a WD
 
-wdIdx = 5;
+wdIdx = 1;
 
 
 
@@ -931,12 +931,12 @@ t = datetime(t,'convertfrom','jd');
 y_sys = ms.Data.MAG_PSF(s,NewIdx);
 plot(t,y_sys,'o')
 hold on
-plot(t,Results.LimMag,'--',')
+plot(t,Results.LimMag,'k--')
 set(gca,'Ydir','reverse')
 
 
 hold off
-legend('ZP','SysRem')
+legend('ZP','SysRem','Lim Mag')
 title('MAG PSF LC','Interpreter','latex')
 
 
@@ -962,77 +962,4 @@ if isnan(Mag(NewIdx) )
     Mag(NewIdx) = e.G_Bp(Idx);
     
 end
-
-%% check Trend CC
-model1 = e.Data.Catalog.PSF{Idx};
-
-m
-
-
-
-
-%%
-
-%[DD,reff,FR,Mod] =  lsqRelPhotByEranV4(model,'Niter', 2,'obj',e,'wdt',Idx,)
-RES =  lsqRelPhotByEranGOODVER(model,'Niter',2,'StarProp',{Color})
-
-r = reshape(RES.Resid,[size(model.Data.MAG_PSF)]);
-std_r = std(r,'omitnan')
-
-[rms0,meanmag0]  = CalcRMS(Mag,r,e,Idx,'Marker','xk','Predicted',false)
-%%
-
-
-figure('Color','white');
-%RMSpsf  = e.Data.Catalog.PSF{Idx}.plotRMS('FieldX','MAG_PSF','PlotColor',[0,0,0])
-%Xdata = RMSpsf.XData;
-%Ydata = RMSpsf.YData;
-
-RMSsys = ms.plotRMS('FieldX','MAG_PSF','plotColor',[0 0 0])%,'PlotSymbol',['x'])
-
-hold on
-
-% semilogy(Xdata(~NaNcut),Ydata(~NaNcut),'b.')
-
-xdata  = RMSsys.XData;
-ydata  = RMSsys.YData;
-
-semilogy(xdata,rms0,'.','MarkerSize',17,'MarkerFaceColor','cyan','MarkerFaceColor','black')
-semilogy(xdata,rms1,'o','MarkerSize',10,'MarkerFaceColor','cyan','MarkerFaceColor','black')
-
-
-
-semilogy(Xdata(~NaNcut),Ydata(~NaNcut),'.','MarkerSize',5,'MarkerFaceColor','cyan','MarkerFaceColor','cyan')
-
-
-% Mark your WD
-semilogy(xdata(NewIdx),ydata(NewIdx),'p','MarkerSize',10,'MarkerFaceColor','cyan','MarkerFaceColor','cyan')
-semilogy(xdata(NewIdx),rms0(NewIdx),'p','MarkerSize',10,'MarkerFaceColor','cyan','MarkerFaceColor','cyan')
-
-
-Leg = legend('SysRem','Linear Model',['rms sys = ',num2str(ydata(NewIdx))],['rms model = ',num2str(rms0(NewIdx))])
-title('RMS MAG PSF')
-
-%%
-
-
-
- [AirMass,t] = getAirmass(model,'Results',Results)
- 
- %[DD,reff,FR,Mod] =  lsqRelPhotByEranV4(model,'Niter', 2,'obj',e,'wdt',Idx,)
-RES =  lsqRelPhotByEranGOODVER(model,'Niter',2,'StarProp',{Color},'ImageProp',{AirMass})
-
-r = reshape(RES.Resid,[size(model.Data.MAG_PSF)]);
-std_r = std(r,'omitnan')
-
-[rms1,meanmag0]  = CalcRMS(Mag,r,e,Idx,'Marker','xk','Predicted',false)
-
-
-%%
-LM   = model.Data.MAG_PSF;
-Err  = model.Data.MAGERR_PSF;
-
-[MMM,H,Par,m] = TrendCC(LM',Color,'JD',model.JD,'Err',Err)
-
-
 

@@ -1318,7 +1318,7 @@ TabName         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day
 save_path = [save_to,TabName];
 
 % Save table to a file
-writetable(Tab, save_path);
+save(save_path,'TabName','-v7.3')
 
 %% Save Results
 
