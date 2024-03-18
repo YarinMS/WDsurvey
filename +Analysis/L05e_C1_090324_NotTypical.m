@@ -9,7 +9,7 @@ addpath('/home/ocs/Documents/WDsurvey/')
 
 %% List Fields In Path
 
-DataPath = '/last01w/data1/archive/LAST.01.01.03/2023/12/14/proc';
+DataPath = '/last05e/data1/archive/LAST.01.05.01/2024/03/11/proc';
 
 cd(DataPath)
 
@@ -26,6 +26,12 @@ for Ivis = 3 : numel(Visits)
     VisitCenter = '010_001_015_sci_proc_Cat_1.fits';
     
     IDX = find(contains({Cats.name},VisitCenter));
+    
+    if isempty(IDX)
+        
+        IDX =  find(contains({Cats.name}, '001_001_015_sci_proc_Cat_1.fits'));
+        
+    end
     
     H   = AstroHeader(Cats(IDX).name,3);
     
@@ -45,8 +51,15 @@ end
 % FOV center by subframe
 
 Subframe = '015';
-FieldIdx = 1;
-Results  = ReadFromCat(DataPath,'Field',FieldNames{length(FieldIdx)},'SubFrame',Subframe,'getAirmass',true);
+
+
+
+
+% FieldIdx = 1;
+
+FieldIdx = find(contains(FieldNames,'Eran1'))
+
+Results  = ReadFromCat(DataPath,'Field',FieldNames{FieldIdx(1)},'SubFrame',Subframe,'getAirmass',true);
 
 
 % Store Results for :
@@ -59,39 +72,41 @@ Results  = ReadFromCat(DataPath,'Field',FieldNames{length(FieldIdx)},'SubFrame',
 date = datetime(Results.JD(1),'convertfrom','jd')
 
 save_to   = '/home/ocs/Documents/WD_survey/Thesis/'
-file_name = ['Field_Results_',FieldNames{1},'_',char(date),'.mat']
+file_name = ['Field_Results_',FieldNames{FieldIdx(1)},'_',char(date),'.mat']
 
 save([save_to,file_name],'Results','-v7.3') ;
 
 
 
 %% targets in field
-Names = ['WDJ035351.72+623032.68',
-'WDJ035115.83+615244.91',
-'WDJ035343.30+613617.69',
-'WDJ035807.61+610146.84',
-'WDJ035937.17+630440.88',
-'WDJ035243.80+613312.87'
+Names = ['WDJ_Erans.61+580251.00',
+'WDJ051007.61+580251.00',
+'WDJ050504.38+554333.45',
+'WDJ051131.69+552032.37',
+'WDJ050951.18+580315.36',
+'WDJ050828.83+570359.48',
+'WDJ051210.62+564607.00',
+'WDJ051207.03+561344.17'
   ]
 
 TargetList = [
-58.46422900381937	62.5089936141672	18.225742	18.336258	18.020775
-57.81691460463136	61.87868551986923	17.714863	17.724045	17.718267
-58.42941457743876	61.605021109785056	19.103441	19.278852	18.793915
-59.531971368694485	61.0294975821714	18.78826	18.750568	18.938765
-59.904766037423286	63.078010801721796	19.19191	19.26389	19.266926
-58.18278606079824	61.55359591356678	19.055426	19.022543	19.196217
-
+77.04166            57.16486            15          15          15
+77.53288856342532	58.047136610965396	17.113401	17.201847	16.963413
+76.26790148273098	55.726056955498684	17.51806	17.497694	17.547382
+77.88192210471136	55.3423273413556	18.303741	18.291779	18.422775
+77.4633205999669	58.054221264373815	17.713617	17.739527	17.663086
+77.11985597706663	57.066527860952036	18.13492	18.15322	18.165815
+78.0443527152886	56.7684285098987	19.085087	19.177528	19.193205
+78.0292815907405	56.228918266628305	19.10996	19.149885	19.064938
 ];
 
 
 
-Pathway = [DataPath,'/000401v0']
+Pathway = [DataPath,'/',Visits(FieldIdx(2)).name]
 
 
 
-E = WDs(Pathway,Names,TargetList(:,1)	,TargetList(:,2)	,TargetList(:,3)    ,TargetList(:,4)	,TargetList(:,5),'Batch',[],'getForcedData',false,'plotTargets',true,...
-    'FieldId',FieldNames{FieldIdx})
+E = WDs(Pathway,Names,TargetList(:,1)	,TargetList(:,2)	,TargetList(:,3)    ,TargetList(:,4)	,TargetList(:,5),'Batch',[],'getForcedData',false,'plotTargets',true,'FieldId',FieldNames{FieldIdx(1)})
 
 
 
@@ -102,9 +117,9 @@ cd(DataPath)
 
 Visits = dir;
 
-List = MatchedSources.rdirMatchedSourcesSearch('CropID',15);      
+List = MatchedSources.rdirMatchedSourcesSearch('CropID',16);      
                            % Consider only visits with the same Field ID
-visits = find(contains(List.FileName,FieldNames{FieldIdx}));
+visits = find(contains(List.FileName,FieldNames{FieldIdx(1)}));
 List.FileName = List.FileName(visits);
 List.Folder   = List.Folder(visits);
 List.CropID   = List.CropID;
@@ -643,7 +658,7 @@ Results.VisMap = {}
 Vistat = {};
 % Chose a WD
 
-wdIdx = 6;
+wdIdx = 1;
 
 
 
@@ -708,13 +723,17 @@ for Iwd = 1 : length(E.RA)
          
             
             
-            CellData = Results.VisMap(:,Icol);
+                
+                 CellData = Results.VisMap(:,Icol);
             
             for Irow = 1 : size(Results.VisMap,1)
                 
-                Vistat(Iwd,
+                if ~isempty(CellData{Irow})
+                
             
                   if CellData{Irow}(4) == Iwd
+                      
+                      Vistat(Iwd,Irow) = 1;
                       
                       fprintf('\nFound wd %i IN batch %i on col %i  \n',Iwd,Irow,Icol)
                       
@@ -729,7 +748,7 @@ for Iwd = 1 : length(E.RA)
                   end
                 
                 
-            
+                end
             
              end
             
@@ -751,80 +770,196 @@ end
 
 
 
+%%
+    %   Upload all files to a MatchedSources object
+Et = MatchedSources.readList(List);
+ET = mergeByCoo( Et, Et(1));
+
+
+%%
+tgt_ind  = ET.coneSearch(E.RA(1),E.Dec(1)) ; 
 
 
 
+e = WDs(Pathway,Names,TargetList(:,1)	,TargetList(:,2)	,TargetList(:,3)    ,TargetList(:,4)	,TargetList(:,5),'Batch',[],'getForcedData',false,'plotTargets',false,...
+    'FieldId',FieldNames{1})
 
 
+%% plot a source to check it
 
+Idx = 1;
+SourceIdx = ET.coneSearch(E.RA(Idx),E.Dec(Idx)).Ind
 
+t = ET.JD;
+y_noZP = ET.Data.MAG_PSF(:,SourceIdx);
 
-%% Visit Map Statistics - redundant
+figure('Color','white');
+plot(t,y_noZP,'o')
+hold on
+ R = lcUtil.zp_meddiff(ET,'MagField','MAG_PSF','MagErrField','MAGERR_PSF')
+[ET,ApplyToMagFieldr] = applyZP(ET, R.FitZP,'ApplyToMagField','MAG_PSF');
 
-for Iwd = 1:numel(E.RA)
+t = ET.JD;
+y_ZPpsf = ET.Data.MAG_PSF(:,SourceIdx);
+plot(t,y_ZPpsf,'x')
+hold off
+
+%% RMS plot
+
+figure('Color','white')
+
+RMSpsf  = ET.plotRMS('FieldX','MAG_PSF','PlotColor','red')
+Xdata = RMSpsf.XData;
+Ydata = RMSpsf.YData;
+
+hold on
+RMSraw  = ET.plotRMS('FieldX','MAG_PSF','PlotColor','black')
+hold off
+% with sysrem:
+%%
+
+BitMask =  BitDictionary ; 
+
+Bits    =  BitMask.Class(ET.Data.FLAGS);
+
+BadBits =  {'Saturated','NaN','Negative','CR_DeltaHT','NearEdge'};
+
+Remove  = zeros(size(Bits));
+
+for b = BadBits
     
-    %
-    ColDat  = Results.VisMap(:,Iwd);
-    CorrCol = false;
-    for row = 1 : size(ColDat,1)
-        
-        if ~isempty(ColDat{row})
-            
-           if ColDat{row}(4) == Iwd
-               
-               CorrCol = true;
-                fprintf('Found wd %i in data col % i',Iwd,col)
-               break;
-           end
-        end
-        
-        
-        
-    end
+    BitIdx = find(contains(BitMask.Dic.BitName,b))
     
-    if ~CorrCol
-        
-        for col = 1 : size(Results.VisMap,2)
-              ColDat  = Results.VisMap(:,col);
-              
-              for row = 1 : size(ColDat,1)
-        
-                    if ~isempty(ColDat{row})
-            
-                        if ColDat{row}(4) == Iwd
-               
-                          CorrCol = true;
-                          fprintf('Found wd %i in data col % i',Iwd,col)
-                          break;
-                        end
-                    end
-        
-              end
-        end
-    end
+    Remove =  Remove | bitget(Bits,BitIdx);
 
-    for Iwd = 1 : size(Results.VisMap,1)
-        
-        
+end
+
+% Remove Bad points
+MS = ET.copy();
+
+MS.Data.MAG_PSF(Remove)       = NaN ;
+MS.Data.MAGERR_PSF(Remove)    = NaN ;
+MS.Data.MAG_APER_2(Remove)    = NaN ;
+MS.Data.MAGERR_APER_2(Remove) = NaN ;
+
+% Take only points with more than 50 % measurements
+
+NaNcut = sum(isnan(MS.Data.MAG_PSF))/length(MS.JD) > 0.5;
+
+% Make sure your WD isnt mask 
+
+if NaNcut(SourceIdx)
     
-    
-   
-    end
-    
+    NaNcut(SourceIdx) = 0;
     
 end
     
 
+% Copy Just to prevent confusion
+
+ms = MS.copy();
+
+clear MS
+
+% Survivng source list
+Nsrc = [1:ms.Nsrc] ;
+ms.addMatrix(Nsrc(~NaNcut),'SrcIdx') ;
+ms.addMatrix(sum(~NaNcut),'Nsources') ;
+
+% Cut off Bad sources
+ms.Data.MAG_PSF       = ms.Data.MAG_PSF(:,~NaNcut) ;
+ms.Data.MAGERR_PSF    = ms.Data.MAGERR_PSF(:,~NaNcut) ;
+ms.Data.MAG_APER_2    = ms.Data.MAG_APER_2(:,~NaNcut) ;
+ms.Data.MAGERR_APER_2 = ms.Data.MAGERR_APER_2(:,~NaNcut) ;
+ms.Data.FLAGS         = ms.Data.FLAGS(:,~NaNcut) ;
+NewIdx = find(ms.Data.SrcIdx == SourceIdx);
+
+% For model
+
+model = ms.copy();
+
+figure('Color','white');
+
+
+ms.plotRMS('FieldX','MAG_PSF','plotColor','red','PlotSymbol',['x'])
+
+hold on
+
+% semilogy(Xdata(~NaNcut),Ydata(~NaNcut),'b.')
+
+ms.sysrem('MagFields' ,{'MAG_PSF'} , 'MagErrFields',{'MAGERR_PSF'},'sysremArgs',{'Niter',2});
+
+RMSsys = ms.plotRMS('FieldX','MAG_PSF','plotColor','cyan','PlotSymbol',['.'])
+xdata  = RMSsys.XData;
+ydata  = RMSsys.YData;
+
+
+% Mark your WD
+semilogy(Xdata(SourceIdx),Ydata(SourceIdx),'p','MarkerSize',10,'MarkerFaceColor','cyan','MarkerFaceColor','black')
+semilogy(xdata(NewIdx),ydata(NewIdx),'p','MarkerSize',10,'MarkerFaceColor','cyan','MarkerFaceColor','black')
+
+
+
+
+Leg = legend('ZP','SysRem',['rms zp = ',num2str(Ydata(SourceIdx))],['rms zp = ',num2str(ydata(NewIdx))])
+title('RMS MAG PSF')
 
 
 
 
 
 
+%% plot a source to check it
+
+
+
+figure('Color','white');
+
+t = ms.JD;
+[~,s] = sort(t);
+t = t(s);
+t = datetime(t,'convertfrom','jd');
+plot(t,y_ZPpsf(s),'x')
+
+hold on
+
+t = ms.JD;
+[~,s] = sort(t);
+t = t(s);
+t = datetime(t,'convertfrom','jd');
+
+y_sys = ms.Data.MAG_PSF(s,NewIdx);
+plot(t,y_sys,'o')
+hold on
+plot(t,Results.LimMag,'k--')
+set(gca,'Ydir','reverse')
+
+
+hold off
+legend('ZP','SysRem','Lim Mag')
+title('MAG PSF LC','Interpreter','latex')
+
+
+%% Model 
+% get ext color
+model.addExtMagColor
+
+
+%%
+Color = model.SrcData.ExtColor(~NaNcut);
+Mag   = model.SrcData.ExtMag(~NaNcut);
+
+Color(isnan(Color)) = 0;
+
+if Color(NewIdx) == 0
     
+    Color(NewIdx) = e.Color(Idx);
     
-    
-    
+end
 
-
+if isnan(Mag(NewIdx) )
+    
+    Mag(NewIdx) = e.G_Bp(Idx);
+    
+end
 
