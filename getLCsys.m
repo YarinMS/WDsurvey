@@ -247,6 +247,18 @@ if Args.plot
         MarkedEventss = reshape(MarkedEventss,1,[])
         
        plot(t(MarkedEventss),y_sys(MarkedEventss),'ro','MarkerSize',8)
+       
+            mm = MarkedEventss;
+        
+        d = y_sys;
+        for Ie = 1 : numel(mm)
+            
+            d(mm(Ie)) = NaN;
+            
+        end
+            
+        newsd1 = std(d,'omitnan');
+    
         
     end
     plot(t,y_zp,'-o','Color',[0.8 0.8 0.8])
@@ -263,16 +275,31 @@ close();
 
 Event = false;
 
+if exist('newsd','var') == 1
+    
+else
+    
+    newsd = NaN;
+    
+end
+if exist('newsd','var') == 1
+    
+else
+    
+    newsd1 = NaN;
+    
+end
+
 if (~isempty(MarkedEventss)) | (~isempty(MarkedEvents))
     
          Event = true;
-         figure('Color','white','Units', 'inches', 'Position', [0, 0, 10, 4]);
+         figure('Color','white','Units', 'inches', 'Position', [0, 0, 14, 8]);
          plot(t,y_zp,'cs')
          hold on
          plot(t,y_sys,'k.')
          
          lglbl{1} = sprintf('ZP rms = %.3f  or %.3f',sigma,newsd)
-         lglbl{2} = sprintf('SysRem rms = %.3f',sigmas)
+         lglbl{2} = sprintf('SysRem rms = %.3f or %.3f',sigmas,newsd1)
          legend(lglbl{1:2},'Interpreter','latex','Location','best')
          plot(t(MarkedEventss),y_sys(MarkedEventss),'ro','MarkerSize',8,'DisplayName','Events zp')
          plot(t(MarkedEvents),y_zp(MarkedEvents),'mo','MarkerSize',8,'DisplayName','Events sysrem')
@@ -296,7 +323,7 @@ if (~isempty(MarkedEventss)) | (~isempty(MarkedEvents))
          B_p = Args.WD.G_Bp(Args.wdIdx);
          coords = [Args.WD.RA(Args.wdIdx),Args.WD.Dec(Args.wdIdx)];
          WDname = Args.WD.Name(Args.wdIdx,1:8);
-         Title  = sprintf('$ %s \\ G_{B_p} = %.2f \\ ; \\ (ra,dec) = %.3f , %.3f $',WDname,B_p,coords(1),coords(2))
+         Title  = sprintf('$ %s \\ %s \\ G_{B_p} = %.2f \\ ; \\ (ra,dec) = %.3f , %.3f $',WDname,Args.Serial,B_p,coords(1),coords(2))
          tit = title(Title,'Interpreter','latex')
    
          xlabel('Time','Interpreter','latex')
