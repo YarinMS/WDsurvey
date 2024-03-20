@@ -323,7 +323,7 @@ if (~isempty(MarkedEventss)) | (~isempty(MarkedEvents))
          B_p = Args.WD.G_Bp(Args.wdIdx);
          coords = [Args.WD.RA(Args.wdIdx),Args.WD.Dec(Args.wdIdx)];
          WDname = Args.WD.Name(Args.wdIdx,1:8);
-         Title  = sprintf('$ %s \\ G_{B_p} = %.2f \\ ; \\ (ra,dec) = %.3f , %.3f $',WDname,B_p,coords(1),coords(2))
+         Title  = sprintf('$ %s \\ %s \\ G_{B_p} = %.2f \\ ; \\ (ra,dec) = %.3f , %.3f $',WDname,Args.Serial,B_p,coords(1),coords(2))
          tit = title(Title,'Interpreter','latex')
    
          xlabel('Time','Interpreter','latex')
