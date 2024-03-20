@@ -110,6 +110,7 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
         
         
         
+        
         Args.BitDic       = BitDictionary;
         Args.PropFlags    = 'FLAGS';
         Args.FlagsList    = {'NearEdge','Saturated','NaN','Negative'};
@@ -121,9 +122,10 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
     
    Args.InstMag = MS.Data.MAG_PSF ;
    Args.MagErr  = MS.Data.MAGERR_PSF ;
-   bprp         = MS.SrcData.phot_bp_mean_mag - MS.SrcData.phot_rp_mean_mag;
-   bprp(1)      = Args.TargetBpRp ;
+   %bprp         = MS.SrcData.phot_bp_mean_mag - MS.SrcData.phot_rp_mean_mag;
+   %bprp(1)      = Args.TargetBpRp ;
    
+   bprp = Args.Color
     
     
     if isempty(Args.InstMag)

@@ -25,6 +25,7 @@ classdef WDs
         FieldID  % Add field name - take from path
         CropID   % Add subframe number after providing a path 
         Data     % Catalog Data and Forced Photometry Data
+        fieldId
         
         
     end
@@ -52,7 +53,7 @@ classdef WDs
                 Args.printCat   = true ; % from CatData - get Target Index, plot : subframe RMS with ZP, and SysRem for aper3 and psf. and corresponding LC
                 Args.getRMS     = true ;
                 Args.applyZP    = true ;
-                
+                Args.FieldId    = ''   ;
                 
                 
                 Args.getForcedData = true ; % gey MatchedSources object for every target exist in the FOV
@@ -71,6 +72,7 @@ classdef WDs
             obj.G_Bp  = G_Bp;
             obj.G_Rp  = G_Rp;
             obj.Color = G_Bp - G_Rp;
+            obj.fieldId = Args.FieldId;
         
         
         % obj.FieldID = getFieldID()
@@ -246,8 +248,14 @@ classdef WDs
                      if length(obj.Data.Catalog.CatID{Iobj}) == 1
                 
                            L = MatchedSources.rdirMatchedSourcesSearch('CropID',obj.Data.Catalog.CatID{Iobj}(1));      
+                           % Consider only visits with the same Field ID
+                           Visits = find(contains(L.FileName,obj.fieldId));
+                           List.FileName = L.FileName(Visits);
+                           List.Folder   = L.Folder(Visits);
+                           List.CropID   = L.CropID;
+                           
                            %   Upload all files to a MatchedSources object
-                           ms = MatchedSources.readList(L);    
+                           ms = MatchedSources.readList(List);    
                            %   % Merge all MatchedSources elkement into a single element object
                            MSU = mergeByCoo(ms,ms(1));
                            %   % Add GAIA mag and colors
@@ -453,7 +461,7 @@ classdef WDs
                                   fprintf('\nCoord of source # %i Found in subframe %i\nTarget name : %s',Iobj,CropID{Iobj,1},obj.Name(Iobj,:))
                                   
                              else
-                                  CropID{Iobj,length(CropID{Iobj})+1} = ai(Iimage).Data.Key.CROPID ; 
+                                  CropID{Iobj,length(CropID{Iobj})+1} = ai(Iimage).HeaderData.Key.CROPID ; 
                                   fprintf('\nTarget # %i Appear in subframes: %i %i %i %i\n ',Iobj,[CropID{Iobj,:}])
                              end
                              

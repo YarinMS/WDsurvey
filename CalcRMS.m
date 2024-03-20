@@ -16,8 +16,8 @@ end
 %Gaiag(1)   = wd.Mag(wdt);
 Predicted  = mean(Mat,'omitnan');
 Err        = Mat - Predicted;
-Npts       = length(Err(:,1));
-SE         = (1/Npts).*sum(Err.^2,'omitnan');
+Npts       = sum(~isnan(Err));
+SE         = (1./Npts).*sum(Err.^2,'omitnan');
 
 
 rmse = sqrt(SE)      ; 

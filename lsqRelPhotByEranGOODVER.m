@@ -150,6 +150,8 @@ function Result=lsqRelPhotByEran(MS, Args)
     else
         AddCalibBlock = true;
         Y             = [Y; Args.CalibMag(:)];
+        ErrY          = [ErrY;ones(length(Args.CalibMag(:)),1)];
+        VarY = ErrY.^2;
     end
     
     % for first Iter take SNR > 10
@@ -187,6 +189,8 @@ function Result=lsqRelPhotByEran(MS, Args)
         end
             
         FLAG = ~FLAG(:);
+        del = length(Flag)-length(FLAG);
+        FLAG(length(FLAG):length(FLAG)+del) = 1;
         
         % remove NaNs and BAD FLAGs and SNR lower than 10
         Flag = Flag & ~isnan(Y) & FLAG & (ErrY < Args.MaxStarStd);
@@ -216,19 +220,19 @@ function Result=lsqRelPhotByEran(MS, Args)
         
              if Iiter<Args.Niter
                  % skip this step in the last iteration
-               [FlagResid,Res] = imUtil.calib.resid_vs_mag(ParMag(:), StdStar(:)) %, Args.ThresholdSigma, Args.resid_vs_magArgs{:});
-                FlagResid = repmat(FlagResid(:),[1, Nimage]).';
+%               [FlagResid,Res] = imUtil.calib.resid_vs_mag(ParMag(:), StdStar(:)) %, Args.ThresholdSigma, Args.resid_vs_magArgs{:});
+ %               FlagResid = repmat(FlagResid(:),[1, Nimage]).';
             
                  % calc VarY
-                 if Args.UseMagStdErr
-                     NewErr = repmat(Res.InterpStdResid.', Nimage, 1);
-                     VarY   = NewErr(:).^2;
-                 end
+       %          if Args.UseMagStdErr
+        %             NewErr = repmat(Res.InterpStdResid.', Nimage, 1);
+         %            VarY   = NewErr(:).^2;
+          %       end
             
                  MatStdStar = repmat(StdStar, Nimage, 1);
             
-                 FlagResid = FlagResid(:);
-                 Flag = Flag & FlagResid & MatStdStar(:)<Args.MaxStarStd;
+                 %FlagResid = FlagResid(:);
+                 Flag = Flag  & MatStdStar(:)<Args.MaxStarStd ; % & FlagResid
              end
         
         %std(ParZP - ZP)   % should be eq to MagErr/sqrt(Nimage)
@@ -250,8 +254,8 @@ function Result=lsqRelPhotByEran(MS, Args)
     Result.StdImage  = std(ResidSquare, [], 2, 'omitnan');
     
     if Args.Niter>1
-        [Result.AssymStd, Imin] = min(Res.InterpStdResid);
-        Result.MagAssymStd      = Res.Mag(Imin);
+       % [Result.AssymStd, Imin] = min(Res.InterpStdResid);
+       % Result.MagAssymStd      = Res.Mag(Imin);
     else
         Result.AssymStd    = NaN;
         Result.MagAssymStd = NaN;
