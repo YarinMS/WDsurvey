@@ -9,7 +9,7 @@ addpath('/home/ocs/Documents/WDsurvey/')
 
 %% List Fields In Path
 
-DataPath = '/last04e/data1/archive/LAST.01.04.01/2024/03/09/proc';
+DataPath = '/last04e/data1/archive/LAST.01.04.01/2023/12/14/proc';
 
 cd(DataPath)
 
@@ -57,7 +57,7 @@ Subframe = '015';
 
 % FieldIdx = 1;
 
-FieldIdx = find(contains(FieldNames,'WIREDJ130558'))
+FieldIdx = find(contains(FieldNames,'AT2023uqf'))
 
 Results  = ReadFromCat(DataPath,'Field',FieldNames{FieldIdx(1)},'SubFrame',Subframe,'getAirmass',true);
 
@@ -79,23 +79,39 @@ save([save_to,file_name],'Results','-v7.3') ;
 
 
 %% targets in field
-Names = ['WDJ130317.88+260313.51',
-'WDJ130522.83+244537.01',
-'WDJ130323.72+251007.15',
-'WDJ130648.82+240321.14',
-'WDJ130744.42+244003.42',
-'WDJ131009.73+240357.64',
-'WDJ130620.09+252716.71'
+Names = ['WDJ093859.06+242135.89',
+'WDJ093156.53+244037.40',
+'WDJ093652.94+250032.14',
+'WDJ093140.54+244653.93',
+'WDJ093537.54+241708.50',
+'WDJ093811.58+251011.32',
+'WDJ093228.24+241419.53',
+'WDJ093923.73+260839.52',
+'WDJ093513.69+252022.71',
+'WDJ093450.06+261131.56',
+'WDJ093127.33+254320.22',
+'WDJ093321.88+250506.31',
+'WDJ093819.20+253736.16',
+'WDJ093124.09+230757.31',
+'WDJ093432.53+234656.21'
   ]
 
 TargetList = [
-195.81818698021138	26.054472945227378	18.383684	19.061142	17.64019
-196.3448969150372	24.760336618722388	18.698404	18.787102	18.542479
-195.84839424512458	25.169003844671575	16.332817	16.273342	16.486515
-196.70320345391877	24.05574563518047	19.172144	19.275259	19.068079
-196.93503843656305	24.66757717146458	17.823816	17.79286	17.94969
-197.54049449954053	24.06548155308685	18.56186	18.542492	18.61047
-196.58359583314356	25.454650535725328	18.891996	18.76272	19.127613
+144.7469912311263	24.358913159925052	19.173553	19.872547	18.439316
+142.98550675472833	24.67671695796862	18.810928	18.807747	18.90374
+144.2205058465148	25.009022270571965	17.69066	17.730272	17.69878
+142.91861190633884	24.782011603193837	18.02076	18.138706	17.820103
+143.90699380578818	24.285900517513323	18.218811	18.286926	18.12752
+144.54806722320214	25.16981735602536	16.687263	16.399225	16.456215
+143.1173686620097	24.238679779996893	17.915068	17.976797	17.845255
+144.8478910509847	26.144114028889813	18.98752	19.174053	18.836517
+143.80668665292055	25.33935030945767	18.687996	18.827988	18.488245
+143.70845242896138	26.191283366599954	19.052382	19.367647	18.660007
+142.86367309770955	25.722314007528148	18.185942	18.198784	18.263319
+143.34113276115653	25.08491180647363	19.09556	19.09692	19.17496
+144.57993583359308	25.626521171701157	18.568953	18.511097	18.736204
+142.85054939843945	23.132584848279773	19.180414	19.185495	19.260628
+143.63573107010538	23.78212869767188	19.016367	18.982328	19.258076
 ];
 
 
@@ -105,6 +121,36 @@ Pathway = [DataPath,'/',Visits(FieldIdx(2)).name]
 
 
 E = WDs(Pathway,Names,TargetList(:,1)	,TargetList(:,2)	,TargetList(:,3)    ,TargetList(:,4)	,TargetList(:,5),'Batch',[],'getForcedData',false,'plotTargets',true,'FieldId',FieldNames{FieldIdx(1)})
+
+
+
+% look at the entire data first:
+
+for Iwd =1 : numel(E.RA)
+    
+ if ~isempty( E.Data.Catalog.PSF2{Iwd})
+    
+    source_index = E.Data.Catalog.PSF2{Iwd}.coneSearch(E.RA(Iwd),E.Dec(Iwd)).Ind;
+    
+    if ~isempty(source_index)
+        figure('color','white');
+        t = E.Data.Catalog.PSF2{Iwd}.JD;
+        y = E.Data.Catalog.PSF2{Iwd}.Data.MAG_PSF(:,source_index);
+        
+        plot(t,y,'k.');
+        set(gca, 'YDir','reverse')
+        title(E.Name(Iwd,:))
+        
+       
+        
+    end
+    
+ end 
+end
+    
+    
+    
+
 
 
 
@@ -135,7 +181,10 @@ for Ivis = 1 : numel(List.Folder)
     
          L = MatchedSources.rdirMatchedSourcesSearch('CropID',Icrop);            
          %   Upload all files to a MatchedSources object
-         matched = MatchedSources.readList(L); 
+         if ~isempty(L.FileName)
+              matched = MatchedSources.readList(L); 
+         
+         
          
          for Iwd = 1 : numel(E.RA)
              
@@ -154,6 +203,7 @@ for Ivis = 1 : numel(List.Folder)
              end
              
              
+         end
          end
          
          
@@ -512,8 +562,8 @@ Vistat = {};
 wdIdx = 7;
 
 
-
-
+for i = 1 : length(E.RA)
+wdIdx = i;
 
 
 for Icol = 1 : numel(Results.SubFrame{wdIdx})
@@ -529,9 +579,10 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
         
         for Ifind = 1: length(Found_Index)
         
-              [maso,event,Npts] = getLCsys( Results.Main{Ibatch,MainCol},'SourceIdx',Found_Index(Ifind),'SaveTo',save_to,'Serial',...
-                  sprintf('Found_%i_WD_%i_Bno_%i_SF_%i_V_%s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol}),'WD',E,'wdIdx',wdIdx);
+            
         
+              [maso,event,Npts] = getLCsys( Results.Main{Ibatch,MainCol},'SourceIdx',Found_Index(Ifind),'SaveTo',save_to,'Serial',...
+                  sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\  %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},datestr(date)),'WD',E,'wdIdx',wdIdx);
               if event
                 
                   save([save_to,'Event_In_',VN{Ibatch,MainCol},'_.mat'],'maso','-v7.3')
@@ -560,6 +611,7 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
     
     end
 
+end
 end
 
 %%
@@ -658,7 +710,7 @@ addpath('/home/ocs/Documents/WDsurvey/')
 
 %% List Fields In Path
 
-DataPath2 = '/last04e/data1/archive/LAST.01.04.01/2024/03/11/proc';
+DataPath2 = '/last04e/data1/archive/LAST.01.04.01/2023/12/15/proc';
 
 cd(DataPath2)
 
@@ -706,7 +758,7 @@ Subframe = '015';
 
 % FieldIdx = 1;
 
-FieldIdx2 = find(contains(FieldNames2,'WIREDJ130558'))
+FieldIdx2 = find(contains(FieldNames2,'AT2023uqf'))
 
 Results2  = ReadFromCat(DataPath2,'Field',FieldNames2{FieldIdx2(1)},'SubFrame',Subframe,'getAirmass',true);
 
@@ -1307,17 +1359,18 @@ for i = 1:length(E.RA)
         E.Name(i,:), E.RA(i), E.Dec(i), E.G_Bp(i), T(i));
 end
 
-Tab =[E.RA, E.Dec, E.G_Bp, T]
-    
+Tab = table(E.Name, E.RA, E.Dec, E.G_Bp, T, ...
+    'VariableNames', {'WD_Name', 'RA', 'Dec', 'B_p_Magnitude', 'Observation_Time'});
+
 
 %% Save table
 monthyear       = date;
 montyear.Format = 'MMM-uuuu';
-TabName         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'.mat']
+TabName         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'.csv']
 save_path = [save_to,TabName];
 
 % Save table to a file
-save(save_path,'Tab','-v7.3')
+save(save_path,'TabName','-v7.3')
 
 %% Save Results
 
