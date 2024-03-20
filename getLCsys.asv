@@ -247,6 +247,18 @@ if Args.plot
         MarkedEventss = reshape(MarkedEventss,1,[])
         
        plot(t(MarkedEventss),y_sys(MarkedEventss),'ro','MarkerSize',8)
+       
+            mm = MarkedEventss;
+        
+        d = y_sys;
+        for Ie = 1 : numel(mm)
+            
+            d(mm(Ie)) = NaN;
+            
+        end
+            
+        newsd1 = std(d,'omitnan');
+    
         
     end
     plot(t,y_zp,'-o','Color',[0.8 0.8 0.8])
@@ -262,6 +274,15 @@ pause(5)
 close();
 
 Event = false;
+
+if exist('newsd','var') == 1
+    
+else
+    
+    newsd = Nan;
+    
+end
+
 
 if (~isempty(MarkedEventss)) | (~isempty(MarkedEvents))
     

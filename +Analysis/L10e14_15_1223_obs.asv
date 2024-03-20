@@ -567,7 +567,7 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
         for Ifind = 1: length(Found_Index)
         
               [maso,event,Npts] = getLCsys( Results.Main{Ibatch,MainCol},'SourceIdx',Found_Index(Ifind),'SaveTo',save_to,'Serial',...
-                  sprintf('Found_%i_WD_%i_Bno_%i_SF_%i_V_%s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol}),'WD',E,'wdIdx',wdIdx);
+                  sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\  %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},datestr(date)),'WD',E,'wdIdx',wdIdx);
         
               if event
                 
@@ -696,7 +696,7 @@ addpath('/home/ocs/Documents/WDsurvey/')
 
 %% List Fields In Path
 
-DataPath2 = '/last04e/data1/archive/LAST.01.04.01/2024/03/11/proc';
+DataPath2 = '/last04e/data1/archive/LAST.01.10.01/2024/12/15/proc';
 
 cd(DataPath2)
 
@@ -744,7 +744,7 @@ Subframe = '015';
 
 % FieldIdx = 1;
 
-FieldIdx2 = find(contains(FieldNames2,'WIREDJ130558'))
+FieldIdx2 = find(contains(FieldNames2,'074+55'))
 
 Results2  = ReadFromCat(DataPath2,'Field',FieldNames2{FieldIdx2(1)},'SubFrame',Subframe,'getAirmass',true);
 
