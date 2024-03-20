@@ -111,6 +111,36 @@ E = WDs(Pathway,Names,TargetList(:,1)	,TargetList(:,2)	,TargetList(:,3)    ,Targ
 
 
 
+% look at the entire data first:
+
+for Iwd =1 : numel(E.RA)
+    
+ if ~isempty( E.Data.Catalog.PSF2{Iwd})
+    
+    source_index = E.Data.Catalog.PSF2{Iwd}.coneSearch(E.RA(Iwd),E.Dec(Iwd)).Ind;
+    
+    if ~isempty(source_index)
+        figure('color','white');
+        t = E.Data.Catalog.PSF2{Iwd}.JD;
+        y = E.Data.Catalog.PSF2{Iwd}.Data.MAG_PSF(:,source_index);
+        
+        plot(t,y,'k.');
+        set(gca, 'YDir','reverse')
+        title(E.Name(Iwd,:))
+        
+       
+        
+    end
+    
+ end 
+end
+    
+    
+    
+
+
+
+
 %% Look for targets in ALL Visits:
 
 
