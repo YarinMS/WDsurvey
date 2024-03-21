@@ -9,7 +9,7 @@ addpath('/home/ocs/Documents/WDsurvey/')
 
 %% List Fields In Path
 
-DataPath = '/last10e/data2/archive/LAST.01.10.02/2023/12/14/proc';
+DataPath = '/last04e/data1/archive/LAST.01.04.01/2023/12/14/proc';
 
 cd(DataPath)
 
@@ -57,7 +57,7 @@ Subframe = '015';
 
 % FieldIdx = 1;
 
-FieldIdx = find(contains(FieldNames,'074+55'))
+FieldIdx = find(contains(FieldNames,'AT2023uqf'))
 
 Results  = ReadFromCat(DataPath,'Field',FieldNames{FieldIdx(1)},'SubFrame',Subframe,'getAirmass',true);
 
@@ -79,29 +79,40 @@ save([save_to,file_name],'Results','-v7.3') ;
 
 
 %% targets in field
-Names = [' WDJ050234.19+540108.52  ',
-' WDJ050530.62+524951.92  ',
-' WDJ050455.34+542539.49  ',
-' WDJ050605.33+535218.12  ',
-' WDJ050706.87+524549.89  ',
-' WDJ050406.05+544526.05  ',
-' WDJ050640.11+544504.04  ',
-' WDJ050419.16+550506.82  ',
-' WDJ050022.82+535417.48  ',
-' WDJ050729.17+521608.64  ',
+Names = ['WDJ093859.06+242135.89',
+'WDJ093156.53+244037.40',
+'WDJ093652.94+250032.14',
+'WDJ093140.54+244653.93',
+'WDJ093537.54+241708.50',
+'WDJ093811.58+251011.32',
+'WDJ093228.24+241419.53',
+'WDJ093923.73+260839.52',
+'WDJ093513.69+252022.71',
+'WDJ093450.06+261131.56',
+'WDJ093127.33+254320.22',
+'WDJ093321.88+250506.31',
+'WDJ093819.20+253736.16',
+'WDJ093124.09+230757.31',
+'WDJ093432.53+234656.21'
   ]
 
 TargetList = [
-75.6419199823742	54.017769342682065	15.24423	15.266308	15.213772
-76.37771682033225	52.830460300820945	11.718442	11.546422	12.070696
-76.23128924438197	54.427202769564815	18.492235	18.711401	18.097496
-76.52326883768364	53.87131233200551	18.781195	18.77586	18.875978
-76.77858384479742	52.76381312095213	18.228073	18.259897	18.184122
-76.02560046089907	54.75705760074304	17.651005	17.637726	17.740812
-76.6672316858537	54.751015704414364	18.987984	19.12918	18.85162
-76.07980032905279	55.08518675721423	19.05001	19.105104	18.971575
-75.09495065060952	53.904719216557176	18.404604	18.49686	18.34248
-76.87172198375171	52.268948018263785	18.96726	18.951273	19.044857];
+144.7469912311263	24.358913159925052	19.173553	19.872547	18.439316
+142.98550675472833	24.67671695796862	18.810928	18.807747	18.90374
+144.2205058465148	25.009022270571965	17.69066	17.730272	17.69878
+142.91861190633884	24.782011603193837	18.02076	18.138706	17.820103
+143.90699380578818	24.285900517513323	18.218811	18.286926	18.12752
+144.54806722320214	25.16981735602536	16.687263	16.399225	16.456215
+143.1173686620097	24.238679779996893	17.915068	17.976797	17.845255
+144.8478910509847	26.144114028889813	18.98752	19.174053	18.836517
+143.80668665292055	25.33935030945767	18.687996	18.827988	18.488245
+143.70845242896138	26.191283366599954	19.052382	19.367647	18.660007
+142.86367309770955	25.722314007528148	18.185942	18.198784	18.263319
+143.34113276115653	25.08491180647363	19.09556	19.09692	19.17496
+144.57993583359308	25.626521171701157	18.568953	18.511097	18.736204
+142.85054939843945	23.132584848279773	19.180414	19.185495	19.260628
+143.63573107010538	23.78212869767188	19.016367	18.982328	19.258076
+];
 
 
 
@@ -568,9 +579,10 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
         
         for Ifind = 1: length(Found_Index)
         
+            
+        
               [maso,event,Npts] = getLCsys( Results.Main{Ibatch,MainCol},'SourceIdx',Found_Index(Ifind),'SaveTo',save_to,'Serial',...
                   sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\  %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},datestr(date)),'WD',E,'wdIdx',wdIdx);
-        
               if event
                 
                   save([save_to,'Event_In_',VN{Ibatch,MainCol},'_.mat'],'maso','-v7.3')
@@ -698,7 +710,7 @@ addpath('/home/ocs/Documents/WDsurvey/')
 
 %% List Fields In Path
 
-DataPath2 = '/last10e/data1/archive/LAST.01.10.01/2023/12/15/proc';
+DataPath2 = '/last04e/data1/archive/LAST.01.04.01/2023/12/15/proc';
 
 cd(DataPath2)
 
@@ -746,7 +758,7 @@ Subframe = '015';
 
 % FieldIdx = 1;
 
-FieldIdx2 = find(contains(FieldNames2,'074+55'))
+FieldIdx2 = find(contains(FieldNames2,'AT2023uqf'))
 
 Results2  = ReadFromCat(DataPath2,'Field',FieldNames2{FieldIdx2(1)},'SubFrame',Subframe,'getAirmass',true);
 
@@ -1347,15 +1359,21 @@ for i = 1:length(E.RA)
         E.Name(i,:), E.RA(i), E.Dec(i), E.G_Bp(i), T(i));
 end
 
-Tab =[E.RA, E.Dec, E.G_Bp, T]
-    
+Tab = table(E.Name, E.RA, E.Dec, E.G_Bp, T, ...
+    'VariableNames', {'WD_Name', 'RA', 'Dec', 'B_p_Magnitude', 'Observation_Time'});
+
 
 %% Save table
 monthyear       = date;
 montyear.Format = 'MMM-uuuu';
-TabName         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'_',DataPath(24:36),'.mat']
+TabName         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'.csv']
 save_path = [save_to,TabName];
 
 % Save table to a file
-save(save_path,'Tab','-v7.3')
+save(save_path,'TabName','-v7.3')
+
 %% Save Results
+
+save([save_to,file_name],'Results','-v7.3') ;
+
+save([save_to,file_name2],'Results2','-v7.3') ;
