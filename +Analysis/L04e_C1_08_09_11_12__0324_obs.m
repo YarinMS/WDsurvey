@@ -1307,18 +1307,17 @@ for i = 1:length(E.RA)
         E.Name(i,:), E.RA(i), E.Dec(i), E.G_Bp(i), T(i));
 end
 
-Tab = table(E.Name, E.RA, E.Dec, E.G_Bp, T, ...
-    'VariableNames', {'WD_Name', 'RA', 'Dec', 'B_p_Magnitude', 'Observation_Time'});
-
+Tab =[E.RA, E.Dec, E.G_Bp, T]
+    
 
 %% Save table
 monthyear       = date;
 montyear.Format = 'MMM-uuuu';
-TabName         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'.csv']
+TabName         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'.mat']
 save_path = [save_to,TabName];
 
 % Save table to a file
-save(save_path,'TabName','-v7.3')
+save(save_path,'Tab','-v7.3')
 
 %% Save Results
 
