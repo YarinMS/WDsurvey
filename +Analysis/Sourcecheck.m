@@ -2,7 +2,7 @@
 %% plot a source to check it
 
 e=E;
-e.Data.Catalog.MS{Idx} = MSU2.copy()
+%e.Data.Catalog.MS{Idx} = MSU2.copy()
 Idx = 1;
 SourceIdx = e.Data.Catalog.MS{Idx}.coneSearch(e.RA(Idx),e.Dec(Idx)).Ind
 
