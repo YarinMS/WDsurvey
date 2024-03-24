@@ -130,6 +130,7 @@ for Iwd =1 : numel(E.RA)
     if ~isempty(source_index)
         figure('color','white');
         t = E.Data.Catalog.PSF2{Iwd}.JD;
+        t = datetime(t,'ConvertFrom','jd');
         y = E.Data.Catalog.PSF2{Iwd}.Data.MAG_PSF(:,source_index);
         
         plot(t,y,'k.');
@@ -586,7 +587,7 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
               Rms1(wdIdx,Ibatch,MainCol) = RMS0;
               if event
                 
-                  save([save_to,'Event_In_',VN2{Ibatch,MainCol},'_.mat'],'maso','-v7.3')
+                  save([save_to,'Event_In_',VN{Ibatch,MainCol},'_.mat'],'maso','-v7.3')
                   fprintf('\nDetected event stored, WD %i Batch  %i SF %i V %s \n Found #_',wdIdx,Ibatch,Results.SFcol(MainCol),VN2{Ibatch,MainCol},Ifind)
             
               end

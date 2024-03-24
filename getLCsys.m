@@ -422,6 +422,7 @@ end
      
      STD = NaN;
      STDs = NaN;
+     Event =0;
 
 
 
