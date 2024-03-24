@@ -394,6 +394,8 @@ close();
 
 end
 
+if Npts > 19
+
 if isnan(newsd)
     STD = sigma;
 else
@@ -416,6 +418,10 @@ end
      Event = 0;
 end
 
+ else
+     
+     STD = NaN;
+     STDs = NaN;
 
 
 
