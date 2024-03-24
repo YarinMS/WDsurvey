@@ -1,4 +1,4 @@
-function [ms,Event,Npts] = getLCsys(MatchedSource,Args)
+function [ms,Event,Npts,STD,STDs] = getLCsys(MatchedSource,Args)
 
 arguments
     
@@ -142,13 +142,17 @@ close();
 
 %% plot a source to check it
 
-if Args.plot
 
     t = datetime(ms.JD,'convertfrom','jd');
     [~,s] = sort(t);
     t = t(s);
     y_zp = MS.Data.(Args.MagField)(s,Args.SourceIdx);
     Npts  = sum(~isnan(y_zp));
+    
+    
+    
+    
+ if Npts > 19
     t     = t(~isnan(y_zp));
     y_zp  = y_zp(~isnan(y_zp));
     Med   = median(y_zp,'omitnan');
@@ -282,7 +286,7 @@ else
     newsd = NaN;
     
 end
-if exist('newsd','var') == 1
+if exist('newsd1','var') == 1
     
 else
     
@@ -390,12 +394,32 @@ close();
 
 end
 
+if isnan(newsd)
+    STD = sigma;
+else
+    STD =newsd;
+    
+end
+
+if isnan(newsd1)
+    STDs = sigmas;
+else
+    STDs =newsd1;
+    
+end
+
+
+
+ else
+     STD = NaN;
+     STDs = NaN;
+     Event = 0;
+end
+
 
 
 
 end
-
-
 
 % Results statis
 
