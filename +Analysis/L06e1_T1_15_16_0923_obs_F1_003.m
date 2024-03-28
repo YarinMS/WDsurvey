@@ -9,8 +9,8 @@ addpath('/home/ocs/Documents/WDsurvey/')
 
 %% List Fields In Path
 
-DataPath = '/last06e/data1/archive/LAST.01.06.01/2023/08/27/proc';
-DataPath2 = '/last06e/data1/archive/LAST.01.06.01/2023/08/28/proc';
+DataPath = '/last06e/data1/archive/LAST.01.06.01/2023/09/15/proc';
+DataPath2 = '/last06e/data1/archive/LAST.01.06.01/2023/09/16/proc';
 cd(DataPath)
 
 Visits = dir;
@@ -592,7 +592,7 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
               Rms1(wdIdx,Ibatch,MainCol) = RMS0;
               if event
                 
-                  save([save_to,'Event_In_',VN{Ibatch,MainCol},'_.mat'],'maso','-v7.3')
+                  save([save_to,'Event_In_',  sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\ %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp),'_.mat'],'maso','-v7.3')
                   fprintf('\nDetected event stored, WD %i Batch  %i SF %i V %s \n Found #_',wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},Ifind)
             
               end
@@ -1228,7 +1228,7 @@ for Icol = 1 : numel(Results2.SubFrame{wdIdx2})
               rms1(wdIdx2,Ibatch,MainCol2) = RMS0;
               if event
                 
-                  save([save_to,'Event_In_',VN2{Ibatch,MainCol2},'_.mat'],'maso','-v7.3')
+                  save([save_to,'Event_In_',sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\ %s \\ %s',Ifind,wdIdx2,Ibatch,Results2.SFcol(MainCol2),VN2{Ibatch,MainCol2},DataStamp2),'_.mat'],'maso','-v7.3')
                   fprintf('\nDetected event stored, WD %i Batch  %i SF %i V %s \n Found #_',wdIdx2,Ibatch,Results2.SFcol(MainCol2),VN2{Ibatch,MainCol2},Ifind)
             
               end
