@@ -1172,15 +1172,41 @@ else
                       list2.FileName{Iid}(end-30:end-28) = ID2;
                  end
                  
+                 if exist(list2.Folder{1}, 'dir')
+                     cd(list2.Folder{1})
+                     if  exist(list2.FileName{1}, 'file')
+                         cd ..
+                         if exist(list2.Folder{2}, 'dir')
+                              cd(list2.Folder{2})
+                               if  exist(list2.FileName{2}, 'file')
+                                   cd ..
+                                   
+        
+                                   matched_source2 = MatchedSources.readList(list2); 
+               
+                                   MSU2 = mergeByCoo( matched_source2, matched_source2(1));
+                                   Main2{Ibatch,Isf} = MSU2.copy();
+                                   VN2{Ibatch,Isf}   = list2.Folder{1}(end-7:end);
+                                   
+                               else
+
+                                       disp('File not found.');
+                         
+                               end
+                         end
+                         
+
+
+                     else
+
+                         disp('File not found.');
+                         
+                     end
+                     
+                 end
 
           
-               % L = MatchedSources.rdirMatchedSourcesSearch('CropID',Sub_Frames(Isf),'MinJD',MinJD,'MaxJD',MaxJD);            
-               % Upload all files to a MatchedSources object
-                 matched_source2 = MatchedSources.readList(list2); 
-               % Merge all MatchedSources elkement into a single element object
-                 MSU2 = mergeByCoo( matched_source2, matched_source2(1));
-                 Main2{Ibatch,Isf} = MSU2.copy();
-                 VN2{Ibatch,Isf}   = list2.Folder{1}(end-7:end);
+             
             end
             counter2 = counter2+2
         end

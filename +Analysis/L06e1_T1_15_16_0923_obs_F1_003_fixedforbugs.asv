@@ -1172,15 +1172,41 @@ else
                       list2.FileName{Iid}(end-30:end-28) = ID2;
                  end
                  
+                 if exist(list2.Folder{1}, 'dir')
+                     cd(list2.Folder{1})
+                     if  exist(list2.FileName{1}, 'file')
+                         cd ..
+                         if exist(list2.Folder{2}, 'dir')
+                              cd(list2.Folder{2})
+                               if  exist(list2.FileName{2}, 'file')
+                                   cd ..
+                                   
+        
+                                   matched_source2 = MatchedSources.readList(list2); 
+               
+                                   MSU2 = mergeByCoo( matched_source2, matched_source2(1));
+                                   Main2{Ibatch,Isf} = MSU2.copy();
+                                   VN2{Ibatch,Isf}   = list2.Folder{1}(end-7:end);
+                                   
+                               else
+
+                                       disp('File not found.');
+                         
+                               end
+                         end
+                         
+
+
+                     else
+
+                         disp('File not found.');
+                         
+                     end
+                     
+                 end
 
           
-               % L = MatchedSources.rdirMatchedSourcesSearch('CropID',Sub_Frames(Isf),'MinJD',MinJD,'MaxJD',MaxJD);            
-               % Upload all files to a MatchedSources object
-                 matched_source2 = MatchedSources.readList(list2); 
-               % Merge all MatchedSources elkement into a single element object
-                 MSU2 = mergeByCoo( matched_source2, matched_source2(1));
-                 Main2{Ibatch,Isf} = MSU2.copy();
-                 VN2{Ibatch,Isf}   = list2.Folder{1}(end-7:end);
+             
             end
             counter2 = counter2+2
         end
@@ -1362,9 +1388,9 @@ bar(T(SortTicks2), 'FaceColor', [0.5 0.7 0.9])
 %ylim([0,105]);
 xticklabels(Ticks2)
 xlabel('$B_p$ [mag]','Interpreter','latex')
-ylabel('Actuall Time','Interpreter','latex')
+ylabel('Actual Time Observed','Interpreter','latex')
 
-title(sprintf('Available visits length ; Entire Observation (%s) hrs',obs_len+obs_len2),'Interpreter','latex')
+title(sprintf('Available visits length ; Entire Observation (%s) hrs %s',obs_len+obs_len2,DataStamp2),'Interpreter','latex')
 
 
 %%
@@ -1397,3 +1423,19 @@ TabName12         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.D
 save_path = [save_to,TabName12];
 
 save(save_path,'RMSsys','-v7.3')
+
+
+
+
+%%
+RMS = rms0;
+TabName1         = ['Table_Results_half1',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'_',DataPath(24:36),'RMS.mat']
+save_path = [save_to,TabName1];
+
+save(save_path,'RMS','-v7.3')
+RMSsys = [rms1];
+TabName12         = ['Table_Results_half1',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'_',DataPath(24:36),'RMSsys.mat']
+save_path = [save_to,TabName12];
+
+save(save_path,'RMSsys','-v7.3')
+

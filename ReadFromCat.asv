@@ -76,10 +76,7 @@ if Args.Header
                 alpha = [AH.Key.RAU1,AH.Key.RAU2,AH.Key.RAU3,AH.Key.RAU4];
                 delta = [AH.Key.DEC1,AH.Key.DEC2,AH.Key.DEC3,AH.Key.DECU4];
            
-             else
-                        
-                alpha = [NaN];
-                delta = [NaN];
+            else
                fprintf('\nField doesnt exist, handle the error-RAU1')
              end
              

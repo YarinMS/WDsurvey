@@ -1,4 +1,4 @@
-function [ms,Event,Npts,STD,STDs] = getLCsys(MatchedSource,Args)
+function [ms,Event,Npts,STD,STDs] = getLCsysC(MatchedSource,Args)
 
 arguments
     
@@ -157,16 +157,15 @@ close();
     y_zp  = y_zp(~isnan(y_zp));
     Med   = median(y_zp,'omitnan');
     sigma = std(y_zp,'omitnan');
-    
-    threshold = Args.threshold*sigma;
-    
+    [newM,newS] = SigmaClips(y_zp,'SigmaThreshold',2,'MeanClip',false);
+    threshold = Args.threshold*newS;
     MarkedEvents = [];
     
     for Ipt = 1 : length(y_zp) - 1
         
-        if abs(y_zp(Ipt) - Med) > threshold
+        if abs(y_zp(Ipt) -  newM) > threshold
             
-            if abs(y_zp(Ipt+1) - Med) > threshold
+            if abs(y_zp(Ipt+1) - newM) > threshold
                 
                 MarkedEvents = [MarkedEvents ; Ipt, Ipt+1];
                 
@@ -194,30 +193,47 @@ close();
         
     end
         
-    
+    [newM,newS] = SigmaClips(y_zp,'SigmaThreshold',3,'MeanClip',false);
 
 
     figure('Color','white','Units', 'inches', 'Position', [0, 0, 14, 6]);
     plot(t,y_zp,'cs')
 
     hold on
-    threshold_values = [Med-threshold, Med , Med+ threshold];
+    threshold_values0 = [Med-Args.threshold*sigma, Med , Med+ Args.threshold*sigma];
     
     if ~isnan(Med)
         
 
-        for i = 1:length(threshold_values)
+        for i = 1:length(threshold_values0)
            if i == 2
-               yline(threshold_values(i), '-', 'Color', [0.05 0.05 0.05],'DisplayName','Median'); % '--' for dashed style, 'r' for red color
+               yline(threshold_values0(i), '-.', 'Color', [0.05 0.05 0.05],'DisplayName','Median'); % '--' for dashed style, 'r' for red color
            else
               
             
-               yline(threshold_values(i), '--', 'Color', [0.65 0.65 0.65],'DisplayName','Threshold'); % '--' for dashed style, 'r' for red color
+               yline(threshold_values0(i), '--', 'Color', [0.65 0.65 0.65],'DisplayName','Threshold'); % '--' for dashed style, 'r' for red color
            end
         
         end
     end
         
+    
+    threshold_values = [newM-threshold, newM , newM+ threshold];
+    if ~isnan(newM)
+        
+
+        for i = 1:length(threshold_values)
+           if i == 2
+               yline(threshold_values(i), '-', 'Color', [240, 0, 0] / 255,'DisplayName','new Median'); % '--' for dashed style, 'r' for red color
+           else
+              
+            
+               yline(threshold_values(i), '--', 'Color', [200, 0, 0] / 255,'DisplayName','New Threshold'); % '--' for dashed style, 'r' for red color
+           end
+        
+        end
+    end   
+    
     if ~isempty(MarkedEvents)
         MarkedEvents = reshape(MarkedEvents,1,[]);
         
@@ -272,10 +288,19 @@ hold off
 Title  = sprintf('$ %s \\  G_{B_p} = %.2f $',Args.Serial,Args.WD.G_Bp(Args.wdIdx));
 title(Title,'Interpreter','latex');
 set(gca,'YDir','reverse')
- lglbl{1} = sprintf('ZP rms = %.3f',sigma);
+ lglbl{1} = sprintf('ZP rms = %.3f Clipped RMS = %.3f',sigma,newS);
  lglbl{2} = sprintf('SysRem rms = %.3f',sigmas);
- legend(lglbl{1},num2str(threshold_values(1)),num2str(threshold_values(2)),num2str(threshold_values(3)),lglbl{2},'Interpreter','latex','Location','best')
-%title('MAG_PSF LC')
+ lglbl{4} = sprintf('Med - $2.5 \\sigma - $ = %.2f',threshold_values0(1));
+ lglbl{3} = sprintf('Median = %.2f',Med);
+ lglbl{5} = sprintf('Med +$2.5 \\sigma  $ = %.2f',threshold_values0(3));
+ lglbl{6} = sprintf('ClipMed - $2.5 \\sigma  $  = %.2f ',threshold_values(1));
+ lglbl{7} = sprintf('Clipped Median = %.2f',newM);
+ lglbl{8} = sprintf('ClipMed + $2.5 \\sigma $  = %.2f',threshold_values(3));
+ %legend(lglbl{1},num2str(threshold_values(1)),num2str(threshold_values(2)),num2str(threshold_values(3)),lglbl{2},'Interpreter','latex','Location','best')
+legend(lglbl{1},lglbl{4},lglbl{3},lglbl{5},lglbl{6},lglbl{7},lglbl{8},lglbl{2},'Interpreter','latex','Location','best')
+
+ 
+ %title('MAG_PSF LC')
 pause(5)
 close();
 
@@ -304,7 +329,7 @@ if (~isempty(MarkedEventss)) | (~isempty(MarkedEvents))
          hold on
          plot(t,y_sys,'k.')
          
-         lglbl{1} = sprintf('ZP rms = %.3f  or %.3f',sigma,newsd)
+         lglbl{1} = sprintf('ZP rms = %.3f  or %.3f',sigma,newS)
          lglbl{2} = sprintf('SysRem rms = %.3f or %.3f',sigmas,newsd1)
          legend(lglbl{1:2},'Interpreter','latex','Location','best')
          plot(t(MarkedEventss),y_sys(MarkedEventss),'ro','MarkerSize',8,'DisplayName','Events zp')

@@ -49,7 +49,7 @@ classdef WDs
                 Args.plotTargets = true;
                 
                 
-                Args.getCatData = true ; % get Matched sources object for every target we can find in the Cat files , even if it appears in more than one subframe
+                Args.getCatData = false ; % get Matched sources object for every target we can find in the Cat files , even if it appears in more than one subframe
                 Args.printCat   = true ; % from CatData - get Target Index, plot : subframe RMS with ZP, and SysRem for aper3 and psf. and corresponding LC
                 Args.getRMS     = true ;
                 Args.applyZP    = true ;
