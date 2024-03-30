@@ -157,7 +157,7 @@ close();
     y_zp  = y_zp(~isnan(y_zp));
     Med   = median(y_zp,'omitnan');
     sigma = std(y_zp,'omitnan');
-    [newM,newS] = SigmaClips(y_zp,'SigmaThreshold',2,'MeanClip',false);
+    [newM,newS] = SigmaClips(y_zp,'SigmaThreshold',2.5,'MeanClip',false);
     threshold = Args.threshold*newS;
     MarkedEvents = [];
     
@@ -193,7 +193,7 @@ close();
         
     end
         
-    [newM,newS] = SigmaClips(y_zp,'SigmaThreshold',3,'MeanClip',false);
+    %[newM,newS] = SigmaClips(y_zp,'SigmaThreshold',3,'MeanClip',false);
 
 
     figure('Color','white','Units', 'inches', 'Position', [0, 0, 14, 6]);
@@ -290,7 +290,7 @@ title(Title,'Interpreter','latex');
 set(gca,'YDir','reverse')
  lglbl{1} = sprintf('ZP rms = %.3f Clipped RMS = %.3f',sigma,newS);
  lglbl{2} = sprintf('SysRem rms = %.3f',sigmas);
- lglbl{4} = sprintf('Med - $2.5 \\sigma - $ = %.2f',threshold_values0(1));
+ lglbl{4} = sprintf('Med - $2.5 \\sigma  $ = %.2f',threshold_values0(1));
  lglbl{3} = sprintf('Median = %.2f',Med);
  lglbl{5} = sprintf('Med +$2.5 \\sigma  $ = %.2f',threshold_values0(3));
  lglbl{6} = sprintf('ClipMed - $2.5 \\sigma  $  = %.2f ',threshold_values(1));

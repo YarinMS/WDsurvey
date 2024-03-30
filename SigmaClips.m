@@ -1,3 +1,4 @@
+
 function [newM,newS] = SigmaClips(Data,Args)
 
 arguments
