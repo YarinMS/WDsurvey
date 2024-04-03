@@ -12,6 +12,7 @@ arguments
     Args.SubFrame = ''; % '015' or '009'
     Args.plot     = true;
     Args.getAirmass = false;
+    Args.WD = {};
     
     
 end
@@ -113,21 +114,28 @@ if Args.Header
         figure('Color','white');
         
         subplot(3,1,1)
-        plot(t,Result.FWHM)
+        plot(t,Result.FWHM,'k-')
         xlabel('Time','Interpreter','latex')
+        if ~isempty(Args.WD)
+            
+            title(Args.WD.Data.DataStamp,'Interpreter','latex');
+            
+        end
         
         ylabel('FWHM [arcsec]','Interpreter','latex')
         subplot(3,1,2)
-        plot(t,Result.LimMag)
+        plot(t,Result.LimMag,'k.')
         xlabel('Time','Interpreter','latex')
         set(gca,'YDir','reverse')
         
         ylabel('Lim Mag [mag]','Interpreter','latex')
         subplot(3,1,3)
-        plot(RA(sorted), DEC(sorted))
+        plot(RA(sorted), DEC(sorted),'k.')
         xlabel('RA [deg]','Interpreter','latex')
         
         ylabel('DEC [deg]','Interpreter','latex')
+        
+        
     end
         
         
@@ -135,6 +143,11 @@ if Args.Header
     if Args.getAirmass 
         
         [Airmass,Time] = getAirmass(Result);
+          if ~isempty(Args.WD)
+            
+            title(Args.WD.Data.DataStamp,'Interpreter','latex');
+            
+        end
         
         [~,timeInd] = sort(Time);
         Result.AMtime = Time(timeInd);

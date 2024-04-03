@@ -9,8 +9,8 @@ addpath('/home/ocs/Documents/WDsurvey/')
 
 %% List Fields In Path
 
-DataPath = '/last04w/data1/archive/LAST.01.04.03/2024/03/11/proc';
-
+DataPath = '/last04w/data1/archive/LAST.01.04.03/2023/09/15/proc';
+%DataPath2 = '/last06w/data1/archive/LAST.01.06.03/2023/09/16/proc';
 cd(DataPath)
 
 Visits = dir;
@@ -44,20 +44,20 @@ for Ivis = 3 : numel(Visits)
 end
     
     
-   
+DataStamp = [DataPath(24:36),'-',DataPath(38:41),'-',DataPath(43:44),'-',DataPath(46:47)]
     
 %% Read from Cats by FieldID
 
 % FOV center by subframe
 
-Subframe = '015';
+Subframe = '016';
 
 
 
-
+% you changed the field from 1064
 % FieldIdx = 1;
-
-FieldIdx = find(contains(FieldNames,'WIREDJ130558'))
+field_name = 'Qatar7b'
+FieldIdx = find(contains(FieldNames,field_name))
 
 Results  = ReadFromCat(DataPath,'Field',FieldNames{FieldIdx(1)},'SubFrame',Subframe,'getAirmass',true);
 
@@ -72,30 +72,58 @@ Results  = ReadFromCat(DataPath,'Field',FieldNames{FieldIdx(1)},'SubFrame',Subfr
 date = datetime(Results.JD(1),'convertfrom','jd')
 
 save_to   = '/home/ocs/Documents/WD_survey/Thesis/'
-file_name = ['Field_Results_',FieldNames{FieldIdx(1)},'_',char(date),'.mat']
+file_name = ['Field_Results_',FieldNames{FieldIdx(1)},'_',char(DataStamp),'.mat']
 
 save([save_to,file_name],'Results','-v7.3') ;
 
 
 
 %% targets in field
-Names = ['WDJ130317.88+260313.51',
-'WDJ130522.83+244537.01',
-'WDJ130323.72+251007.15',
-'WDJ130648.82+240321.14',
-'WDJ130744.42+244003.42',
-'WDJ131009.73+240357.64',
-'WDJ130620.09+252716.71'
+Names = [' Qatar7b00.03+365723.82  ',
+    ' WDJ235300.03+365723.82  ',
+' WDJ235835.92+355652.22  ',
+' WDJ235516.48+360253.89  ',
+' WDJ235628.50+374359.42  ',
+' WDJ235557.39+380009.33  ',
+' WDJ235425.63+360451.07  ',
+' WDJ235355.00+361128.46  ',
+' WDJ235612.45+381330.80  ',
+' WDJ235137.15+361058.94  ',
+' WDJ235810.18+355507.50  ',
+' WDJ235343.17+362228.63  ',
+' WDJ235353.60+355725.51  ',
+' WDJ235233.66+361929.47  ',
+' WDJ235148.36+362011.25  ',
+' WDJ235552.69+372143.57  ',
+' WDJ235454.05+354948.26  ',
+' WDJ235115.08+355156.23  ',
+' WDJ235519.40+382556.46  ',
+' WDJ235144.30+375542.73  ',
+' WDJ235939.89+381220.71  ',
   ]
 
 TargetList = [
-195.81818698021138	26.054472945227378	18.383684	19.061142	17.64019
-196.3448969150372	24.760336618722388	18.698404	18.787102	18.542479
-195.84839424512458	25.169003844671575	16.332817	16.273342	16.486515
-196.70320345391877	24.05574563518047	19.172144	19.275259	19.068079
-196.93503843656305	24.66757717146458	17.823816	17.79286	17.94969
-197.54049449954053	24.06548155308685	18.56186	18.542492	18.61047
-196.58359583314356	25.454650535725328	18.891996	18.76272	19.127613
+    358.515125 	37.021825 	13.32 18.39 12.68
+358.24907921191266	36.956020523071686	17.766068	18.02604	17.360794
+359.6496878302206	35.94763533778901	18.77262	19.274632	18.129715
+358.8172145135307	36.048042173332256	16.934488	17.035667	16.765219
+359.11912566998825	37.73283732419048	16.25263	16.22992	16.283798
+358.9889950876772	38.00249382720652	17.358467	17.476347	17.172781
+358.6069182191108	36.08086790652628	17.409506	17.480482	17.320492
+358.4791566978999	36.19114428612188	17.282484	17.303087	17.30017
+359.0522366607523	38.22528246513216	18.301834	18.307878	18.355745
+357.90483106993906	36.1829735935377	19.155947	19.294252	19.05411
+359.54269618022954	35.918701263425554	18.937252	19.040138	18.830408
+358.4299179653435	36.37460307518759	17.795748	17.53455	17.361908
+358.4737063997597	35.95695851021892	18.35812	18.366528	18.452127
+358.140425771345	36.324797952818	17.94189	17.892187	18.01698
+357.9510530412992	36.33621930911515	17.724937	17.673506	17.882141
+358.96991561667454	37.36203769685384	18.923754	18.977758	18.916874
+358.72529736346536	35.83004651822556	19.164518	19.1983	19.29399
+357.8128765541249	35.86549343222067	18.908047	18.907557	19.00362
+358.8306412754898	38.43225747169143	19.040136	19.001032	19.121782
+357.93442921943034	37.92846853545844	18.234518	18.122221	18.500256
+359.916280038262	38.20571685933	18.36378	18.252872	18.527664
 ];
 
 
@@ -105,6 +133,14 @@ Pathway = [DataPath,'/',Visits(FieldIdx(2)).name]
 
 
 E = WDs(Pathway,Names,TargetList(:,1)	,TargetList(:,2)	,TargetList(:,3)    ,TargetList(:,4)	,TargetList(:,5),'Batch',[],'getForcedData',false,'plotTargets',true,'FieldId',FieldNames{FieldIdx(1)})
+
+
+
+%
+    
+    
+    
+
 
 
 
@@ -136,8 +172,10 @@ for Ivis = 1 : numel(List.Folder)
          L = MatchedSources.rdirMatchedSourcesSearch('CropID',Icrop);            
          %   Upload all files to a MatchedSources object
          if ~isempty(L.FileName)
-            matched = MatchedSources.readList(L); 
-         end
+              matched = MatchedSources.readList(L); 
+         
+         
+         
          for Iwd = 1 : numel(E.RA)
              
              FoundInd = matched.coneSearch(E.RA(Iwd),E.Dec(Iwd)).Ind;
@@ -155,6 +193,7 @@ for Ivis = 1 : numel(List.Folder)
              end
              
              
+         end
          end
          
          
@@ -273,7 +312,7 @@ xticklabels(Ticks)
 xlabel('$B_p$ [mag]','Interpreter','latex')
 ylabel('Detection rate $\%$','Interpreter','latex')
 
-title(sprintf('Proportion of Detection Relative to the entire Observation (%s) hrs',obs_len),'Interpreter','latex')
+title(sprintf('Proportion of Detection Relative to the entire Observation (%s) hrs %s',obs_len,DataStamp),'Interpreter','latex')
 
 
 
@@ -384,14 +423,11 @@ if even
           
                  %L = MatchedSources.rdirMatchedSourcesSearch('CropID',Sub_Frames(Isf),'MinJD',MinJD,'MaxJD',MaxJD);            
                % Upload all files to a MatchedSources object
-          
-               
                  matched_source = MatchedSources.readList(list); 
                % Merge all MatchedSources elkement into a single element object
                  MSU = mergeByCoo( matched_source, matched_source(1));
                  Main{Ibatch,Isf} = MSU.copy();
                  VN{Ibatch,Isf}   = list.Folder{1}(end-7:end);
-             
           end
           counter = counter+2
     end
@@ -440,13 +476,12 @@ else
           
                % L = MatchedSources.rdirMatchedSourcesSearch('CropID',Sub_Frames(Isf),'MinJD',MinJD,'MaxJD',MaxJD);            
                % Upload all files to a MatchedSources object
-       
                  matched_source = MatchedSources.readList(list); 
                % Merge all MatchedSources elkement into a single element object
                  MSU = mergeByCoo( matched_source, matched_source(1));
                  Main{Ibatch,Isf} = MSU.copy();
                  VN{Ibatch,Isf}   = list.Folder{1}(end-7:end);
-    
+            
             
             end
             counter = counter+3
@@ -511,16 +546,18 @@ Results.VisMap = {}
 
 
 % loop over all tagrets.
+
+% loop over all tagrets.
 Vistat = {};
 % Chose a WD
 
-
+Rms0 = zeros(numel(E.RA),size(Results.Main,1));
+Rms1 = zeros(numel(E.RA),size(Results.Main,1));
 
 
 for i = 1 : numel(E.RA)
-    
-    wdIdx = i;
 
+wdIdx = i;
 
 
 for Icol = 1 : numel(Results.SubFrame{wdIdx})
@@ -536,12 +573,15 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
         
         for Ifind = 1: length(Found_Index)
         
-              [maso,event,Npts] = getLCsys( Results.Main{Ibatch,MainCol},'SourceIdx',Found_Index(Ifind),'SaveTo',save_to,'Serial',...
-                  sprintf('Found_%i_WD_%i_Bno_%i_SF_%i_V_%s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol}),'WD',E,'wdIdx',wdIdx);
-        
+              [maso,event,Npts,RMS0,RMS1] = getLCsysC( Results.Main{Ibatch,MainCol},'SourceIdx',Found_Index(Ifind),'SaveTo',save_to,'Serial',...
+                  sprintf('F \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\ %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp),'WD',E,'wdIdx',wdIdx);
+             %  [maso,event,Npts] = getLCsys( Results.Main{Ibatch,MainCol},'SourceIdx',Found_Index(Ifind),'SaveTo',save_to,'Serial',...
+              %    sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\  %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp),'WD',E,'wdIdx',wdIdx);
+              Rms0(wdIdx,Ibatch,MainCol) = RMS0;
+              Rms1(wdIdx,Ibatch,MainCol) = RMS0;
               if event
                 
-                  save([save_to,'Event_In_',VN{Ibatch,MainCol},'_.mat'],'maso','-v7.3')
+                  save([save_to,'Event_In_',  sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\ %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp),'_.mat'],'maso','-v7.3')
                   fprintf('\nDetected event stored, WD %i Batch  %i SF %i V %s \n Found #_',wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},Ifind)
             
               end
@@ -568,7 +608,6 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
     end
 
 end
-
 
 end
 %%
@@ -646,7 +685,7 @@ bar(TotalObs(SortTicks), 'FaceColor', [0.5 0.7 0.9])
 %ylim([0,105]);
 xticklabels(Ticks)
 xlabel('$B_p$ [mag]','Interpreter','latex')
-ylabel('Actuall Time','Interpreter','latex')
+ylabel('Actual Time','Interpreter','latex')
 
 title(sprintf('Available visits length ; Entire Observation (%s) hrs',obs_len),'Interpreter','latex')
 
@@ -667,7 +706,7 @@ addpath('/home/ocs/Documents/WDsurvey/')
 
 %% List Fields In Path
 
-DataPath2 = '/last04w/data1/archive/LAST.01.04.03/2024/03/12/proc';
+%DataPath2 = '/last02w/data1/archive/LAST.01.02.03/2023/09/16/proc';
 
 cd(DataPath2)
 
@@ -702,7 +741,8 @@ for Ivis = 3 : numel(Visits2)
 end
     
     
-   
+       
+DataStamp2 = [DataPath2(24:36),'-',DataPath2(38:41),'-',DataPath2(43:44),'-',DataPath2(46:47)]
     
 %% Read from Cats by FieldID
 
@@ -715,7 +755,7 @@ Subframe = '015';
 
 % FieldIdx = 1;
 
-FieldIdx2 = find(contains(FieldNames2,'WIREDJ130558'))
+FieldIdx2 = find(contains(FieldNames2,field_name))
 
 Results2  = ReadFromCat(DataPath2,'Field',FieldNames2{FieldIdx2(1)},'SubFrame',Subframe,'getAirmass',true);
 
@@ -732,7 +772,7 @@ date2 = datetime(Results2.JD(1),'convertfrom','jd')
 save_to   = '/home/ocs/Documents/WD_survey/Thesis/'
 file_name2 = ['Field_Results_',FieldNames2{FieldIdx2(1)},'_',char(date2),'.mat']
 
-save([save_to,file_name2],'Results','-v7.3') ;
+save([save_to,file_name2],'Results2','-v7.3') ;
 
 
 
@@ -773,10 +813,9 @@ for Ivis = 1 : numel(List2.Folder)
     
          L2 = MatchedSources.rdirMatchedSourcesSearch('CropID',Icrop);            
          %   Upload all files to a MatchedSources object
-         
          if ~isempty(L2.FileName)
-              matched2 = MatchedSources.readList(L2); 
-         end
+             matched2 = MatchedSources.readList(L2); 
+        
          for Iwd = 1 : numel(E.RA)
              
              FoundInd = matched2.coneSearch(E.RA(Iwd),E.Dec(Iwd)).Ind;
@@ -795,7 +834,7 @@ for Ivis = 1 : numel(List2.Folder)
              
              
          end
-         
+         end
          
          
          
@@ -912,7 +951,7 @@ xticklabels(Ticks2)
 xlabel('$B_p$ [mag]','Interpreter','latex')
 ylabel('Detection rate $\%$','Interpreter','latex')
 
-title(sprintf('Proportion of Detection Relative to the entire Observation (%s) hrs',obs_len2),'Interpreter','latex')
+title(sprintf('Proportion of Detection Relative to the entire Observation (%s) hrs  %s',obs_len2,DataStamp2),'Interpreter','latex')
 
 
 
@@ -1118,16 +1157,12 @@ else
                      
                       list2.FileName{Iid}(end-30:end-28) = ID2;
                  end
+                 
 
           
                % L = MatchedSources.rdirMatchedSourcesSearch('CropID',Sub_Frames(Isf),'MinJD',MinJD,'MaxJD',MaxJD);            
                % Upload all files to a MatchedSources object
-               if (counter == 29) & (list2.CropID  == 6)
-                   % do noting
-               else
-                   matched_source2 = MatchedSources.readList(list2); 
-               end
-                 
+                 matched_source2 = MatchedSources.readList(list2); 
                % Merge all MatchedSources elkement into a single element object
                  MSU2 = mergeByCoo( matched_source2, matched_source2(1));
                  Main2{Ibatch,Isf} = MSU2.copy();
@@ -1154,9 +1189,9 @@ Results2.VisMap = {}
 Vistat2 = {};
 % Chose a WD
 
+rms0 = zeros(numel(E.RA),size(Results2.Main,1))
+rms1 = zeros(numel(E.RA),size(Results2.Main,1))
 
-
-wdIdx2 = 7;
 
 for i = 1 : numel(E.RA)
 
@@ -1176,12 +1211,15 @@ for Icol = 1 : numel(Results2.SubFrame{wdIdx2})
         
         for Ifind = 1: length(Found_Index2)
         
-              [maso,event,Npts] = getLCsys( Results2.Main{Ibatch,MainCol2},'SourceIdx',Found_Index2(Ifind),'SaveTo',save_to,'Serial',...
-                  sprintf('Found_%i_WD_%i_Bno_%i_SF_%i_V_%s',Ifind,wdIdx2,Ibatch,Results2.SFcol(MainCol2),VN2{Ibatch,MainCol2}),'WD',E,'wdIdx',wdIdx2);
-        
+              [maso,event,Npts,RMS0,RMS1] = getLCsysC( Results2.Main{Ibatch,MainCol2},'SourceIdx',Found_Index2(Ifind),'SaveTo',save_to,'Serial',...
+                  sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\ %s \\ %s',Ifind,wdIdx2,Ibatch,Results2.SFcol(MainCol2),VN2{Ibatch,MainCol2},DataStamp2),'WD',E,'wdIdx',wdIdx2);
+             %  [maso,event,Npts] = getLCsys( Results.Main{Ibatch,MainCol},'SourceIdx',Found_Index(Ifind),'SaveTo',save_to,'Serial',...
+              %    sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\  %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp),'WD',E,'wdIdx',wdIdx);
+              rms0(wdIdx2,Ibatch,MainCol2) = RMS0;
+              rms1(wdIdx2,Ibatch,MainCol2) = RMS0;
               if event
                 
-                  save([save_to,'Event_In_',VN2{Ibatch,MainCol2},'_.mat'],'maso','-v7.3')
+                  save([save_to,'Event_In_',sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\ %s \\ %s',Ifind,wdIdx2,Ibatch,Results2.SFcol(MainCol2),VN2{Ibatch,MainCol2},DataStamp2),'_.mat'],'maso','-v7.3')
                   fprintf('\nDetected event stored, WD %i Batch  %i SF %i V %s \n Found #_',wdIdx2,Ibatch,Results2.SFcol(MainCol2),VN2{Ibatch,MainCol2},Ifind)
             
               end
@@ -1319,25 +1357,29 @@ title(sprintf('Available visits length ; Entire Observation (%s) hrs',obs_len+ob
 
 fprintf('WD Name\t\t\t Coordinates\t     B_p Mag  Observation Time (hours)\n');
 for i = 1:length(E.RA)
-    fprintf('%s\t & (%.2f°, %.2f°) & %.1f  & %.2f \\\\ \n', ...
+    fprintf('%s\t & (%.2f°, %.2f°) & %.1f  & %.2f\n', ...
         E.Name(i,:), E.RA(i), E.Dec(i), E.G_Bp(i), T(i));
 end
 
-Tab = table(E.Name, E.RA, E.Dec, E.G_Bp, T, ...
-    'VariableNames', {'WD_Name', 'RA', 'Dec', 'B_p_Magnitude', 'Observation_Time'});
-Mat = [E.RA, E.Dec, E.G_Bp, T];
+Tab =[E.RA, E.Dec, E.G_Bp, T]
+    
 
 %% Save table
 monthyear       = date;
 montyear.Format = 'MMM-uuuu';
-TabName         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'.mat']
+TabName         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'_',DataPath(24:36),'.mat']
 save_path = [save_to,TabName];
 
-% Save table to a file
-save(save_path,'TabName','-v7.3')
+save(save_path,'Tab','-v7.3')
+%% Save RMS Results
 
-%% Save Results
+RMS = [Rms0 rms0];
+TabName1         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'_',DataPath(24:36),'RMS.mat']
+save_path = [save_to,TabName1];
 
-save([save_to,file_name],'Results','-v7.3') ;
+save(save_path,'RMS','-v7.3')
+RMSsys = [Rms1 rms1];
+TabName12         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'_',DataPath(24:36),'RMSsys.mat']
+save_path = [save_to,TabName12];
 
-save([save_to,file_name2],'Results2','-v7.3') ;
+save(save_path,'RMSsys','-v7.3')

@@ -19,6 +19,8 @@ ObsCoo  = [ObsLon, ObsLat];
 if Args.plot
     figure('Color','white');
     
-    plot(datetime(t,'convertfrom','jd'),AirMass,'.')
+    plot(datetime(t,'convertfrom','jd'),AirMass,'.','Color',[0.1 0.1 0.1])
     set(gca,'YDir','reverse')
+    ylabel('Airmass','Interpreter','latex')
+    xlabel('Time','Interpreter','latex')
 end
