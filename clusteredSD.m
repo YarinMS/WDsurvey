@@ -18,7 +18,11 @@ if Args.ExtData
        MS.addExtMagColor;
        Colors = MS.SrcData.ExtColor;
     else
-        Colors = Args.CC
+        if ~isempty(Args.CC)
+             Colors = Args.CC
+        else
+            Colors = 0 ;
+        end
     end
     
   if ~Args.Sys
@@ -64,13 +68,24 @@ if Args.ExtData
    
 
     % calc the median sd of all sources    
-    PSFmat = PSFmat(:,MagFlagIdx(Sorted(1:10)));
+    Len = length(Sorted);
+    if Len >= 10 
+    
+         PSFmat = PSFmat(:,MagFlagIdx(Sorted(1:10)));
+         
+    elseif Len >= 5
+        PSFmat = PSFmat(:,MagFlagIdx(Sorted(1:5)));
+        
+    else
+        PSFmat = PSFmat(:,MagFlag);
+    end
     TypicalSD = median(std(PSFmat,'omitnan'),'omitnan'); 
   end
 else
     
     if Args.ZP
-       
+    
+        Colors = 0;
     % set Bin interval
     MinMag = Args.MedInt - 0.125;
     MaxMag = Args.MedInt + 0.125;

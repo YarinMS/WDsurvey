@@ -6,7 +6,7 @@ E1 = WDss({},{},{}	,{}	,[]  ,[]	,[],'Batch',[],'getForcedData',false,'plotTarget
 
 E1.Path =  '/last04w/data1/archive/LAST.01.04.03/2023/09/16/proc'; % Manual at the moment.
 
-E1.Data.save_to =  '/home/ocs/Documents/WD_survey/Thesis/';
+E1.Data.save_to =  '/home/ocs/Documents/WD_survey/Thesis/160923/';
 
 
 
@@ -75,7 +75,77 @@ E1 = VisitInspection(E1)
 [E1] = get2VisLC(E1,'Results1',Results1)
 
 
+
+%% all night data
+
+
+
+[~,SortTicks] = sort(E1.G_Bp);
+
+%
+figure('Color','White','units','normalized','outerposition',[0 0 1 1])
+Ticks = [];
+for Iwd = 1 : numel(E1.RA)
+    
+    tick = num2str(E1.G_Bp(SortTicks(Iwd)));
+    Ticks = [Ticks ; tick(1:5)];
+
+end
+
+
+T = E1.Data.Results.TotalObs;  %+ TotalObs2;
+
+bar(T(SortTicks), 'FaceColor', [0.5 0.7 0.9])
+%ylim([0,105]);
+xticklabels(Ticks)
+xlabel('$B_p$ [mag]','Interpreter','latex')
+ylabel('Actuall Time','Interpreter','latex')
+
+%title(sprintf('Available visits length ; Entire Observation (%s) hrs',obs_len+obs_len2),'Interpreter','latex')
+
+title(sprintf('Available visits length ; Entire Observation (%s) hrs $N_{WD} = %i$ - %s',E1.Data.Results.obs_len,length(E1.RA),E1.Data.DataStamp),'Interpreter','latex')
+
+file_name = [sprintf('Available \\ Visits \\ Obs \\ Time \\ %s \\ ID \\ %s \\ %i \\ Vis \\ %s \\ %s',E1.Data.Results.obs_len,E1.Data.DataStamp),'.png'];
+sfile = strcat(E1.Data.save_to,file_name);
+sfile= strrep(sfile, ' ', '');
+
+
+sfile = strrep(sfile, '\', '_');
+         
+
+saveas(gcf,sfile) ;
+
+pause(2)
+close();
+
+
+
 %%
-%
-%
+
+
+Tab =[E1.RA, E1.Dec, E1.G_Bp, T]
+    
+%% If only E1 , Save Results
+%% Save table
+%monthyear       = E1.Data.Date;
+%montyear.Format = 'MMM-uuuu';
+TabName         = [E1.Data.DataStamp,'_','Table_Results_',E1.Data.FieldID,'.mat']
+save_path = [save_to,TabName];
+
+save(E1.Data.Save_to,'Tab','-v7.3')
+%% Save RMS Results
+
+RMS = E1.Data.Results.RMS_zp;
+%TabName1         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'_',DataPath(24:36),'RMS.mat']
+
+TabName1  = [E1.Data.DataStamp,'_','Results_',E1.Data.FieldID,'RMS.mat']
+save_path = [save_to,TabName1];
+
+save(save_path,'RMS','-v7.3')
+RMSsys =E1.Data.Results.RMS_sys;
+%TabName12         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'_',DataPath(24:36),'RMSsys.mat']
+save_path = [save_to,TabName12];
+TabName2  = [E1.Data.DataStamp,'_','Results_',E1.Data.FieldID,'RMSsys.mat']
+
+save(save_path,'RMSsys','-v7.3')
 

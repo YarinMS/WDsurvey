@@ -36,7 +36,7 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
    
     
     for Ibatch = 1 : size(Results.Main,1)
-    
+    if ~isempty(Results.Main{Ibatch,MainCol})
     Found_Index = Results.Main{Ibatch,MainCol}.coneSearch(WD.RA(wdIdx),WD.Dec(wdIdx)).Ind;
     
     if ~isempty(Found_Index)
@@ -52,7 +52,7 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
               Rms1(wdIdx,Ibatch,MainCol) = RMS1;
               if event
                 
-                  save([WD.Data.save_to,'Event_In_',  sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\ %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp),'_.mat'],'maso','-v7.3')
+                  save([WD.Data.save_to,'Event_In_',  sprintf('Found  %i  WD  %i  Batch  %i  SF  %i  Vis  %s  %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp),'_.mat'],'maso','-v7.3')
                   fprintf('\nDetected event stored, WD %i Batch  %i SF %i V %s \n Found #_',wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},Ifind)
             
               end
@@ -74,7 +74,7 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
               
         end
     end
-        
+    end  
     
     end
 
@@ -154,7 +154,7 @@ WD.Data.Results.TotalObs = TotalObs;
 [~,SortTicks] = sort(WD.G_Bp);
 
 %
-figure('Color','White')
+figure('Color','White','units','normalized','outerposition',[0 0 1 1])
 Ticks = [];
 for Iwd = 1 : numel(WD.RA)
     
@@ -175,9 +175,17 @@ ylabel('Actual Time','Interpreter','latex')
 title(sprintf('Available visits length ; Entire Observation (%s) hrs',WD.Data.Results.obs_len),'Interpreter','latex')
 
 
+file_name = [sprintf('One \\ night \\ Obs \\ Time \\ %s \\ ID \\ %s \\ %i \\ Vis \\ %s \\ %s',WD.Data.Results.obs_len,DataStamp),'.png'];
+sfile = strcat(WD.Data.save_to,file_name);
+sfile= strrep(sfile, ' ', '');
 
 
+sfile = strrep(sfile, '\', '_');
+         
 
+saveas(gcf,sfile) ;
+
+close();
 
 
 

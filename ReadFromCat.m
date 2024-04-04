@@ -135,6 +135,17 @@ if Args.Header
         
         ylabel('DEC [deg]','Interpreter','latex')
         
+file_name = [sprintf('Observation \\ night \\ Info \\ $s_ \\ %s',Args.WD.Data.FieldID,Args.WD.Data.DataStamp),'.png'];
+sfile = strcat(Args.WD.Data.save_to,file_name);
+sfile= strrep(sfile, ' ', '');
+
+
+sfile = strrep(sfile, '\', '_');
+         
+
+saveas(gcf,sfile) ;
+
+%close();
         
     end
         
@@ -146,6 +157,12 @@ if Args.Header
           if ~isempty(Args.WD)
             
             title(Args.WD.Data.DataStamp,'Interpreter','latex');
+            file_name = [sprintf('Observation \\ night \\ Airmass\\ %s_ \\ %s',Args.WD.Data.FieldID,Args.WD.Data.DataStamp),'.png'];
+             sfile = strcat(Args.WD.Data.save_to,file_name);
+             sfile= strrep(sfile, ' ', '');
+             sfile = strrep(sfile, '\', '_');
+             saveas(gcf,sfile) ;
+
             
         end
         

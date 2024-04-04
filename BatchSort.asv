@@ -94,8 +94,8 @@ if even
                
                      
                  
-                 
-              
+                 cd(list.Folder{1})
+                 if exist(
               
           
                  %L = MatchedSources.rdirMatchedSourcesSearch('CropID',Sub_Frames(Isf),'MinJD',MinJD,'MaxJD',MaxJD);            
@@ -214,9 +214,10 @@ end
 
 % Store in Results (for now)
 
-Results.Main = Main;
-Results.SFcol = Sub_Frames;
+Results.Main   = Main;
+Results.SFcol  = Sub_Frames;
 Results.VisMap = {};
+Results.VN     =  VN;
 
 Results1 = Results;
 

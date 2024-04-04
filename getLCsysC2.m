@@ -278,7 +278,7 @@ if Args.SigmaClip
         
        plot(t(MarkedEventss),y_sys(MarkedEventss),'ro','MarkerSize',8)
        
-            mm = MarkedEventss;
+        mm = MarkedEventss;
         
         d = y_sys;
         for Ie = 1 : numel(mm)
@@ -481,8 +481,9 @@ if Args.SDcluster
     y_zp  = y_zp(~isnan(y_zp));
     Med   = median(y_zp,'omitnan');
     sigma = std(y_zp,'omitnan');
-    [newM,newS] = SigmaClips(y_zp,'SigmaThreshold',2.5,'MeanClip',false);
-    [Threshold,CC] =  clusteredSD(MS,'MedInt',newM,'ExtData',true,'Color',Args.WD.Color(Args.wdIdx));
+    [newM,newS] = SigmaClips(y_zp,'SigmaThreshold',3,'MeanClip',false);
+    % [Threshold,CC] =  clusteredSD(MS,'MedInt',newM,'ExtData',true,'Color',Args.WD.Color(Args.wdIdx));
+    [Threshold,~] =  clusteredSD(MS,'MedInt',newM,'ExtData',false);
     threshold = Threshold*Args.threshold ;
     MarkedEvents = [];
     
@@ -499,7 +500,23 @@ if Args.SDcluster
     end
     
     
+    if ~isempty(MarkedEvents)
+        MarkedEvents = reshape(MarkedEvents,1,[]);
+        
+       %plot(t(MarkedEventss),y_sys(MarkedEventss),'ro','MarkerSize',8)
+  
+        mm = MarkedEvents;
+        
+        dd = y_zp;
+        for Ie = 1 : numel(mm)
+            
+            dd(mm(Ie)) = NaN;
+            
+        end
+            
+        newsd = std(dd,'omitnan');
     
+    end 
     
     
 
@@ -548,9 +565,9 @@ if Args.SDcluster
     
     Meds   = median(y_sys,'omitnan');
     sigmas = std(y_sys,'omitnan');
-    [newMs,newSs] = SigmaClips(y_sys,'SigmaThreshold',2.5,'MeanClip',false);
-    [Thresholds,~] =  clusteredSD(ms,'MedInt',newMs,'ExtData',true,'Sys',true,'Color',Args.WD.Color(Args.wdIdx),'CC',CC);
-    
+    [newMs,newSs] = SigmaClips(y_sys,'SigmaThreshold',3,'MeanClip',false);
+    %[Thresholds,~] =  clusteredSD(ms,'MedInt',newMs,'ExtData',true,'Sys',true,'Color',Args.WD.Color(Args.wdIdx),'CC',CC); % with color term
+     [Thresholds,~] =  clusteredSD(ms,'MedInt',newMs,'ExtData',false,'Sys',true,'ZP',true);
     y_sys  = y_sys(~isnan(y_sys));
     plot(t,y_sys,'-','Color',[0.25 0.25 0.25])
     thresholds = Args.threshold*Thresholds;
@@ -583,11 +600,21 @@ if Args.SDcluster
     end
     
     if ~isempty(MarkedEventss)
-        MarkedEventss = reshape(MarkedEventss,1,[])
+        MarkedEventss = reshape(MarkedEventss,1,[]);
         
        plot(t(MarkedEventss),y_sys(MarkedEventss),'ro','MarkerSize',8)
   
+        mm = MarkedEventss;
         
+        d = y_sys;
+        for Ie = 1 : numel(mm)
+            
+            d(mm(Ie)) = NaN;
+            
+        end
+            
+        newsd1 = std(d,'omitnan');
+    
     end
     % plot(t,y_zp,'-o','Color',[0.8 0.8 0.8])
 hold off
@@ -616,14 +643,14 @@ if exist('newsd','var') == 1
     
 else
     
-    newsd = NaN;
+    newsd = std(y_zp,'omitnan');
     
 end
 if exist('newsd1','var') == 1
     
 else
     
-    newsd1 = NaN;
+    newsd1 = std(y_sys,'omitnan');
     
 end
 
@@ -679,7 +706,7 @@ if (~isempty(MarkedEventss)) | (~isempty(MarkedEvents))
          
 
          saveas(gcf,sfile) ;
-         pause(5)
+         %pause(5)
          %close();
 figure('Color','white');
 
@@ -709,7 +736,7 @@ semilogy(xdata(NewIdx),ydata(NewIdx),'p','MarkerSize',10,'MarkerFaceColor','red'
 
 Leg = legend('No zp','ZP','SysRem',['rms zp = ',num2str(Ydata(Args.SourceIdx))],['rms sys = ',num2str(ydata(NewIdx))],'Location','best');
 title('RMS MAG PSF','Interpreter','latex')
-pause(2)
+%pause(2)
 
 
 
