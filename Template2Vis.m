@@ -130,22 +130,23 @@ Tab =[E1.RA, E1.Dec, E1.G_Bp, T]
 %monthyear       = E1.Data.Date;
 %montyear.Format = 'MMM-uuuu';
 TabName         = [E1.Data.DataStamp,'_','Table_Results_',E1.Data.FieldID,'.mat']
-save_path = [save_to,TabName];
+save_path = [E1.Data.save_to,TabName];
 
-save(E1.Data.Save_to,'Tab','-v7.3')
+save(save_path,'Tab','-v7.3')
 %% Save RMS Results
 
 RMS = E1.Data.Results.RMS_zp;
 %TabName1         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'_',DataPath(24:36),'RMS.mat']
 
 TabName1  = [E1.Data.DataStamp,'_','Results_',E1.Data.FieldID,'RMS.mat']
-save_path = [save_to,TabName1];
+save_path = [E1.Data.save_to,TabName1];
 
 save(save_path,'RMS','-v7.3')
 RMSsys =E1.Data.Results.RMS_sys;
 %TabName12         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'_',DataPath(24:36),'RMSsys.mat']
-save_path = [save_to,TabName12];
 TabName2  = [E1.Data.DataStamp,'_','Results_',E1.Data.FieldID,'RMSsys.mat']
+save_path = [E1.Data.save_to,TabName2];
+
 
 save(save_path,'RMSsys','-v7.3')
 
