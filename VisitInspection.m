@@ -177,7 +177,7 @@ Ticks = [];
 for Iwd = 1 : numel(E.RA)
     
     tick = num2str(E.G_Bp(SortTicks(Iwd)));
-    Ticks = [Ticks ; tick(1:5)];
+    Ticks = [Ticks ; tick(1:4)];
 
 end
 
