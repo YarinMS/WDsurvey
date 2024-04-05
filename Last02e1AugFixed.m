@@ -255,7 +255,7 @@ ylabel('Actuall Time','Interpreter','latex')
 %title(sprintf('Available visits length ; Entire Observation (%s) hrs',obs_len+obs_len2),'Interpreter','latex')
 ObsLen = E1.Data.Results.obs_len %+E2.Data.Results.obs_len;
 title(sprintf('Available visits length ; Entire Observation (%s) hrs $N_{WD} = %i$ - %s',ObsLen,length(E1.RA),E1.Data.DataStamp),'Interpreter','latex')
-NewStamp = [E1.Data.DataStamp,'__',E2.Data.DataStamp(end-2:end)];
+NewStamp = [E1.Data.DataStamp]; %,'__',E2.Data.DataStamp(end-2:end)];
 file_name = [sprintf('Available \\ Visits \\ Obs \\ Time \\ %s \\ ID \\ %s \\ %i \\ Vis \\ %s \\ %s',ObsLen,NewStamp),'.png'];
 sfile = strcat(E1.Data.save_to,file_name);
 sfile= strrep(sfile, ' ', '');

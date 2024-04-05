@@ -163,15 +163,28 @@ else
                       list.FileName{Iid}(end-30:end-28) = ID;
                  end
              
-          
-               % L = MatchedSources.rdirMatchedSourcesSearch('CropID',Sub_Frames(Isf),'MinJD',MinJD,'MaxJD',MaxJD);            
+           cd(list.Folder{1})
+                 if exist(list.FileName{1},'file') > 0
+                     cd ..
+                     cd(list.Folder{2})
+                     if exist(list.FileName{2},'file') > 0
+                         cd ..  
+                           %L = MatchedSources.rdirMatchedSourcesSearch('CropID',Sub_Frames(Isf),'MinJD',MinJD,'MaxJD',MaxJD);            
                % Upload all files to a MatchedSources object
-                 matched_source = MatchedSources.readList(list); 
-               % Merge all MatchedSources elkement into a single element object
-                 MSU = mergeByCoo( matched_source, matched_source(1));
-                 Main{Ibatch,Isf} = MSU.copy();
-                 VN{Ibatch,Isf}   = list.Folder{1}(end-7:end);
-            
+                            matched_source = MatchedSources.readList(list); 
+                            % Merge all MatchedSources elkement into a single element object
+                            MSU = mergeByCoo( matched_source, matched_source(1));
+                           Main{Ibatch,Isf} = MSU.copy();
+                           VN{Ibatch,Isf}   = list.Folder{1}(end-7:end);
+                     else
+                         cd ..
+                         fprintf('\NCouldnt find MergedMatfile for Sub frame %i Visit %s :',Isf,list.Folder{2}(end-7:end))
+                     end
+                 else
+                     cd ..
+                     fprintf('\NCouldnt find MergedMatfile for Sub frame %i Visit %s :',Isf,list.Folder{1}(end-7:end))
+                 end
+                
             
             end
             counter = counter+3
@@ -210,13 +223,28 @@ else
                  end
 
           
-               % L = MatchedSources.rdirMatchedSourcesSearch('CropID',Sub_Frames(Isf),'MinJD',MinJD,'MaxJD',MaxJD);            
+                cd(list.Folder{1})
+                 if exist(list.FileName{1},'file') > 0
+                     cd ..
+                     cd(list.Folder{2})
+                     if exist(list.FileName{2},'file') > 0
+                         cd ..  
+                           %L = MatchedSources.rdirMatchedSourcesSearch('CropID',Sub_Frames(Isf),'MinJD',MinJD,'MaxJD',MaxJD);            
                % Upload all files to a MatchedSources object
-                 matched_source = MatchedSources.readList(list); 
-               % Merge all MatchedSources elkement into a single element object
-                 MSU = mergeByCoo( matched_source, matched_source(1));
-                 Main{Ibatch,Isf} = MSU.copy();
-                 VN{Ibatch,Isf}   = list.Folder{1}(end-7:end);
+                            matched_source = MatchedSources.readList(list); 
+                            % Merge all MatchedSources elkement into a single element object
+                            MSU = mergeByCoo( matched_source, matched_source(1));
+                           Main{Ibatch,Isf} = MSU.copy();
+                           VN{Ibatch,Isf}   = list.Folder{1}(end-7:end);
+                     else
+                         cd ..
+                         fprintf('\NCouldnt find MergedMatfile for Sub frame %i Visit %s :',Isf,list.Folder{2}(end-7:end))
+                     end
+                 else
+                     cd ..
+                     fprintf('\NCouldnt find MergedMatfile for Sub frame %i Visit %s :',Isf,list.Folder{1}(end-7:end))
+                 end
+              
             end
             counter = counter+2
         end
