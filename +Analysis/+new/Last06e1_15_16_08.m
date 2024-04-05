@@ -3,68 +3,88 @@ addpath('~/Documents/WDsurvey/')
 %% Initilize WDs Object
 
 
-FN_278_13 = WDss({},{},{}	,{}	,[]  ,[]	,[],'Batch',[],'getForcedData',false,'plotTargets',true,'FieldId',{},'Isempty',true)
+F277_36N1 = WDss({},{},{}	,{}	,[]  ,[]	,[],'Batch',[],'getForcedData',false,'plotTargets',true,'FieldId',{},'Isempty',true)
 
 
-FN_278_13.Path =  '/last02e/data1/archive/LAST.01.02.01/2023/08/15/proc'; % Manual at the moment.
+F277_36N1.Path =  '/last06e/data1/archive/LAST.01.06.01/2023/08/15/proc'; % Manual at the moment.
 
-FN_278_13.Data.save_to =  '/home/ocs/Documents/WD_survey/Thesis/1508__268_13/';
+F277_36N1.Data.save_to =  '/home/ocs/Documents/WD_survey/Thesis/1508_277+36/';
 
 
 
 %%
 
-FN_278_13 = ListFields(FN_278_13) % List All Fields in Path
+F277_36N1 = ListFields(F277_36N1) % List All Fields in Path
 
 %% Get field FWHM LimMAG ra,dec during the obs
-FN_278_13.FieldID = '278+13';
-FN_278_13 = getObsInfo(FN_278_13,'FN',FN_278_13.FieldID);
+F277_36N1.FieldID = '277+36';
+F277_36N1 = getObsInfo(F277_36N1,'FN',F277_36N1.FieldID);
 
 
 %% Now you can look for WD within the field and add to E
 
 
 %% targets in field
-Names = [' WDJ183630.91+145105.59  ',
-' WDJ183711.02+162655.77  ',
-' WDJ183706.87+144903.33  ',
-' WDJ183751.54+161203.89  ',
-' WDJ183751.64+153010.45  ',
-' WDJ183151.87+153526.55  ',
-' WDJ183627.77+133645.22  ',
-' WDJ183013.55+153416.36  ',
+Names = [
+    ' WDJ183218.82+363237.60  ',
+' WDJ183145.31+370422.86  ',
+' WDJ183651.97+384946.27  ',
+' WDJ183444.65+365002.94  ',
+' WDJ183629.00+364500.59  ',
+' WDJ183105.40+371411.44  ',
+' WDJ183528.60+373954.70  ',
+' WDJ183308.89+360326.26  ',
+' WDJ183703.45+381520.96  ',
+' WDJ183058.11+380259.01  ',
+' WDJ183755.09+385220.23  ',
+' WDJ183315.19+382942.89  ',
+' WDJ183724.18+373247.30  ',
+' WDJ183540.34+390007.02  ',
+' WDJ183414.77+381712.11  ',
+' WDJ183738.39+365439.97  ',
+' WDJ183236.47+385400.44  ',
   ];
 
 TargetList = [
-279.1284393345867	14.850637436210528	18.057463	18.290157	17.690727
-279.2963269824645	16.448058003979565	19.070307	19.664959	18.388618
-279.27860093637224	14.817792223070612	18.909126	19.068396	18.685026
-279.4648805301538	16.201322893177927	18.265223	18.404182	18.091648
-279.46495958410776	15.502630966976119	19.182926	19.334333	18.816795
-277.96614709127226	15.590607418890583	19.195232	19.3245	19.096043
-279.115542080862	13.612500948250908	18.6631	18.819796	18.516842
-277.5564133289239	15.571165318100453	18.754116	18.734941	18.870409
+278.0783847616547	36.543516459580474	18.958986	19.517525	18.3312
+277.93702427274036	37.072701933099886	17.8848	17.976393	17.760303
+279.21661615726146	38.82942824898391	18.197727	18.316595	18.135353
+278.6858527201984	36.833672801744406	18.412907	18.434786	18.39616
+279.1211614327405	36.74996092812995	18.993204	19.138372	18.796446
+277.7727314907298	37.236780176461565	18.76529	18.802181	18.845871
+278.8693492685543	37.66551237652615	18.461147	18.533937	18.430735
+278.28703105027	36.05682146369016	17.390617	17.3129	17.559557
+279.2644120747496	38.255852671763925	18.316376	18.297882	18.38669
+277.7420300654792	38.049715541536614	18.794899	18.800684	18.906445
+279.4793681595708	38.87215696308871	18.845476	18.842093	18.904043
+278.31335005193426	38.495006825286424	18.809862	18.838043	18.859127
+279.350700910709	37.54646239866789	18.248077	18.211945	18.390963
+278.91804639728826	39.00194300157912	18.610916	18.491575	18.76021
+278.5614327251072	38.28653472813236	19.031754	18.959686	19.134285
+279.4099609814048	36.91113434006961	19.111826	19.064842	19.336964
+278.1520072729942	38.90016510112941	18.968945	18.917665	19.379482
+
 
 ];
 
 
-FN_278_13.Name = Names ;
-FN_278_13.RA = TargetList(:,1);
-FN_278_13.Dec = TargetList(:,2);
-FN_278_13.G_g  = TargetList(:,3);
-FN_278_13.G_Bp = TargetList(:,4);
-FN_278_13.G_Rp =TargetList(:,5);
-FN_278_13.Color = FN_278_13.G_Bp  - FN_278_13.G_Rp ;
+F277_36N1.Name = Names ;
+F277_36N1.RA = TargetList(:,1);
+F277_36N1.Dec = TargetList(:,2);
+F277_36N1.G_g  = TargetList(:,3);
+F277_36N1.G_Bp = TargetList(:,4);
+F277_36N1.G_Rp =TargetList(:,5);
+F277_36N1.Color = F277_36N1.G_Bp  - F277_36N1.G_Rp ;
 
 %% Visit Inspection
-FN_278_13 = VisitInspection(FN_278_13)
+F277_36N1 = VisitInspection(F277_36N1)
 
 %% Batch Sorting:
-[FN_278_13,Results1] = BatchSort(FN_278_13)
+[F277_36N1,Results1] = BatchSort(F277_36N1)
 
 %% get 2vis light curves:
 
-[FN_278_13] = get2VisLC(FN_278_13,'Results1',Results1)
+[F277_36N1] = get2VisLC(F277_36N1,'Results1',Results1)
 
 
 
@@ -72,20 +92,20 @@ FN_278_13 = VisitInspection(FN_278_13)
 
 
 
-[~,SortTicks] = sort(FN_278_13.G_Bp);
+[~,SortTicks] = sort(F277_36N1.G_Bp);
 
 %
 figure('Color','White','units','normalized','outerposition',[0 0 1 1])
 Ticks = [];
-for Iwd = 1 : numel(FN_278_13.RA)
+for Iwd = 1 : numel(F277_36N1.RA)
     
-    tick = num2str(FN_278_13.G_Bp(SortTicks(Iwd)));
+    tick = num2str(F277_36N1.G_Bp(SortTicks(Iwd)));
     Ticks = [Ticks ; tick(1:5)];
 
 end
 
 
-T = FN_278_13.Data.Results.TotalObs;  %+ TotalObs2;
+T = F277_36N1.Data.Results.TotalObs;  %+ TotalObs2;
 
 bar(T(SortTicks), 'FaceColor', [0.5 0.7 0.9])
 %ylim([0,105]);
@@ -95,10 +115,10 @@ ylabel('Actuall Time','Interpreter','latex')
 
 %title(sprintf('Available visits length ; Entire Observation (%s) hrs',obs_len+obs_len2),'Interpreter','latex')
 
-title(sprintf('Available visits length ; Entire Observation (%s) hrs $N_{WD} = %i$ - %s',FN_278_13.Data.Results.obs_len,length(FN_278_13.RA),FN_278_13.Data.DataStamp),'Interpreter','latex')
+title(sprintf('Available visits length ; Entire Observation (%s) hrs $N_{WD} = %i$ - %s',F277_36N1.Data.Results.obs_len,length(F277_36N1.RA),F277_36N1.Data.DataStamp),'Interpreter','latex')
 
-file_name = [sprintf('Available \\ Visits \\ Obs \\ Time \\ %s \\ ID \\ %s \\ %i \\ Vis \\ %s \\ %s',FN_278_13.Data.Results.obs_len,FN_278_13.Data.DataStamp),'.png'];
-sfile = strcat(FN_278_13.Data.save_to,file_name);
+file_name = [sprintf('Available \\ Visits \\ Obs \\ Time \\ %s \\ ID \\ %s \\ %i \\ Vis \\ %s \\ %s',F277_36N1.Data.Results.obs_len,F277_36N1.Data.DataStamp),'.png'];
+sfile = strcat(F277_36N1.Data.save_to,file_name);
 sfile= strrep(sfile, ' ', '');
 
 
@@ -115,29 +135,29 @@ close();
 %%
 
 
-Tab =[FN_278_13.RA, FN_278_13.Dec, FN_278_13.G_Bp, T]
+Tab =[F277_36N1.RA, F277_36N1.Dec, F277_36N1.G_Bp, T]
     
 %% If only E1 , Save Results
 %% Save table
 %monthyear       = E1.Data.Date;
 %montyear.Format = 'MMM-uuuu';
-TabName         = [FN_278_13.Data.DataStamp,'_','Table_Results_',FN_278_13.Data.FieldID,'.mat']
-save_path = [FN_278_13.Data.save_to,TabName];
+TabName         = [F277_36N1.Data.DataStamp,'_','Table_Results_',F277_36N1.Data.FieldID,'.mat']
+save_path = [F277_36N1.Data.save_to,TabName];
 
 save(save_path,'Tab','-v7.3')
 %% Save RMS Results
 
-RMS = FN_278_13.Data.Results.RMS_zp;
+RMS = F277_36N1.Data.Results.RMS_zp;
 %TabName1         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'_',DataPath(24:36),'RMS.mat']
 
-TabName1  = [FN_278_13.Data.DataStamp,'_','Results_',FN_278_13.Data.FieldID,'RMS.mat']
-save_path = [FN_278_13.Data.save_to,TabName1];
+TabName1  = [F277_36N1.Data.DataStamp,'_','Results_',F277_36N1.Data.FieldID,'RMS.mat']
+save_path = [F277_36N1.Data.save_to,TabName1];
 
 save(save_path,'RMS','-v7.3')
-RMSsys =FN_278_13.Data.Results.RMS_sys;
+RMSsys =F277_36N1.Data.Results.RMS_sys;
 %TabName12         = ['Table_Results_',FieldNames{FieldIdx(1)},'_',num2str(date.Day),'-',num2str(date2.Day),'-',char(monthyear),'_',DataPath(24:36),'RMSsys.mat']
-TabName2  = [FN_278_13.Data.DataStamp,'_','Results_',FN_278_13.Data.FieldID,'RMSsys.mat']
-save_path = [FN_278_13.Data.save_to,TabName2];
+TabName2  = [F277_36N1.Data.DataStamp,'_','Results_',F277_36N1.Data.FieldID,'RMSsys.mat']
+save_path = [F277_36N1.Data.save_to,TabName2];
 
 
 save(save_path,'RMSsys','-v7.3')
@@ -152,13 +172,15 @@ clear all;
 
 %% 16/08 2 fields !
 
+%% Data path dont exist in last so far!!!
+
 %% Initilize WDs Object
 
 
 FN_294_42 = WDss({},{},{}	,{}	,[]  ,[]	,[],'Batch',[],'getForcedData',false,'plotTargets',true,'FieldId',{},'Isempty',true)
 
 
-FN_294_42.Path =  '/last02w/data1/archive/LAST.01.02.03/2023/08/16/proc'; % Manual at the moment.
+FN_294_42.Path =  '/last02e/data1/archive/LAST.01.02.01/2023/08/16/proc'; % Manual at the moment.
 
 FN_294_42.Data.save_to =  '/home/ocs/Documents/WD_survey/Thesis/1608_294_42/';
 
