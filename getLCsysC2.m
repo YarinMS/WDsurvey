@@ -734,7 +734,7 @@ semilogy(xdata(NewIdx),ydata(NewIdx),'p','MarkerSize',10,'MarkerFaceColor','red'
 
 
 
-Leg = legend('No zp','ZP','SysRem',['rms zp = ',num2str(Ydata(Args.SourceIdx))],['rms sys = ',num2str(ydata(NewIdx))],'Location','best');
+Leg = legend('No zp','ZP','SysRem',['rms zp = ',num2str(Ydata(Args.SourceIdx))],['rms sys = ',num2str(ydata(NewIdx))],'Location','SouthEast');
 title('RMS MAG PSF','Interpreter','latex')
 %pause(2)
 
