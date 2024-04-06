@@ -405,7 +405,7 @@ F356_34_N2_2108 = VisitInspection(F356_34_N2_2108)
 
 
 %% Connect 2 nights , Save Results
-E1 = F356_334_N2_2108;
+E1 = F356_34_N2_2108;
 %E2 = F356_34_N2_2108;
 [~,SortTicks] = sort(E1.G_Bp);
 
