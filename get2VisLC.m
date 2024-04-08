@@ -23,7 +23,10 @@ Vistat = {};
 
 Rms0 = zeros(numel(WD.RA),size(Results.Main,1));
 Rms1 = zeros(numel(WD.RA),size(Results.Main,1));
-
+rmsmean     =  NaN(numel(WD.RA),4);
+rmsmean_sys =  NaN(numel(WD.RA),4);
+rmsmean(:,1) = WD.G_Bp;
+rmsmean_sys(:,1) = WD.G_Bp;
 
 for i = 1 : numel(WD.RA)
 
@@ -61,14 +64,20 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
                   Results.VisMap{Ibatch,wdIdx} =  [1 Ibatch Results.SFcol(MainCol) wdIdx ] %[ 1 Ibatch,
                   
                   Results.VisMapR{Ibatch,wdIdx} = { [1] [ sprintf('Batch : %i  SF : %i ; WD %i ; idx: %i',Ibatch, Results.SFcol(MainCol), wdIdx,Ifind )]}
-             
-              
+                  if Ibatch == size(Results.Main,1)
+                      rmsmean(wdIdx,2)     =  mean(Rms0(wdIdx,:,MainCol),'omitnan');
+                      rmsmean_sys(wdIdx,2) =  mean(Rms1(wdIdx,:,MainCol),'omitnan');
+                  end
+           
               end
               if (Npts )> 20  & (Icol> 1 )
                   Results.VisMap2{Ibatch,wdIdx} =  [1 Ibatch Results.SFcol(MainCol) wdIdx ] %[ 1 Ibatch,
                   
                   Results.VisMapR2{Ibatch,wdIdx} = { [1] [ sprintf('Batch : %i  SF : %i ; WD %i ; idx: %i',Ibatch, Results.SFcol(MainCol), wdIdx,Ifind )]}
- 
+                  if Ibatch == size(Results.Main,1)
+                      rmsmean(wdIdx,3)     =  mean(Rms0(wdIdx,:,MainCol),'omitnan');
+                      rmsmean_sys(wdIdx,3) =  mean(Rms1(wdIdx,:,MainCol),'omitnan');
+                  end
               end
          
               

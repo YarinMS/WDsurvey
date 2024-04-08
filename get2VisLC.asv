@@ -23,7 +23,10 @@ Vistat = {};
 
 Rms0 = zeros(numel(WD.RA),size(Results.Main,1));
 Rms1 = zeros(numel(WD.RA),size(Results.Main,1));
-
+rmsmean     =  NaN(numel(WD.RA),4);
+rmsmean_sys =  NaN(numel(WD.RA),4);
+rmsmean(:,1) = WD.G_Bp;
+rmsmean_sys(:,1) = WD.G_Bp;
 
 for i = 1 : numel(WD.RA)
 
@@ -36,7 +39,7 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
    
     
     for Ibatch = 1 : size(Results.Main,1)
-    
+    if ~isempty(Results.Main{Ibatch,MainCol})
     Found_Index = Results.Main{Ibatch,MainCol}.coneSearch(WD.RA(wdIdx),WD.Dec(wdIdx)).Ind;
     
     if ~isempty(Found_Index)
@@ -49,10 +52,10 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
              %  [maso,event,Npts] = getLCsys( Results.Main{Ibatch,MainCol},'SourceIdx',Found_Index(Ifind),'SaveTo',save_to,'Serial',...
               %    sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\  %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp),'WD',E,'wdIdx',wdIdx);
               Rms0(wdIdx,Ibatch,MainCol) = RMS0;
-              Rms1(wdIdx,Ibatch,MainCol) = RMS0;
+              Rms1(wdIdx,Ibatch,MainCol) = RMS1;
               if event
                 
-                  save([WD.Data.save_to,'Event_In_',  sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\ %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp),'_.mat'],'maso','-v7.3')
+                  save([WD.Data.save_to,'Event_In_',  sprintf('Found  %i  WD  %i  Batch  %i  SF  %i  Vis  %s  %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp),'_.mat'],'maso','-v7.3')
                   fprintf('\nDetected event stored, WD %i Batch  %i SF %i V %s \n Found #_',wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},Ifind)
             
               end
@@ -61,8 +64,11 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
                   Results.VisMap{Ibatch,wdIdx} =  [1 Ibatch Results.SFcol(MainCol) wdIdx ] %[ 1 Ibatch,
                   
                   Results.VisMapR{Ibatch,wdIdx} = { [1] [ sprintf('Batch : %i  SF : %i ; WD %i ; idx: %i',Ibatch, Results.SFcol(MainCol), wdIdx,Ifind )]}
-             
-              
+                  rmsmean(wdIdx,Ifind)     =  Rms0(wdIdx,:,MainCol);
+                  rmsmean_sys(wdIdx,Ifind) =  Rms1(wdIdx,:,MainCol);
+                  rmsmean(wdIdx,Ifind)     =  Rms0(wdIdx,:,MainCol);
+                  rmsmean_sys(wdIdx,Ifind) =  Rms1(wdIdx,:,MainCol);
+           
               end
               if (Npts )> 20  & (Icol> 1 )
                   Results.VisMap2{Ibatch,wdIdx} =  [1 Ibatch Results.SFcol(MainCol) wdIdx ] %[ 1 Ibatch,
@@ -74,7 +80,7 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
               
         end
     end
-        
+    end  
     
     end
 
@@ -150,19 +156,21 @@ end
 %% Vis statistics
 
 TotalObs = sum(Vistat,2)*800/3600
-
+WD.Data.Results.TotalObs = TotalObs;
 [~,SortTicks] = sort(WD.G_Bp);
 
 %
-figure('Color','White')
+figure('Color','White','units','normalized','outerposition',[0 0 1 1])
 Ticks = [];
 for Iwd = 1 : numel(WD.RA)
     
     tick = num2str(WD.G_Bp(SortTicks(Iwd)));
-    Ticks = [Ticks ; tick(1:5)];
+    Ticks = [Ticks ; tick(1:4)];
 
 end
 
+WD.Data.Results.RMS_zp  = Rms0;
+WD.Data.Results.RMS_sys = Rms1;
 
 bar(TotalObs(SortTicks), 'FaceColor', [0.5 0.7 0.9])
 %ylim([0,105]);
@@ -173,9 +181,17 @@ ylabel('Actual Time','Interpreter','latex')
 title(sprintf('Available visits length ; Entire Observation (%s) hrs',WD.Data.Results.obs_len),'Interpreter','latex')
 
 
+file_name = [sprintf('One \\ night \\ Obs \\ Time \\ %s \\ ID \\ %s \\ %i \\ Vis \\ %s \\ %s',WD.Data.Results.obs_len,DataStamp),'.png'];
+sfile = strcat(WD.Data.save_to,file_name);
+sfile= strrep(sfile, ' ', '');
 
 
+sfile = strrep(sfile, '\', '_');
+         
 
+saveas(gcf,sfile) ;
+
+close();
 
 
 
