@@ -23,8 +23,8 @@ Vistat = {};
 
 Rms0 = zeros(numel(WD.RA),size(Results.Main,1));
 Rms1 = zeros(numel(WD.RA),size(Results.Main,1));
-rmsmean     =  NaN(numel(WD.RA),4);
-rmsmean_sys =  NaN(numel(WD.RA),4);
+rmsmean     =  NaN(numel(WD.RA),3);
+rmsmean_sys =  NaN(numel(WD.RA),3);
 rmsmean(:,1) = WD.G_Bp;
 rmsmean_sys(:,1) = WD.G_Bp;
 
@@ -46,9 +46,10 @@ for Icol = 1 : numel(Results.SubFrame{wdIdx})
         
         for Ifind = 1: length(Found_Index)
         
-              [maso,event,Npts,RMS0,RMS1] = getLCsysC2( Results.Main{Ibatch,MainCol},'SourceIdx',Found_Index(Ifind),'SaveTo',WD.Data.save_to,'Serial',...
-                  sprintf('F \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\ %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp),'WD',WD,'wdIdx',wdIdx,...
-                  'SDcluster',true);
+              [maso,event,Npts,RMS0,RMS1] = getLCsysC3( Results.Main{Ibatch,MainCol},'SourceIdx',Found_Index(Ifind),'SaveTo',WD.Data.save_to,'Serial',...
+                  sprintf('F \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\ %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp(6:end)),'WD',WD,'wdIdx',wdIdx,...
+                  'SDcluster',true,...
+                  'Title',sprintf('%i.%i.%i.%i-%s-%s-%.3f ',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp,WD.G_Bp(wdIdx)));
              %  [maso,event,Npts] = getLCsys( Results.Main{Ibatch,MainCol},'SourceIdx',Found_Index(Ifind),'SaveTo',save_to,'Serial',...
               %    sprintf('Found \\ %i \\ WD \\ %i \\ Batch \\ %i \\ SF \\ %i \\ Vis \\  %s \\ %s',Ifind,wdIdx,Ibatch,Results.SFcol(MainCol),VN{Ibatch,MainCol},DataStamp),'WD',E,'wdIdx',wdIdx);
               Rms0(wdIdx,Ibatch,MainCol) = RMS0;
@@ -172,8 +173,8 @@ for Iwd = 1 : numel(WD.RA)
 
 end
 
-WD.Data.Results.RMS_zp  = Rms0;
-WD.Data.Results.RMS_sys = Rms1;
+WD.Data.Results.RMS_zp  = rmsmean;
+WD.Data.Results.RMS_sys = rmsmean_sys;
 
 bar(TotalObs(SortTicks), 'FaceColor', [0.5 0.7 0.9])
 %ylim([0,105]);

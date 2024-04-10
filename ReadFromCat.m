@@ -135,7 +135,7 @@ if Args.Header
         
         ylabel('DEC [deg]','Interpreter','latex')
         
-file_name = [sprintf('Observation \\ night \\ Info \\ $s_ \\ %s',Args.WD.Data.FieldID,Args.WD.Data.DataStamp),'.png'];
+file_name = [sprintf('Observation \\ night \\ Info \\ %s_ \\ %s',Args.WD.Data.FieldID,Args.WD.Data.DataStamp),'.png'];
 sfile = strcat(Args.WD.Data.save_to,file_name);
 sfile= strrep(sfile, ' ', '');
 

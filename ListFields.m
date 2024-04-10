@@ -42,7 +42,8 @@ for Ivis = 3 : numel(Visits)
 end
     
     
-E.Data.DataStamp = [DataPath(24:36),'-',DataPath(38:41),'-',DataPath(43:44),'-',DataPath(46:47)]
+%E.Data.DataStamp = [DataPath(22:36),'-',DataPath(38:41),'-',DataPath(43:44),'-',DataPath(46:47)]
+E.Data.DataStamp = [DataPath(23:35),'-',DataPath(37:40),DataPath(42:43),DataPath(45:46)]
 E.Data.FieldNames = FieldNames;
 
 

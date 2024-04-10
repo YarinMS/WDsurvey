@@ -1,0 +1,49 @@
+function Obj = marvin_run(SaveTo,Args)
+
+arguments
+    SaveTo 
+    Args.Mount ='02';
+    Args.Tel   = 1 ; 
+    Args.Year  = '2023';
+    Args.Month = '09';
+    Args.Night = '15';
+    Args.Night2 = '16';
+
+end
+
+obj = WDss({},{},{}	,{}	,[]  ,[]	,[],'Batch',[],'getForcedData',false,'plotTargets',true,'FieldId',{},'Isempty',true)
+Mount     = Args.Mount ; % str
+Tel       = Args.Tel   ; % int
+Year      = Args.Year ;
+Month     = Args.Month ;
+Night     = Args.Night ; 
+% SaveTo    =  '/home/ocs/Documents/WD_survey/Thesis/2708_280+40b/';
+Night2    = Args.Night2;
+
+%%
+ Obj = GetFieldLCmarv(obj,'Mount',Mount,...
+'Tel',Tel,...
+'Year',Year,...
+'Month',Month,...
+'Night',Night,...
+'SaveTo',SaveTo ,...
+'Night2',{},...
+'ListFields',true,'GetCoords',false)
+
+%% 
+filenames = Obj.Data.FieldNames;
+
+uniqe(filenames)
+%%
+% 1 or middle or end (Usually)
+FN = Obj.Data.FieldNames{1};
+
+ Obj = GetFieldLC(obj,'Mount',Mount,...
+'Tel',Tel,...
+'Year',Year,...
+'Month',Month,...
+'Night',Night,...
+'SaveTo',SaveTo ,...
+'Night2',{},...
+'ListFields',false,'GetCoords',true,'FieldCoords',FN)
+end
