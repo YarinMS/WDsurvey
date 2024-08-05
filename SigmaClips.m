@@ -6,7 +6,7 @@ arguments
     Args.SigmaThreshold = 3; %default
     Args.MaxIter   = 5;
     Args.plot      = true;
-    Args.MeanClip  =true;
+    Args.MeanClip  = false;
     
 end
 

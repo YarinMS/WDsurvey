@@ -31,10 +31,11 @@ for Ivis = 3 : numel(Visits)
         
     end
     
+    if ~isempty(IDX)
     H   = AstroHeader(Cats(IDX).name,3);
     
     FieldNames = [FieldNames ; {H.Key.FIELDID}]
-    
+    end
     
     cd ..
         

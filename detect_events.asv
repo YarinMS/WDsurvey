@@ -1,0 +1,100 @@
+function [Event] = detect_events(light_curve, Args)
+
+arguments
+light_curve
+Args.Threshold = 2.5;
+Args.plot = true;
+Args.Errors = {};
+Args.Times = {};
+Args.title = {};
+Args.Model = {};
+
+end
+Event = 0;
+    % Evaluate 3 sigma clipping
+   [newM,newS] = SigmaClips(light_curve);
+    y_sys = light_curve;
+    % Plot light curve with error bars
+    
+    
+    % Find events (consecutive points above threshold)
+    thresholds = newS*Args.Threshold ;
+    MarkedEventss = [];
+     for Ipt = 1 : length(y_sys) - 1
+        
+        if y_sys(Ipt) - newM > thresholds
+            
+            if y_sys(Ipt+1) - newM > thresholds
+                
+                MarkedEventss = [MarkedEventss ; Ipt, Ipt+1];
+                
+            end
+        end
+     end
+       if ~isempty(MarkedEventss)
+             Event = 1;
+
+       end
+
+     if Args.plot
+
+         if ~isempty(MarkedEventss)
+            
+
+              lglbl{1} = sprintf('rms = %.3f',newS);
+
+
+              figure('Color','White')
+
+              h1 =  errorbar(Args.Times, y_sys, Args.Errors, '.', 'Color' , [0.25 0.25 0.25],'DisplayName',lglbl{1});
+              threshold_values = [newM-thresholds, newM , newM+ thresholds];
+              hold on
+              if ~isnan(newM)
+        
+
+                   for i = 1:length(threshold_values)
+                     if i == 2
+                        yline(threshold_values(i), '-', 'Color', [105, 0, 0] / 255); % '--' for dashed style, 'r' for red color
+                     elseif i== 3
+                        yline(threshold_values(i), '--', 'Color', [85, 0, 0] / 255); % '--' for dashed style, 'r' for red color
+                     end
+        
+                     end
+              end 
+
+                     plot(Args.Times(MarkedEventss),y_sys(MarkedEventss),'ro','MarkerSize',8)
+              if ~isempty(Args.Model)
+                  
+                  median(y_sys) + deltamag(Inject_ind)' + std(LC)*randn(sum(Inject_ind),1);
+
+                  h2 = 
+
+              end
+
+              legend([h1],'Interpreter','latex','Location','southeast','box','off')
+              set(gca,'Ydir','reverse')
+              if ~isempty(Args.title) 
+                  title(Args.title,'Interpreter','latex')
+
+              end
+              pause(2)
+              close();
+
+         end
+    %hold on;
+    
+
+    % Plot horizontal line for median
+    %line([1, length(light_curve)], [median(light_curve), median(light_curve)], 'Color', 'r');
+
+    % Plot horizontal line for threshold
+    %line([1, length(light_curve)], [threshold, threshold], 'Color', 'g');
+
+
+     end
+
+
+
+
+    hold off;
+end

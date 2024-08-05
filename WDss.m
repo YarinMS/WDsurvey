@@ -457,7 +457,7 @@ classdef WDss
                                   CropID{Iobj,1} = ai(Iimage).HeaderData.Key.CROPID ; 
                                   FieldID(Iobj)  = ai(Iimage).HeaderData.Key.FIELDID;
                                   % plot
-                                  [AI] = obj.get_target(ai,obj,Iobj,CropID{Iobj,1});
+                                 % [AI] = obj.get_target(ai,obj,Iobj,CropID{Iobj,1});
 
                                   fprintf('\nCoord of source # %i Found in subframe %i\nTarget name : %s',Iobj,CropID{Iobj,1},obj.Name(Iobj,:))
                                   

@@ -53,7 +53,7 @@ VN   = {};
 
 
 even = rem(Nvis,2) == 0;
-
+even = true
 if even  
     
     counter = 1;

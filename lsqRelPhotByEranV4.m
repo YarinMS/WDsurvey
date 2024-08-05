@@ -125,7 +125,7 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
    %bprp         = MS.SrcData.phot_bp_mean_mag - MS.SrcData.phot_rp_mean_mag;
    %bprp(1)      = Args.TargetBpRp ;
    
-   bprp = Args.Color
+   %bprp = Args.Color
     
     
     if isempty(Args.InstMag)
@@ -349,8 +349,10 @@ function [Result,Refstars,FinalRef,Model]=lsqRelPhotByEran(MS, Args)
                  % skip this step in the last iteration
               % [FlagResid,Res] = imUtil.calib.resid_vs_mag(ParMag(:), StdStar(:)) %, Args.ThresholdSigma, Args.resid_vs_magArgs{:});
                % FlagResid = repmat(FlagResid(:),[1, Nimage]).';
-                [rms0,meanmag0]  = CalcRMS(MS.SrcData.phot_g_mean_mag,MS.Data.MAG_PSF,Args.obj,Args.wdt,'Marker','xk','Predicted',true)
-                 pause(2)
+                %[rms0,meanmag0]  = CalcRMS(MS.SrcData.phot_g_mean_mag,MS.Data.MAG_PSF,Args.obj,Args.wdt,'Marker','xk','Predicted',true)
+                [rms0,meanmag0]  = CalcRMS(mean(MS.Data.MAG_PSF),MS.Data.MAG_PSF,Args.obj,Args.wdt,'Marker','xk','Predicted',true)
+                  
+                pause(2)
                  hold on
                  semilogy(meanmag0(cell2mat(Refstars)),rms0(cell2mat(Refstars)),'gx')
                  pause(4)

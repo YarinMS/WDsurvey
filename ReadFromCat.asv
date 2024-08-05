@@ -10,12 +10,11 @@ arguments
     Args.Prop   = 'FWHM';
     Args.Field  = ''; 
     Args.SubFrame = ''; % '015' or '009'
-    Args.plot     = false;
+    Args.plot     = true;
     Args.getAirmass = true;
     Args.WD = {};
     Args.FileNames = {};
     Args.CropID    = {};
-    Args.save_to   = {};
     
     
 end
@@ -133,15 +132,10 @@ if ~isempty(Args.FileNames )
         xlabel('RA [deg]','Interpreter','latex')
         
         ylabel('DEC [deg]','Interpreter','latex')
-if ~isempty(Args.WD)        
+        
 file_name = [sprintf('Observation \\ night \\ Info \\ %s_ \\ %s',Args.WD.Data.FieldID,Args.WD.Data.DataStamp),'.png'];
 sfile = strcat(Args.WD.Data.save_to,file_name);
 sfile= strrep(sfile, ' ', '');
-else
-    file_name = [sprintf('Observation \\ night \\ Info \\ %s_ \\ %s',Args.Field,Cats(1).name(1:22)),'.png'];
-    sfile = strcat(Args.save_to,file_name);
-    sfile= strrep(sfile, ' ', '');
-end
 
 
 sfile = strrep(sfile, '\', '_');
@@ -294,7 +288,7 @@ sfile= strrep(sfile, ' ', '');
 sfile = strrep(sfile, '\', '_');
 sfile = strrep(sfile, '+', '_');
          
-getAirmass
+
 saveas(gcf,sfile) ;
 
 %close();

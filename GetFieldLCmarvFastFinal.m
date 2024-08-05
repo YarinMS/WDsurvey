@@ -1,4 +1,4 @@
-function [Obj,Obj2] = GetFieldLCmarvFast(Obj,Args)
+function [Obj,Obj2,Flag] = GetFieldLCmarvFastFinal(Obj,Args)
 
  % Obj = WDss({},{},{}	,{}	,[]  ,[]	,[],'Batch',[],'getForcedData',false,'plotTargets',true,'FieldId',{},'Isempty',true)
 
@@ -63,13 +63,33 @@ end
 Obj.Path =  [PathSegment1,Args.Year,'/',Args.Month,'/',Args.Night,'/','proc']; % Manual at the moment.
 
 Obj.Data.save_to = Args.SaveTo;
+Obj2 = WDss({},{},{}	,{}	,[]  ,[]	,[],'Batch',[],'getForcedData',false,'plotTargets',true,'FieldId',{},'Isempty',true)
+Obj2.Path =  [PathSegment1,Args.Year,'/',Args.Month,'/',Args.Night2,'/','proc'];
+Obj2.Data.save_to =  Args.SaveTo;
+
     try
         if exist(Obj.Path, 'dir') == 7 % Check if directory exists
             
             disp(['Observation Exist ' Obj.Path]);
-            % Your code that uses the directory here
+
+            if exist(Obj2.Path, 'dir') == 7 % Check if directory exists
+            
+                disp(['Observation Exist ' ,Obj2.Path]);
+
+                Flag = 1;
+
+            else
+                disp(['Directory does not exist: ' Obj2.Path]);
+
+                Flag = 0;
+
+                return
+            end
+
+
         else
             disp(['Directory does not exist: ' Obj.Path]);
+            Flag = 0
             return;
         end
     catch ME
@@ -81,30 +101,18 @@ Obj.Data.save_to = Args.SaveTo;
 %% 2nd night - only if exist
 % Initilize WDs Object
 
-if ~isempty(Args.Night2)
 
-
-Obj2 = WDss({},{},{}	,{}	,[]  ,[]	,[],'Batch',[],'getForcedData',false,'plotTargets',true,'FieldId',{},'Isempty',true)
-
-
-Obj2.Path =  [PathSegment1,Args.Year,'/',Args.Month,'/',Args.Night2,'/','proc'];
-
-Obj2.Data.save_to =  Args.SaveTo;
-
-else
-    Obj2 = {};
-
-end
 
 
 %%
 if Args.ListFields 
 
-Obj = ListFields(Obj)
+Obj  = ListFields(Obj)
+Obj2 = ListFields(Obj2)
 
 elseif Args.GetCoords 
 
-Obj = ListFields(Obj); % List All Fields in Path
+%Obj = ListFields(Obj); % List All Fields in Path
 
 
 %% Get field FWHM LimMAG ra,dec during the obs
@@ -154,6 +162,8 @@ elseif ~isempty(Args.Names) & ~isempty(Args.Night2)
 %%
 
 Obj = ListFields(Obj) % List All Fields in Path
+%DataPath = Obj.Path;
+%Obj.Data.DataStamp = [DataPath(23:35),'-',DataPath(37:40),DataPath(42:43),DataPath(45:46)];
 Obj.Data.DataStamp = [Obj.Data.DataStamp,'-',Args.FieldCoords];
 %% Get field FWHM LimMAG ra,dec during the obs
 
@@ -200,7 +210,7 @@ save(save_path,'Obj','-v7.3')
 Obj2 = ListFields(Obj2) % List All Fields in Path
 Obj2.Data.DataStamp = [Obj2.Data.DataStamp,'-',Args.FieldCoords];
 %% Get field FWHM LimMAG ra,dec during the obs
-if isfield(Obj2.Data,'Results')
+%if isfield(Obj2.Data,'Results')
 Obj2 = getObsInfo(Obj2,'FN',Obj2.FieldID);
 
 
@@ -237,7 +247,7 @@ save_path = [Obj.Data.save_to,TabName];
 save_path = strrep(save_path, '+', '_')
 save(save_path,'Obj2','-v7.3')
 
-end
+%end
 
 end
 

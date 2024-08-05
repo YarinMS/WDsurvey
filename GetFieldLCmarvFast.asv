@@ -1,4 +1,4 @@
-function [Obj,Obj2] = GetFieldLCmarvFast(Obj,Args)
+function [Obj,Obj2] = GetFieldLCmarvFastFinal(Obj,Args)
 
  % Obj = WDss({},{},{}	,{}	,[]  ,[]	,[],'Batch',[],'getForcedData',false,'plotTargets',true,'FieldId',{},'Isempty',true)
 

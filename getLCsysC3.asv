@@ -20,7 +20,6 @@ arguments
     Args.SDcluster = false; 
     Args.ErrorBars = true;
     Args.Title     = {};
-    Args.SaveLC    = false;
     
 end
 
@@ -380,7 +379,7 @@ if (~isempty(MarkedEventss)) | (~isempty(MarkedEvents))
 
 
          sfile = strrep(sfile, '\', '_');
-          sfile = strrep(sfile, '+', '_')
+         
 
          saveas(gcf,sfile) ;
          pause(1)
@@ -422,7 +421,6 @@ sfile= strrep(sfile, ' ', '');
 
 
          sfile = strrep(sfile, '\', '_');
-          sfile = strrep(sfile, '+', '_')
 
 saveas(gcf,sfile) ;
 close();
@@ -520,7 +518,6 @@ if Args.SDcluster
     if ~isempty(MarkedEvents)
         sfile= strrep([Args.Serial(1,:),'__ZP'], ' ', '');
         sfile = strrep(sfile, '\', '-');
-         sfile = strrep(sfile, '+', '_')
         writeToLog(sfile, [Args.SaveTo,'Log_Report'])
         MarkedEvents = reshape(MarkedEvents,1,[]);
         
@@ -648,7 +645,6 @@ if Args.SDcluster
     if ~isempty(MarkedEventss)
         sfile= strrep([Args.Serial(1,:),'__SysRem'], ' ', '');
         sfile = strrep(sfile, '\', '-');
-         sfile = strrep(sfile, '+', '_')
         writeToLog(sfile, [Args.SaveTo,'Log_Report'])
         MarkedEvents = reshape(MarkedEvents,1,[]);
         MarkedEventss = reshape(MarkedEventss,1,[]);
@@ -715,22 +711,13 @@ else
 end
 
 if Args.SaveLC
-    Ysys = [y_sys y_sysErr ms.JD(GoodPoints1)];
+    Ysys = []
    save_to   = Args.SaveTo; % '/home/ocs/Documents/WD_survey/Thesis/'
    file_name = ['z_',Args.Serial,'LC.mat'];
          sfile = strcat(save_to,file_name);
          sfile= strrep(sfile, ' ', '');
          sfile = strrep(sfile, '\', '_');
-         sfile = strrep(sfile, '+', '_');
-    save(sfile,'Ysys','-v7.3')
-     Yzp = [y_zp y_zpErr MS.JD(GoodPoints)];
-   save_to   = Args.SaveTo; % '/home/ocs/Documents/WD_survey/Thesis/'
-   file_name = ['z_',Args.Serial,'LCzp.mat'];
-         sfile = strcat(save_to,file_name);
-         sfile= strrep(sfile, ' ', '');
-         sfile = strrep(sfile, '\', '_');
-          sfile = strrep(sfile, '+', '_')
-    save(sfile,'Yzp','-v7.3')
+    save(sfile,'y_sys','-v7.3')
 
 
  
@@ -787,7 +774,6 @@ if (~isempty(MarkedEventss)) | (~isempty(MarkedEvents))
 
 
          sfile = strrep(sfile, '\', '_');
-          sfile = strrep(sfile, '+', '_')
          
 
          saveas(gcf,sfile) ;
@@ -833,7 +819,6 @@ sfile= strrep(sfile, ' ', '');
 
 
          sfile = strrep(sfile, '\', '_');
-          sfile = strrep(sfile, '+', '_')
 
 saveas(gcf,sfile) ;
 close();

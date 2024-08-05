@@ -1,4 +1,4 @@
-function [ms,Event,Npts,STD,STDs] = getLCsysC3(MatchedSource,Args)
+function [ms,Event,Npts,STD,STDs] = getLCsysC4(MatchedSource,Args)
 
 arguments
     
@@ -109,36 +109,36 @@ NewIdx = find(ms.Data.SrcIdx == Args.SourceIdx);
 
 model = ms.copy();
 
-figure('Color','white');
+%figure('Color','white');
 
 
-RMSzp = MS.plotRMS('FieldX','MAG_PSF','plotColor',[0.9 0.9 0.9],'PlotSymbol',['x']);
-Xdata = RMSzp.XData;
-Ydata = RMSzp.YData;
+%RMSzp = MS.plotRMS('FieldX','MAG_PSF','plotColor',[0.9 0.9 0.9],'PlotSymbol',['x']);
+%Xdata = RMSzp.XData;
+%Ydata = RMSzp.YData;
 
-hold on
+%hold on
 
-model.plotRMS('FieldX','MAG_PSF','plotColor',"#80B3FF",'PlotSymbol',['.']);
+%model.plotRMS('FieldX','MAG_PSF','plotColor',"#80B3FF",'PlotSymbol',['.']);
 % semilogy(Xdata(~NaNcut),Ydata(~NaNcut),'b.')
 
 ms.sysrem('MagFields' ,{'MAG_PSF'} , 'MagErrFields',{'MAGERR_PSF'},'sysremArgs',{'Niter',2});
 
-RMSsys = ms.plotRMS('FieldX','MAG_PSF','plotColor',[0.25, 0.25, 0.25],'PlotSymbol',['.']);
-xdata  = RMSsys.XData;
-ydata  = RMSsys.YData;
+%RMSsys = ms.plotRMS('FieldX','MAG_PSF','plotColor',[0.25, 0.25, 0.25],'PlotSymbol',['.']);
+%xdata  = RMSsys.XData;
+%ydata  = RMSsys.YData;
 
 %clear MS
 % Mark your WD
-semilogy(Xdata(Args.SourceIdx),Ydata(Args.SourceIdx),'p','MarkerSize',10,'MarkerFaceColor',[0.7350, 0.1780, 0.2840],'MarkerFaceColor',[0.7350, 0.1780, 0.2840])
-semilogy(xdata(NewIdx),ydata(NewIdx),'p','MarkerSize',10,'MarkerFaceColor',[0.7350, 0.1780, 0.2840],'MarkerFaceColor',[0.7350, 0.1780, 0.2840])
+%semilogy(Xdata(Args.SourceIdx),Ydata(Args.SourceIdx),'p','MarkerSize',10,'MarkerFaceColor',[0.7350, 0.1780, 0.2840],'MarkerFaceColor',[0.7350, 0.1780, 0.2840])
+%semilogy(xdata(NewIdx),ydata(NewIdx),'p','MarkerSize',10,'MarkerFaceColor',[0.7350, 0.1780, 0.2840],'MarkerFaceColor',[0.7350, 0.1780, 0.2840])
 
 
 
 
-Leg = legend('No zp','ZP','SysRem',['rms zp = ',num2str(Ydata(Args.SourceIdx))],['rms sys = ',num2str(ydata(NewIdx))],'Location','best');
-title('RMS MAG PSF','Interpreter','latex')
-pause(1)
-close();
+%Leg = legend('No zp','ZP','SysRem',['rms zp = ',num2str(Ydata(Args.SourceIdx))],['rms sys = ',num2str(ydata(NewIdx))],'Location','best');
+%title('RMS MAG PSF','Interpreter','latex')
+%pause(1)
+%close();
 
 
 
@@ -543,16 +543,16 @@ if Args.SDcluster
    lglbl{1} = sprintf('ZP rms = %.3f General RMS = %.3f',newS,Threshold);
  
 
-    figure('Color','white','Units', 'inches', 'Position', [0, 0, 14, 6]);
+    figure('Color','white','Units', 'inches', 'Position', [0, 0, 8, 14]);
     if Args.ErrorBars
        h1 = errorbar(t,y_zp,y_zpErr, '.', 'MarkerFaceColor', [0.75, 0.75, 0.75], 'MarkerEdgeColor', [0.75, 0.75, 0.75], 'Color', [0.75, 0.75, 0.75],...
            'DisplayName',lglbl{1});
     else
-       h1 = plot(t,y_zp,'.','Color',[0.5, 0.5, 0.5],'DisplayName',lglbl{1})
+       h1 = plot(t,y_zp,'.','Color',[0.75, 0.75, 0.75],'DisplayName',lglbl{1})
     end
 
     hold on
-    threshold_values0 = [Med-Args.threshold*sigma, Med , Med+ Args.threshold*sigma];
+    threshold_values0 = [Med-Args.threshold*newS, Med , Med+ Args.threshold*newS];
     
     if ~isnan(Med)
         
@@ -635,9 +635,9 @@ if Args.SDcluster
     
     for Ipt = 1 : length(y_sys) - 1
         
-        if abs(y_sys(Ipt) - Meds) > thresholds
+        if abs(y_sys(Ipt) - newMs) > thresholds
             
-            if abs(y_sys(Ipt+1) - Meds) > thresholds
+            if abs(y_sys(Ipt+1) - newMs) > thresholds
                 
                 MarkedEventss = [MarkedEventss ; Ipt, Ipt+1];
                 
@@ -676,7 +676,7 @@ if isempty(Args.Title)
     title(Title,'Interpreter','latex');
 else
   Title  = sprintf(Args.Title);
-    title(Title,'Interpreter','latex');
+    title(Title,'Interpreter','latex','FontSize',18);
 end
 set(gca,'YDir','reverse')
  %lglbl{1} = sprintf('ZP rms = %.3f General RMS = %.3f',newS,Threshold);
@@ -690,11 +690,11 @@ set(gca,'YDir','reverse')
  % legend(lglbl{1},num2str(threshold_values(1)),num2str(threshold_values(2)),num2str(threshold_values(3)),lglbl{2},'Interpreter','latex','Location','best')
 %legend(lglbl{1},lglbl{4},lglbl{3},lglbl{5},lglbl{6},lglbl{7},lglbl{8},lglbl{2},'Interpreter','latex','Location','eastoutside','box','off')
   text(0.25,0.95, Args.WD.Name(Args.wdIdx,:),'Units', 'normalized', 'HorizontalAlignment', 'right', 'VerticalAlignment', 'top',...
-      'FontSize',14,'Interpreter', 'latex');
+      'FontSize',16,'Interpreter', 'latex');
  legend([h1 h2],'Interpreter','latex','Location','southeast','box','off')
 
  %title('MAG_PSF LC')
-pause(1)
+%pause(1)
 %close();
 
 Event = false;
@@ -716,14 +716,34 @@ end
 
 if Args.SaveLC
     Ysys = [y_sys y_sysErr ms.JD(GoodPoints1)];
-   save_to   = Args.SaveTo; % '/home/ocs/Documents/WD_survey/Thesis/'
-   file_name = ['z_',Args.Serial,'LC.mat'];
+    %;
+    MD ={};
+    MD.name = Args.WD.Name(Args.wdIdx,:);
+    MD.Bp = Args.WD.G_Bp(Args.wdIdx)
+    MD.Coords = [Args.WD.RA(Args.wdIdx) Args.WD.Dec(Args.wdIdx)];
+    MD.Serial = Args.Title;
+    MD.GeneralRMS  = Thresholds;
+    MD.Events     = {MarkedEventss,length(MarkedEventss)};
+
+    MD.LC  = Ysys;
+    save_to   = Args.SaveTo; % '/home/ocs/Documents/WD_survey/Thesis/'
+   file_name = ['sys_',Args.Serial,'LC.mat'];
          sfile = strcat(save_to,file_name);
          sfile= strrep(sfile, ' ', '');
          sfile = strrep(sfile, '\', '_');
          sfile = strrep(sfile, '+', '_');
-    save(sfile,'Ysys','-v7.3')
+    save(sfile,'MD','-v7.3')
+
+
      Yzp = [y_zp y_zpErr MS.JD(GoodPoints)];
+    MJ ={};
+    MJ.name = Args.WD.Name(Args.wdIdx,:);
+    MJ.Bp = Args.WD.G_Bp(Args.wdIdx)
+    MJ.Coords = [Args.WD.RA(Args.wdIdx) Args.WD.Dec(Args.wdIdx)];
+    MJ.Serial = Args.Title;
+    MJ.GeneralRMS  = Threshold;
+    MJ.Events     = {MarkedEvents,length(MarkedEvents)};
+    MD.LC  = Ysys;
    save_to   = Args.SaveTo; % '/home/ocs/Documents/WD_survey/Thesis/'
    file_name = ['z_',Args.Serial,'LCzp.mat'];
          sfile = strcat(save_to,file_name);

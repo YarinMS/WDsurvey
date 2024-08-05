@@ -2,7 +2,7 @@ function [AirMass,t] = getAirmass(Res,Args)
 
 arguments 
     Res
-    Args.plot = true;
+    Args.plot = false;
 end
 
 
@@ -24,3 +24,5 @@ if Args.plot
     ylabel('Airmass','Interpreter','latex')
     xlabel('Time','Interpreter','latex')
 end
+
+

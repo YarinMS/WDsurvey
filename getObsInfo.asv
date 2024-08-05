@@ -16,12 +16,9 @@ field_name = Args.FN;
 FieldIdx   = find(contains(FieldNames,field_name));
 WD.Data.FieldID = field_name;
 
+Results  = ReadFromCat(WD.Path,'Field',FieldNames{ls ...
+    },'SubFrame',Subframe,'getAirmass',true,'WD',WD);
 
-if ~isempty(FieldIdx)
-Results  = ReadFromCat(WD.Path,'Field',FieldNames{FieldIdx(1)},'SubFrame',Subframe,'getAirmass',true,'WD',WD);
-else
-    return;
-end
 
 % Store Results for :
 

@@ -24,8 +24,11 @@ List = MatchedSources.rdirMatchedSourcesSearch('CropID',16);
 FieldNames = WD.Data.FieldNames;
 field_name = WD.Data.FieldID;
 FieldIdx   = find(contains(FieldNames,field_name));
-
+if isempty(FieldIdx)
+    return
+end
 visits = find(contains(List.FileName,FieldNames{FieldIdx(1)}));
+
 List.FileName = List.FileName(visits);
 List.Folder   = List.Folder(visits);
 List.CropID   = List.CropID;
