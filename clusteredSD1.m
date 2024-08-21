@@ -14,7 +14,7 @@ arguments
 end
 
     % set Bin interval
-    Args.MedInt = median(MS.Data.MAG_PSF(:,Args.Isrc),'omitnan')
+    Args.MedInt = median(MS.Data.MAG_PSF(:,Args.Isrc),'omitnan');
     MinMag = Args.MedInt - 0.125;
     MaxMag = Args.MedInt + 0.125;
     
@@ -44,6 +44,6 @@ end
     TypicalSD = median(PSFsd,'omitnan');
 
     else
-           TypicalSD = median(PSFsd,'omitnan')
+           TypicalSD = median(PSFsd,'omitnan');
     end
 end

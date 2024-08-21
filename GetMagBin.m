@@ -5,8 +5,8 @@ arguments
     Args.MagMax   = 18.6;
     Args.MagMin   = 18.5;
     Args.ApplyZP  = true;
-    Args.BadFlags = {'Overlap','NearEdge','CR_DeltaHT','Saturated','NaN','Negative'};
-    Args.Ndet     =19;
+    Args.BadFlags = {'NearEdge','CR_DeltaHT','Saturated','NaN','Negative'};
+    Args.Ndet     =1;
 end
 
 MMS = MS.setBadPhotToNan('BadFlags',Args.BadFlags, 'MagField','MAG_PSF', 'CreateNewObj',true);
@@ -41,5 +41,5 @@ indices = find(flag1 == 1);
 flag2   = mean(MMS.Data.MAG_PSF(:,indices),'omitnan') < Args.MagMax;
 Index = indices(flag2);
 
-LCs = MMS.Data.MAG_PSF(:,Index)
+LCs = MMS.Data.MAG_PSF(:,Index);
 end
