@@ -1,9 +1,9 @@
-classdef WDtransits
+classdef WDtransits1
     properties (Constant)
         DEFAULT_ARGS = struct(...
             'MagField', {{'MAG_PSF'}}, ...
             'MagErrField', {{'MAGERR_PSF'}}, ...
-            'BadFlags', {{'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'CR_DeltaHT', 'NearEdge'}}, ...
+            'BadFlags', {{'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'}}, ...
             'EdgeFlags', {{'Overlap'}}, ...
             'runMeanFilterArgs', {{'Threshold', 5, 'StdFun', 'OutWin'}}, ...
             'Nvisits', 2, ...
@@ -15,18 +15,18 @@ classdef WDtransits
 
         function   results = analyzeWDTransits(rootPath, args)
             if nargin < 2
-                args = WDtransits.DEFAULT_ARGS;
+                args = WDtransits1.DEFAULT_ARGS;
             end
             txtRow = cell(0);
 
-            [msCropID,fieldID] = WDtransits.findMatchedSources(rootPath);
+            [msCropID,fieldID] = WDtransits1.findMatchedSources(rootPath);
             args.fieldID = fieldID.ID;
             args.allVisits = size(msCropID,2);
 
             % Get WD from catalog per CropID
-tic
-            [Results, wd] = WDtransits.findWhiteDwarfsInField(msCropID,args);
-            Tab = WDtransits.createTable(Results,wd);
+            tic
+            [Results, wd] = WDtransits1.findWhiteDwarfsInField(msCropID,args);
+            Tab = WDtransits1.createTable(Results,wd);
             wdInField = length(unique(Tab{:,3}));
             foundFlag  = (Tab{:,8} > 0);
             wdFoundInField = length(unique(Tab{foundFlag,3}));
@@ -42,7 +42,7 @@ tic
            
 
 
-            results = WDtransits.analyzeWhiteDwarfs(msCropID, Tab, Results, args);
+            results = WDtransits1.analyzeWhiteDwarfs(msCropID, Tab, Results, args);
 
 
             %WDtransits.generateOutput(results);
@@ -51,9 +51,9 @@ tic
         function [msCropID,selectedField] = findMatchedSources(rootPath)
             cd(rootPath);
             list = MatchedSources.rdirMatchedSourcesSearch('FileTemplate','*.hdf5');
-            
+            %list = rdirMSfast();
             allFileNames = {list(16).FileName};
-            [fieldNames,DN,TN] = cellfun(@WDtransits.extractFieldNames, allFileNames, 'UniformOutput', false);
+            [fieldNames,DN,TN] = cellfun(@WDtransits1.extractFieldNames, allFileNames, 'UniformOutput', false);
             [fieldNames,idx,c] = unique(fieldNames{:});
             
            % fprintf('Available fields:\n');
@@ -93,11 +93,11 @@ while isempty(choice)
         end
     end
     
-    if toc(start_time) > timeout
-        fprintf('Timeout reached. Choosing the first field by default.\n');
-        choice = 1;
-        break;
-    end
+  %  if toc(start_time) > timeout
+   %     fprintf('Timeout reached. Choosing the first field by default.\n');
+    %    choice = 1;
+     %   break;
+    %end
 end
 
 if isempty(choice)
@@ -111,12 +111,12 @@ end
             selectedField.Tel  = TN{1}{Idx};
             fprintf('Selected field: %s\n', selectedField.ID);
             
-            [~,visIdx] = WDtransits.filterListByFieldName(list(16).FileName, selectedField.ID);
+            [~,visIdx] = WDtransits1.filterListByFieldName(list(16).FileName, selectedField.ID);
             tic;
             msCropID = [];
             h = waitbar(0,'Creating MS')
             for Iid = 1:24
-                [~,visIdx] = WDtransits.filterListByFieldName(list(Iid).FileName, selectedField.ID);
+                [~,visIdx] = WDtransits1.filterListByFieldName(list(Iid).FileName, selectedField.ID);
                 list(Iid).FileName = list(Iid).FileName(visIdx);
                 list(Iid).Folder   = list(Iid).Folder(visIdx);
                 matchedSources = MatchedSources.readList(list(Iid));
@@ -139,12 +139,12 @@ end
             
             fprintf('\nA single field exist: %s\n', selectedField.ID);
             
-            [~,visIdx1] = WDtransits.filterListByFieldName(list(16).FileName, selectedField.ID);
+            [~,visIdx1] = WDtransits1.filterListByFieldName(list(16).FileName, selectedField.ID);
             tic;
             msCropID = [];
             h = waitbar(0,'Creating MS')
             for Iid = 1:24
-                [~,visIdx] = WDtransits.filterListByFieldName(list(Iid).FileName, selectedField.ID);
+                [~,visIdx] = WDtransits1.filterListByFieldName(list(Iid).FileName, selectedField.ID);
                 
                 list(Iid).FileName = list(Iid).FileName(visIdx);
                 list(Iid).Folder   = list(Iid).Folder(visIdx);
@@ -194,7 +194,7 @@ end
                 
 
                         
-               obsParams = WDtransits.EfficientReadFromCat(ms1.FileName, Iid); % you check only first visit which might be a problem
+               obsParams = WDtransits1.EfficientReadFromCat(ms1.FileName, Iid); % you check only first visit which might be a problem
                obsCoord  = mean(obsParams.Coord,'omitnan');
               % limMag    = mean(obsParams.LimMag,'omitnan'); % this might result iin a lower lim mag!!!
                 
@@ -349,7 +349,7 @@ end
 
         function results = analyzeWhiteDwarfs(matchedSources, table, Results, args)
             results = cell(size(table,1),table.Total_Visits(1));
-            Batch = WDtransits.groupVisits(table, matchedSources, Results, args);
+            Batch = WDtransits1.groupVisits(table, matchedSources, Results, args);
             lcData = cell(size(table,1),table.Total_Visits(1));
             tic;
             for Iwd = 1 : size(table,1)
@@ -367,18 +367,18 @@ end
 
                         for Ivis = 1 : numel(batch{Ibatch})
 
-                            OP        = WDtransits.EfficientReadFromCat(batch{Ibatch}(Ivis).FileName, table.Subframe(Iwd));
+                            OP        = WDtransits1.EfficientReadFromCat(batch{Ibatch}(Ivis).FileName, table.Subframe(Iwd));
                             %obsParams = {obsParams; {OP}};
                             LimMag    =  [LimMag; OP.LimMag];
                             catJD    =  [catJD; OP.JD];
                         end
 
-                        mms = WDtransits.cleanMatchedSources(batch{Ibatch}, args);
+                        mms = WDtransits1.cleanMatchedSources(batch{Ibatch}, args);
                     lcData{Iwd,Ibatch}.limMag = LimMag;
                     lcData{Iwd,Ibatch}.catJD = catJD;
-                    lcData{Iwd,Ibatch} = WDtransits.extractLightCurve(lcData{Iwd,Ibatch}, mms, table.RA(Iwd), table.Dec(Iwd),args);
+                    lcData{Iwd,Ibatch} = WDtransits1.extractLightCurve(lcData{Iwd,Ibatch}, mms, table.RA(Iwd), table.Dec(Iwd),args);
                     
-                    lcData{Iwd,Ibatch} = WDtransits.handleNaNValues(lcData{Iwd,Ibatch},mms, mms.Nepoch);
+                    lcData{Iwd,Ibatch} = WDtransits1.handleNaNValues(lcData{Iwd,Ibatch},mms, mms.Nepoch);
                     [~,fname,~] = fileparts(batch{Ibatch}(Ivis).FileName);
                     part = strsplit(fname,'_');
                     lcData{Iwd,Ibatch}.Tel = part{1};
@@ -401,322 +401,10 @@ end
                    
 
 
-                   results{Iwd,Ibatch}  = WDtransits.detectTransits(lcData{Iwd,Ibatch}, args);
+                   results{Iwd,Ibatch}  = WDtransits1.detectTransits(lcData{Iwd,Ibatch}, args);
+                   outputDir = '/Users/yarinms/Documents/Data/5thRun';
 
-                   if ~isempty(results{Iwd,Ibatch})
-                       RAD = 180./pi;
-
-                       Detected = ~isempty(results{Iwd,Ibatch}.detection1.events) | ~isempty(results{Iwd,Ibatch}.detection2.events) |...
-                       sum(results{Iwd,Ibatch}.detection3.events) > 0;
-
-                       if Detected
-                           
-                           RA = results{Iwd,Ibatch}.lcData.Table.RA;
-                           Dec = results{Iwd,Ibatch}.lcData.Table.Dec;
-
-                           [SimbadURL]=VO.search.simbad_url(RA./RAD, Dec./RAD);
-                            SDSS_URL=VO.SDSS.navigator_link(RA./RAD, Dec./RAD);
-                            results{Iwd,Ibatch}.UserData.Simbad     = SimbadURL;
-                            results{Iwd,Ibatch}.UserData.SDSS       = SDSS_URL;
-
-                            RA = results{Iwd,Ibatch}.lcData.Coords(1);
-                            Dec = results{Iwd,Ibatch}.lcData.Coords(2);
-
-                           [SimbadURL]=VO.search.simbad_url(RA./RAD, Dec./RAD);
-                            SDSS_URL=VO.SDSS.navigator_link(RA./RAD, Dec./RAD);
-                            results{Iwd,Ibatch}.UserData.SimbadMS     = SimbadURL;
-                            results{Iwd,Ibatch}.UserData.SDSSMS       = SDSS_URL;
-
-                            Methods = [ ~isempty(results{Iwd,Ibatch}.detection1.events) , ~isempty(results{Iwd,Ibatch}.detection2.events) ,...
-                       sum(results{Iwd,Ibatch}.detection3.events) > 0];
-
-
-
-                            % You can plot here
-
-
-
-                            %figure('Visible', 'off');
-                            figure('Position',[400,400,600,400]);
-                            subplot(2,1,1)
-                           %
-                           % set(gca, 'Position', [0.1 0.3 0.8 0.6]);
-                            LC = results{Iwd,Ibatch}.lcData;
-            
-                            t = datetime(LC.JD,'convertfrom','jd');
-                            y = LC.lc;
-                            c = LC.Ctrl.CtrlStar;
-                            lm = LC.limMag;
-                            lmt = datetime(LC.catJD,'convertfrom','jd');
-                   
-
-                            plot(t,y,'Ok-','LineWidth',2)
-                            hold on
-                            Ivis = Ibatch;
-                            if Methods(1) == 1
-                                MarkedEvents = results{Iwd,Ivis}.detection1.events;
-                                plot(t(MarkedEvents),y(MarkedEvents),'Or','MarkerSize',12)
-                            elseif Methods(2) == 1
-                                FlagRunMean = results{Iwd,Ivis}.detection2.FlagRunMean;
-
-                                plot(t(FlagRunMean),y(FlagRunMean),'Or','MarkerSize',12)
-                            elseif Methods(3) == 1
-                                 D = results{Iwd,Ivis}.detection3.events;
-
-                                plot(t(logical(D)),y(logical(D)),'Or','MarkerSize',12)
-
-                            end
-                            v = [1:3];
-                            formatStr = strjoin(arrayfun(@(x) sprintf('\\#%i', x), v(Methods), 'UniformOutput', false), ' ');
-                            % Construct the title
-                            title(sprintf('Detect in Method %s \n %s , %s', formatStr, LC.Tel, LC.Date));
-                                %plot(t,c,'.b--')
-         
-                         %plot(t,LC.Ctrl.medLc)
-
-                            plot(lmt,lm,'sr-')
-
-                            
-                            if ~isempty(c)
-                                plot(t,c,'.b--','LineWidth',1.5)
-                                 set(gca,'YDir','reverse')
-                                 if ~isempty(LC.nanIndices)
-                                     plot(t(LC.nanIndices),y(LC.nanIndices),'kx','MarkerSize',15)
-                                        legend('WD','Events','LimMag','NaNs','Control Star','Location','northwestoutside')
-
-                                 else
-                                     legend('WD','Events','LimMag','Control Star','Location','northwestoutside')
-                                 end
-                            
-                         %   xlabel(sprintf('Coord : %.3f , %.3f ;\n Gmag = %.2f',LC.Table.RA,...
-                          %    LC.Table.Dec,LC.Table.Gmag))
-                            
-
-                             % plot_filename = sprintf('/Users/yarinms/Documents/Data/FirstRun/Final_plot_%s_%s.pdf',lcData.Tel,lcData.Date);
-                             % print(gcf, plot_filename, '-dpdf', '-bestfit');
-                             % close;
-
-                            else
-                                if ~isempty(lcData.nanIndices)
-                                     plot(t(LC.nanIndices),y(LC.nanIndices),'kx','MarkerSize',15)
-                                    legend('WD','Events','LimMag','NaNs','Location','northwestoutside')
-                                 else
-                                     legend('WD','Events','LimMag','Location','northwestoutside')
-                                 end
-
-                                
-                            %title(sprintf('Detect in 2 consecutive points (2.5\sigma ) %s , %s',LC.Tel,LC.Date))
-                            %xlabel(sprintf('Coord : %.3f , %.3f ;\n Gmag = %.2f',LC.Table.RA,...
-                             % LC.Table.Dec,LC.Table.Gmag))
-
-
-
-
-                            end
-
-                            set(gca,'YDir','reverse')
-                            ylim([mean(y,'omitnan')-0.5,mean(y,'omitnan')+1]);
-                            %legend('WD','Events','LimMag','NaNs','Control Star','Location','best')
-                            %title(sprintf('Detect in 2 consecutive points (2.5\sigma ) %s , %s',LC.Tel,LC.Date))
-                            xlabel(sprintf('Coord : %.3f , %.3f ;\n Gmag = %.2f',LC.Table.RA,...
-                              LC.Table.Dec,LC.Table.Gmag))
-
-
-
-
-
-                            subplot(2,1,2);
-                            set(gca, 'Position', [0.15 0.15 0.8 0.15]);
-                            axis off;
-                       
-
-                                 text(0.5, 0.8, sprintf('Total Visits: %d\nVisits Considered: %d\nBad Flags: %d\nOverlap Flags: %d\nContaminated Flags: %d', ...
-                            LC.Table.Total_Visits, LC.Table.Visits_Found,sum(LC.Flags.BFcounts),LC.Flags.EFcounts, LC.Table.Visits_Found), 'FontSize', 14);
-
-
-                            text(0.2, 0.8, sprintf('CropID: %d\nTel: %s\nDate: %s\nNaNs : %d', ...
-                            LC.Table.Subframe,LC.Tel, LC.Date,sum(LC.nanIndices)), 'FontSize', 14);
-
-                            text(0.8, 0.8, sprintf('%i Visits LC\nMinimal detections: %d', ...
-                            args.Nvisits,args.Ndet), 'FontSize', 14);
-                            
-                       
-
-
-
-
-                            % Add the hyperlink
-                            
-
-                            linkLen  = size(results{Iwd,Ibatch}.UserData.Simbad.URL,2);
-                            sameLink =sum(results{Iwd,Ibatch}.UserData.Simbad.URL == results{Iwd,Ibatch}.UserData.SimbadMS.URL);
-
-                            if linkLen == sameLink
-
-                                % Add 
-                                   text(0.2, 0.11, 'Simbad Link:', 'FontSize', 12);
-                                    hyperlink = results{Iwd,Ibatch}.UserData.Simbad.URL;
-                                   text(0.2, 0.015, sprintf('Simbad: %s', hyperlink), 'FontSize', 5 , 'Interpreter', 'none');
-
-                               
-                            else
-                                    annotation('textbox', [0.2 0.05 0.8 0.1], 'String', 'Simbad Link (Different MS)', 'FontSize', 14, ...
-                                    'Color', 'blue', 'Interpreter', 'none', 'EdgeColor', 'none', 'HorizontalAlignment', 'left');
-                                
-                                % Make the shorter text clickable with the full URL
-                                uicontrol('Style', 'text', 'Position',  [0.15 0.05 0.8 0.1], 'String', 'Simbad Link (Different MS)', ...
-                                    'FontSize', 14  , 'ForegroundColor', 'blue', 'Callback', @(~,~) web(results{Iwd,Ibatch}.UserData.SimbadMS.URL, '-browser'));
-                            end
-                            
-
-                            set(gcf, 'PaperPositionMode', 'auto');
-                            set(gcf, 'PaperUnits', 'inches');
-                            set(gcf, 'PaperSize', [12 12]); % Adjust to your preferred size
-                            set(gcf, 'PaperPosition', [0 0 12 12]); % Adjust to match PaperSize
-
-                              plot_filename = sprintf('/Users/yarinms/Documents/Data/2ndRun/Final_plot_%s_%s.pdf',LC.Tel,LC.Date);
-                              print(gcf, plot_filename, '-dpdf', '-bestfit');
-
-
-
-                              close;
-
-%% Flux Figures
-
-
-%%
-                            figure('Position',[400,400,600,400]);
-                            subplot(2,1,1)
-                           %
-                           % set(gca, 'Position', [0.1 0.3 0.8 0.6]);
-                            LC = results{Iwd,Ibatch}.lcData;
-            
-                            t = datetime(LC.JD,'convertfrom','jd');
-                            y = LC.lc;
-                            c = LC.Ctrl.medLc;
-                            lm = LC.limMag;
-                            lmt = datetime(LC.catJD,'convertfrom','jd');
-                   
-
-                            plot(t,y,'Ok-','LineWidth',2)
-                            hold on
-                            Ivis = Ibatch;
-                            if Methods(1) == 1
-                                MarkedEvents = results{Iwd,Ivis}.detection1.events;
-                                plot(t(MarkedEvents),y(MarkedEvents),'Or','MarkerSize',12)
-                            elseif Methods(2) == 1
-                                FlagRunMean = results{Iwd,Ivis}.detection2.FlagRunMean;
-
-                                plot(t(FlagRunMean),y(FlagRunMean),'Or','MarkerSize',12)
-                            elseif Methods(3) == 1
-                                 D = results{Iwd,Ivis}.detection3.events;
-
-                                plot(t(logical(D)),y(logical(D)),'Or','MarkerSize',12)
-
-                            end
-                            v = [1:3];
-                            formatStr = strjoin(arrayfun(@(x) sprintf('\\#%i', x), v(Methods), 'UniformOutput', false), ' ');
-                            % Construct the title
-                            title(sprintf('Detect in Method %s \n %s , %s', formatStr, LC.Tel, LC.Date));
-                                %plot(t,c,'.b--')
-         
-                         %plot(t,LC.Ctrl.medLc)
-
-                            plot(lmt,lm,'sr-')
-
-                            
-                            if ~isempty(c)
-                                plot(t,c,'.b--','LineWidth',1.5)
-                                 set(gca,'YDir','reverse')
-                                 if ~isempty(LC.nanIndices)
-                                     plot(t(LC.nanIndices),y(LC.nanIndices),'kx','MarkerSize',15)
-                                        legend('WD','Events','LimMag','NaNs','Control Star','Location','southwest')
-
-                                 else
-                                     legend('WD','Events','LimMag','Control Star','Location','southwest')
-                                 end
-                            
-                         %   xlabel(sprintf('Coord : %.3f , %.3f ;\n Gmag = %.2f',LC.Table.RA,...
-                          %    LC.Table.Dec,LC.Table.Gmag))
-                            
-
-                             % plot_filename = sprintf('/Users/yarinms/Documents/Data/FirstRun/Final_plot_%s_%s.pdf',lcData.Tel,lcData.Date);
-                             % print(gcf, plot_filename, '-dpdf', '-bestfit');
-                             % close;
-
-                            else
-                                if ~isempty(lcData.nanIndices)
-                                     plot(t(LC.nanIndices),y(LC.nanIndices),'kx','MarkerSize',15)
-                                    legend('WD','Events','LimMag','NaNs','Location','southwest')
-                                 else
-                                     legend('WD','Events','LimMag','Location','southwest')
-                                 end
-
-                                
-                            %title(sprintf('Detect in 2 consecutive points (2.5\sigma ) %s , %s',LC.Tel,LC.Date))
-                            %xlabel(sprintf('Coord : %.3f , %.3f ;\n Gmag = %.2f',LC.Table.RA,...
-                             % LC.Table.Dec,LC.Table.Gmag))
-
-
-
-
-                            end
-
-                            set(gca,'YDir','reverse')
-                            ylim([mean(y,'omitnan')-0.5,mean(y,'omitnan')+1]);
-                            %legend('WD','Events','LimMag','NaNs','Control Star','Location','best')
-                            %title(sprintf('Detect in 2 consecutive points (2.5\sigma ) %s , %s',LC.Tel,LC.Date))
-                            xlabel(sprintf('Coord : %.3f , %.3f ;\n Gmag = %.2f',LC.Table.RA,...
-                              LC.Table.Dec,LC.Table.Gmag))
-
-                            % Flux
-                            subplot(2,1,2);
-                            %set(gca, 'Position', [0.15 0.15 0.8 0.15]);
-                            axis off;
-                            %t = datetime(LC.JD,'convertfrom','jd');
-                            y = LC.relFlux;
-                            %c = LC.Ctrl.medLc;
-                            %lm = LC.limMag;
-                            %lmt = datetime(LC.catJD,'convertfrom','jd');
-                   
-
-                            plot(t,y,'Ok-','LineWidth',2)
-                            hold on
-                            Ivis = Ibatch;
-                            if Methods(1) == 1
-                                MarkedEvents = results{Iwd,Ivis}.detection1.events;
-                                plot(t(MarkedEvents),y(MarkedEvents),'Or','MarkerSize',12)
-                            elseif Methods(2) == 1
-                                FlagRunMean = results{Iwd,Ivis}.detection2.FlagRunMean;
-
-                                plot(t(FlagRunMean),y(FlagRunMean),'Or','MarkerSize',12)
-                            elseif Methods(3) == 1
-                                 D = results{Iwd,Ivis}.detection3.events;
-
-                                plot(t(logical(D)),y(logical(D)),'Or','MarkerSize',12)
-
-                            end
-                            %v = [1:3];
-                            formatStr = strjoin(arrayfun(@(x) sprintf('\\#%i', x), v(Methods), 'UniformOutput', false), ' ');
-                            % Construct the title
-                            title(sprintf('Detect in Method %s \n %s , %s', formatStr, LC.Tel, LC.Date));
-                                %plot(t,c,'.b--')
-                            yline(1-2.5*LC.typScatter) 
-                            legend(sprintf( 'Rel Flux $\\sigma = $ %.3f',LC.typScatter),'Mag Events',sprintf('1- 2.5 $\\sigma = $ %.3f',1-2.5*LC.typScatter),...
-                                'Location','southwest')
-         
-                       
-
-
-
-
-
-                       end
-
-                     
-
-                   
-                   end
+                   WDtransits1.plotDetectionResults(results, Iwd, Ibatch, args, true, outputDir)
 
 
                     
@@ -731,7 +419,7 @@ end
             fprintf('\n%.3f seconds to extract all available light curves and their limitng magnitudes',times)
             %finalTable = transitSearch.createTable2(Results, table, lcData, args)
                     i = 1;
-                    Stats = WDtransits.countCells(lcData,table)
+                    Stats = WDtransits1.countCells(lcData,table)
 
                     LCAvb = Stats.WDs(:,7)./ceil(args.allVisits/ args.Nvisits);
                     MagAvb = Stats.WDs(:,6);
@@ -797,7 +485,7 @@ end
             mms = ms.setBadPhotToNan('BadFlags', args.BadFlags, 'MagField', 'MAG_PSF', 'CreateNewObj', true);
             r = lcUtil.zp_meddiff(ms, 'MagField', args.MagField, 'MagErrField', args.MagErrField);
             [mms, ~] = applyZP(mms, r.FitZP, 'ApplyToMagField', args.MagField);
-            mms = WDtransits.removeSourcesWithFewDetections(mms, args.Ndet);
+            mms = WDtransits1.removeSourcesWithFewDetections(mms, args.Ndet);
         end
         
         function mms = removeSourcesWithFewDetections(mms, minNdet)
@@ -822,9 +510,9 @@ end
                 % get control star |version 1
                 %lcData.Ctrl = transitSearch.getControl(mms,ind,args) ;
                 % TODO : add weights to control stars?>??>>?>?>?>?>?>?>?
-                lcData.Ctrl = WDtransits.getCloseControl(mms, ind,args,ra,dec);
+                lcData.Ctrl = WDtransits1.getCloseControl(mms, ind,args,ra,dec);
 
-                lcData = WDtransits.handleNaNValues(lcData,mms, mms.Nepoch);
+%                lcData = WDtransits1.handleNaNValues(lcData,mms, mms.Nepoch);
 
 
                 % From control group get ensemble photometry
@@ -832,7 +520,7 @@ end
                 deltaMag = lcData.lc-enssembeleLC;
                 relFlux = 10.^(-0.4*(deltaMag));
                 lcData.relFlux = relFlux/median(relFlux,'omitnan'); % Relative normalized flux
-                lcData.relFluxErr = lcData.relFlux .* lcData.Ctrl.fluxErr; % Errors from control group
+              %  lcData.relFluxErr = lcData.relFlux .* lcData.Ctrl.fluxErr; % Errors from control group
                 lcData.typScatter = min(lcData.Ctrl.enssembleFluxScatter, std(lcData.lc,'omitnan'));
                 
 
@@ -844,7 +532,7 @@ end
 
                 end
             else
-                lcData.Res = 'Too many no detections.';
+                lcData.Res = 'Empty coneSearch result.';
             end
 
         end
@@ -1041,10 +729,12 @@ end
 
             if sum(lcData.nanIndices) < args.Ndet*args.Nvisits
 
-                results.detection1 = WDtransits.detectConsecutivePoints(lcData, args,false);
-                results.detection1Flux = WDtransits.detectConsecutivePoints(lcData, args,true);
-                results.detection2 = WDtransits.runMeanFilter(lcData, args);
-                results.detection3 = WDtransits.detectAreaEvents(lcData, args);
+                results.detection1 = WDtransits1.detectConsecutivePoints(lcData, args,false);
+                results.detection1flux = WDtransits1.detectConsecutivePoints(lcData, args,true);
+                results.detection2 = WDtransits1.runMeanFilter(lcData, args,false);
+                results.detection2flux = WDtransits1.runMeanFilter(lcData, args,true);
+                results.detection3 = WDtransits1.detectAreaEvents(lcData, args,false);
+                results.detection3flux = WDtransits1.detectAreaEvents(lcData, args,true);
                 %results.results     = results;
                 results.lcData     = lcData;
 
@@ -1105,50 +795,20 @@ end
         
                     detection = struct('events', MarkedEvents,'NanDet',NanDet, 'lightCurve', lcData.lc);
 
-                    % Plot and save event ?
-                      figure('Visible', 'off');
-                         LC = lcData;
-            
-                         t = datetime(LC.JD,'convertfrom','jd');
-                         y = LC.lc;
-                         c = LC.Ctrl.CtrlStar;
-                         lm = LC.limMag;
-                         lmt = datetime(LC.catJD,'convertfrom','jd');
                    
-
-                         plot(t,y,'Ok-','LineWidth',2)
-                         hold on
-                         plot(t(MarkedEvents),y(MarkedEvents),'Or','MarkerSize',12)
-                         hold on
-                         %plot(t,c,'.b--')
-         
-                         %plot(t,LC.Ctrl.medLc)
-
-                         plot(lmt,lm,'sr-')
-
-                         plot(t(LC.nanIndices),y(LC.nanIndices),'kx','MarkerSize',15)
-                         if ~isempty(c)
-                            plot(t,c,'.b--','LineWidth',1.5)
-                         end
-
-                         set(gca,'YDir','reverse')
-                         legend('WD','Events','LimMag','NaNs','Control Star','Location','best')
-                          title(sprintf('Detect in 2 consecutive points (2.5\sigma ) %s , %s',LC.Tel,LC.Date))
-                          xlabel(sprintf('Coord : %.3f , %.3f ;\n Gmag = %.2f',lcData.Table.RA,...
-                              lcData.Table.Dec,lcData.Table.Gmag))
-
-                              plot_filename = sprintf('/Users/yarinms/Documents/Data/FirstRun/2CP_%s_%s.pdf',lcData.Tel,lcData.Date);
-                              print(gcf, plot_filename, '-dpdf', '-bestfit');
-                              close;
 
             else
                     detection = struct('events', [],'NanDet',[], 'lightCurve',[]);
             end
         end
         
-        function detection = runMeanFilter(lcData, args)
+        function detection = runMeanFilter(lcData, args,flux)
             % Implement run mean filter detection
-            ResFilt = timeSeries.filter.runMeanFilter(lcData.lc, args.runMeanFilterArgs{:}, 'WinSize', 2);
+            if ~flux
+                ResFilt = timeSeries.filter.runMeanFilter(lcData.lc, args.runMeanFilterArgs{:}, 'WinSize', 2);
+            else
+                ResFilt = timeSeries.filter.runMeanFilter(lcData.relFlux, args.runMeanFilterArgs{:}, 'WinSize', 2);
+            end
             FlagRunMean = any(ResFilt.FlagCand, 1);
 
                       if FlagRunMean
@@ -1162,42 +822,7 @@ end
                 
                             detection = struct('events',find((ResFilt.FlagCand) == 1),'NanDet',NanDet, 'lightCurve', lcData.lc,'FlagRunMean',FlagRunMean);
         
-                            % Plot and save event ?
-                         figure('Visible','off');
-                         LC = lcData;
-            
-                         t = datetime(LC.JD,'convertfrom','jd');
-                         y = LC.lc;
-                         c = LC.Ctrl.CtrlStar;
-                         lm = LC.limMag;
-                         lmt = datetime(LC.catJD,'convertfrom','jd');
-                      
-                         plot(t,y,'Ok-','LineWidth',2)
-                         hold on
-                         plot(t(FlagRunMean),y(FlagRunMean),'Or','MarkerSize',12)
-                         hold on
-                     
-         
-                        % plot(t,LC.Ctrl.medLc)
-
-                         plot(lmt,lm,'sr-')
-
-                         plot(t(LC.nanIndices),y(LC.nanIndices),'kx','MarkerSize',14)
-                         if ~isempty(c)
-                            plot(t,c,'.b--','LineWidth',1.5)
-                         end
-
-
-                         set(gca,'YDir','reverse')
-                         legend('WD','Events','LimMag','NaNs','Control Star','Location','best')
-                          title(sprintf('Detect in RunMeanFilter %s , %s',LC.Tel,LC.Date))
-                          xlabel(sprintf('Coord : %.3f , %.3f ;\n Gmag = %.2f',lcData.Table.RA,...
-                              lcData.Table.Dec,lcData.Table.Gmag))
-
-                              plot_filename = sprintf('/Users/yarinms/Documents/Data/FirstRun/RMF_%s_%s.pdf',lcData.Tel,lcData.Date);
-                              print(gcf, plot_filename, '-dpdf', '-bestfit');
-                              close;
-                            
+                           
                      else
                             detection = struct('events', [],'NanDet',[], 'lightCurve',[]);
                      end
@@ -1205,11 +830,18 @@ end
            
         end
         
-        function detection = detectAreaEvents(lcData, args)
+        function detection = detectAreaEvents(lcData, args,flux)
             % Implement area detection method
-            LC = MagToFlux(lcData.lc, 'ZPflux', 10000000000);
-            [D, S, dc] = detectEvents(LC, mean(LC), std(LC, 'omitnan'), "GetDev", true, "Window", 3, 'Threshold', 2.5);
-            if any(D)
+            if ~flux
+                LC = MagToFlux(lcData.lc, 'ZPflux', 10000000000);
+                [D, S, dc] = detectEvents(LC, mean(LC), std(LC, 'omitnan'), "GetDev", true, "Window", 3, 'Threshold', 2.5);
+            else
+                 LC = lcData.relFlux;
+                [D, S, dc] = detectEvents(LC, mean(LC), std(LC, 'omitnan'), "GetDev", true, "Window", 3, 'Threshold', 2.5);
+
+            end
+
+                    if any(D)
            
                     if any(lcData.nanIndices(logical(D)))
                         NanDet = true;
@@ -1220,39 +852,7 @@ end
         
                     detection = struct('events',D,'stats', S, 'deviationCurve', dc,'NanDet',NanDet, 'lightCurve', lcData.lc);
 
-                    % Plot and save event ?
-                                  figure('Visible','off');
-                         LC = lcData;
-            
-                         t = datetime(LC.JD,'convertfrom','jd');
-                         y = LC.lc;
-                         c = LC.Ctrl.CtrlStar;
-                         lm = LC.limMag;
-                         lmt = datetime(LC.catJD,'convertfrom','jd');
-                      
-                         plot(t,y,'Ok-')
-                         hold on
-                         plot(t(logical(D)),y(logical(D)),'Or','MarkerSize',12)
-                         hold on
-                         if ~isempty(c)
-                            plot(t,c,'.b--','LineWidth',1.5)
-                         end
-         
-                         %plot(t,LC.Ctrl.medLc)
-
-                         plot(lmt,lm,'sr-')
-
-                         plot(t(LC.nanIndices),y(LC.nanIndices),'kx','MarkerSize',15)
-
-
-                         set(gca,'YDir','reverse')
-                         legend('WD','Events','LimMag','NaNs','Control Star','Location','best')
-                         title(sprintf('Detect in Area Detecion %s , %s',LC.Tel,LC.Date))
-                          xlabel(sprintf('Coord : %.3f , %.3f ;\n Gmag = %.2f',lcData.Table.RA,...
-                              lcData.Table.Dec,lcData.Table.Gmag))
-                              plot_filename = sprintf('/Users/yarinms/Documents/Data/FirstRun/AD_%s_%s.pdf',lcData.Tel,lcData.Date);
-                              print(gcf, plot_filename, '-dpdf', '-bestfit');
-                              close;
+                   
                             
                      else
                             detection = struct('events', [],'NanDet',[], 'lightCurve',[]);
@@ -1354,7 +954,7 @@ end
                     contaminated = [contaminated; any(subframData.Contaminated(j,:))];
 
                     % Calculate average detections
-                    detections = cellfun(@(x) WDtransits.ifelse(isempty(x), 0, x), subframData.Ndet(j,:));
+                    detections = cellfun(@(x) WDtransits1.ifelse(isempty(x), 0, x), subframData.Ndet(j,:));
                     avgDetections = [avgDetections; mean(detections)];
                 end
             end
@@ -1379,7 +979,7 @@ end
 
     
             % Create the plots %%
-            [hist_filename, scatter_filename] = WDtransits.createEfficiencyPlots(Results,table);
+            [hist_filename, scatter_filename] = WDtransits1.createEfficiencyPlots(Results,table);
     
             % Create a LaTeX table
             numRows = size(table, 1);
@@ -1577,7 +1177,7 @@ function res = groupVisits(table, matchedSources, Results, args)
             
             % Find the corresponding RA and detection values
             [~, j] = find(Results{CropID}.ra == table.RA(Iwd));
-            detections = cellfun(@(x) WDtransits.ifelse(isempty(x), 0, x), Results{CropID}.Ndet(j, :));
+            detections = cellfun(@(x) WDtransits1.ifelse(isempty(x), 0, x), Results{CropID}.Ndet(j, :));
             
             if any(detections < Nvis)
                 %fprintf('\nCannot find source in all visits\n %i', detections);
@@ -1586,14 +1186,14 @@ function res = groupVisits(table, matchedSources, Results, args)
                 
                 if sum(visToTake) > 0
                     mms = matchedSources(CropID, visToTake);
-                    batches = WDtransits.groupBatches(mms, args.Nvisits);
+                    batches = WDtransits1.groupBatches(mms, args.Nvisits);
                 else
                     fprintf('\nCannot find source # %i at all  \n Gmag = %.2f ', Iwd, table.Gmag(Iwd));
                     continue;
                 end
             else
                 fprintf('\nFound source  #%i in all visits',Iwd);
-                batches =  WDtransits.groupBatches(matchedSources(CropID, :), args.Nvisits);
+                batches =  WDtransits1.groupBatches(matchedSources(CropID, :), args.Nvisits);
             end
             
             %[ms, res] = TranS.findSourceInMatchedSources(matchedSources, table.RA(Iwd), table.Dec(Iwd));
@@ -1806,7 +1406,7 @@ end
             contaminated = [contaminated; any(subframData.Contaminated(j,:))];
 
             % Calculate average detections
-            detections = cellfun(@(x) WDtransits.ifelse(isempty(x), 0, x), subframData.Ndet(j,:));
+            detections = cellfun(@(x) WDtransits1.ifelse(isempty(x), 0, x), subframData.Ndet(j,:));
             avgDetections = [avgDetections; mean(detections)];
             
             % Extract additional information from lcData
@@ -1849,7 +1449,251 @@ end
         'Avg_NaN', 'Avg_Lim_Mag', 'Visits_Considered', 'Num_Detections'});
 end
 
+        %% Plot functions...
+        function plotDetectionResults(results, Iwd, Ibatch, args, plotFlag, outputDir)
+            % plotDetectionResults - Plot detection results for a given WD and batch
+            %
+            % Inputs:
+            %   results   - Cell array containing detection results
+            %   Iwd       - Index of the white dwarf
+            %   Ibatch    - Index of the batch
+            %   args      - Structure containing additional arguments
+            %   plotFlag  - Boolean flag to control plotting (true to plot, false to skip)
+            %   outputDir - Directory to save the output plots (default: current directory)
+            
+            if nargin < 5
+                plotFlag = true;
+            end
+            
+            if nargin < 6
+                outputDir = pwd;
+            end
+            
+            if isempty(results{Iwd,Ibatch})
+                return
+            end
+            
+            RAD = 180 / pi;
+            LC = results{Iwd,Ibatch}.lcData;
+            
+            % Check if any detection method found events
+            Detected = ~isempty(results{Iwd,Ibatch}.detection1.events) || ...
+                       ~isempty(results{Iwd,Ibatch}.detection2.events) || ...
+                       sum(results{Iwd,Ibatch}.detection3.events) > 0;
+            FluxDetected = ~isempty(results{Iwd,Ibatch}.detection1flux.events) || ...
+                       ~isempty(results{Iwd,Ibatch}.detection2flux.events) || ...
+                       sum(results{Iwd,Ibatch}.detection3flux.events) > 0;
+            
+            if ~Detected && ~FluxDetected
+                return
+            end
+            
+            % Generate URLs
+             if ~isfield(LC,'Table')
+                 LC.Table.RA = LC.Coords(1);
+                 LC.Table.Dec = LC.Coords(2);
+                 LC.Table.Gmag = 1;
+                 LC.Table.Total_Visits = 1;
+                 LC.Table.Visits_Found= 1 ;
+                  LC.Table.Subframe = 0;
+             end
 
+            [results{Iwd,Ibatch}.UserData.Simbad, results{Iwd,Ibatch}.UserData.SDSS] = WDtransits1.generateURLs(LC.Table.RA, LC.Table.Dec, RAD);
+            [results{Iwd,Ibatch}.UserData.SimbadMS, results{Iwd,Ibatch}.UserData.SDSSMS] = WDtransits1.generateURLs(LC.Coords(1), LC.Coords(2), RAD);
+            
+            % Determine which detection methods were successful
+            Methods = [~isempty(results{Iwd,Ibatch}.detection1.events), ...
+                       ~isempty(results{Iwd,Ibatch}.detection2.events), ...
+                       sum(results{Iwd,Ibatch}.detection3.events) > 0];
+
+            FluxMethods = [~isempty(results{Iwd,Ibatch}.detection1flux.events), ...
+                       ~isempty(results{Iwd,Ibatch}.detection2flux.events), ...
+                       sum(results{Iwd,Ibatch}.detection3flux.events) > 0];
+            
+            if plotFlag
+                if Detected 
+                    WDtransits1.plotDetectionFigures(results, Iwd, Ibatch, LC, Methods, args, outputDir,    FluxMethods );
+
+                else
+                    outputDir = fullfile(outputDir ,'/FluxDetections');
+                    WDtransits1.plotDetectionFigures(results, Iwd, Ibatch, LC, Methods, args, outputDir,    FluxMethods);
+
+                end
+                
+            end
+            
+            end
+            
+            function [SimbadURL, SDSS_URL] = generateURLs(RA, Dec, RAD)
+                SimbadURL = VO.search.simbad_url(RA ./ RAD, Dec ./ RAD);
+                SDSS_URL = VO.SDSS.navigator_link(RA ./ RAD, Dec ./ RAD);
+            end
+            
+            function plotDetectionFigures(results, Iwd, Ibatch, LC, Methods, args, outputDir, FluxMethods)
+                % Plot main figure
+                fig = figure('Position', [400, 400, 600, 400]);
+                
+                % Subplot 1: Light curve
+                subplot(2,1,1);
+                WDtransits1.plotLightCurve(results, Iwd, Ibatch, LC, Methods,false, FluxMethods);
+                
+                % Subplot 2: Additional information
+                subplot(2,1,2);
+                WDtransits1.plotAdditionalInfo(LC, args, results{Iwd,Ibatch}.UserData);
+                
+                % Save the plot
+         
+                WDtransits1.savePlot(fig, LC,outputDir,'Mag_Info' );
+                
+                % Plot flux figure
+                WDtransits1.plotFluxFigure(results, Iwd, Ibatch, LC, Methods, outputDir,    FluxMethods);
+            end
+            
+            function plotLightCurve(results, Iwd, Ibatch, LC, Methods,flux, FluxMethods)
+                t = datetime(LC.JD, 'ConvertFrom', 'jd');
+                y = LC.lc;
+                c = LC.Ctrl.CtrlStar;
+                C = LC.Ctrl.medLc;
+                lm = LC.limMag;
+                lmt = datetime(LC.catJD, 'ConvertFrom', 'jd');
+                
+                plot(t, y, 'Ok-', 'LineWidth', 2,'DisplayName', sprintf('WD $\\sigma =$ %.3f',std(y,'omitnan')));
+                hold on;
+                
+                WDtransits1.plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods, FluxMethods);
+                
+                plot(lmt, lm, 'sr-','DisplayName', 'Lim Mag');
+                
+                if ~isempty(c)
+                    plot(t, c, '.b--', 'LineWidth', 1.5,'DisplayName', 'Control Star');
+                end
+
+                plot(t, C, '-', 'LineWidth', 0.75,'DisplayName', 'Averaged control');
+                
+                if ~isempty(LC.nanIndices)
+                    plot(t(LC.nanIndices), y(LC.nanIndices), 'kx', 'MarkerSize', 15,'DisplayName', 'NaNs');
+                end
+                
+                WDtransits1.formatLightCurvePlot(LC, Methods, y,flux);
+            end
+            
+            function plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods,FluxMethods)
+                if Methods(1)
+                    MarkedEvents = results{Iwd,Ibatch}.detection1.events;
+                    plot(t(MarkedEvents), y(MarkedEvents), 'Or', 'MarkerSize', 12,'DisplayName','Events');
+                elseif Methods(2)
+                    FlagRunMean = results{Iwd,Ibatch}.detection2.FlagRunMean;
+                    plot(t(FlagRunMean), y(FlagRunMean), 'Or', 'MarkerSize', 12,'DisplayName','Events');
+                elseif Methods(3)
+                    D = results{Iwd,Ibatch}.detection3.events;
+                    plot(t(logical(D)), y(logical(D)), 'Or', 'MarkerSize', 12,'DisplayName','Events');
+                end
+                if ~any(Methods)
+                    if FluxMethods(1)
+                        MarkedEvents = results{Iwd,Ibatch}.detection1flux.events;
+                        plot(t(MarkedEvents), y(MarkedEvents), 'Or', 'MarkerSize', 12,'DisplayName','Events');
+                    elseif FluxMethods(2)
+                        FlagRunMean = results{Iwd,Ibatch}.detection2flux.FlagRunMean;
+                        plot(t(FlagRunMean), y(FlagRunMean), 'Or', 'MarkerSize', 12,'DisplayName','Events');
+                    elseif FluxMethods(3)
+                        D = results{Iwd,Ibatch}.detection3flux.events;
+                        plot(t(logical(D)), y(logical(D)), 'Or', 'MarkerSize', 12,'DisplayName','Events');
+                    end
+
+                end
+
+            end
+            
+            function formatLightCurvePlot(LC, Methods, y,flux)
+                set(gca, 'YDir', 'reverse');
+                ylim([min(y)-0.15,max(y)+0.15]);
+                
+                v = 1:3;
+                formatStr = strjoin(arrayfun(@(x) sprintf('\\#%i', x), v(Methods), 'UniformOutput', false), ' ');
+                title(sprintf('Detect in Method %s \n %s , %s', formatStr, LC.Tel, LC.Date));
+                
+                xlabel(sprintf('Coord : %.3f , %.3f ;\n Gmag = %.2f', LC.Table.RA, LC.Table.Dec, LC.Table.Gmag));
+                if flux
+                    legend('show', 'Location', 'southwest');
+                else
+                    legend('show', 'Location', 'northwestoutside');
+                end
+            end
+            
+            function plotAdditionalInfo(LC, args, UserData)
+                set(gca, 'Position', [0.0 0.15 0.8 0.15]);
+                axis off;
+                
+                text(0.5, 0.8, sprintf('Total Visits: %d\nVisits Considered: %d\nBad Flags: %d\nOverlap Flags: %d\nContaminated Flags: %d \nID: %s', ...
+                    LC.Table.Total_Visits, LC.Table.Visits_Found, sum(LC.Flags.BFcounts), LC.Flags.EFcounts, LC.Table.Visits_Found,LC.Table.Name), 'FontSize', 14);
+                
+                text(0.2, 0.8, sprintf('CropID: %d\nTel: %s\nDate: %s\nNaNs : %d', ...
+                    LC.Table.Subframe, LC.Tel, LC.Date, sum(LC.nanIndices)), 'FontSize', 14);
+                
+                text(0.8, 0.8, sprintf('%i Visits LC\nMinimal detections: %d', ...
+                    args.Nvisits, args.Ndet), 'FontSize', 14);
+                
+                WDtransits1.addSimbadLink(UserData);
+            end
+            
+            function addSimbadLink(UserData)
+                linkLen = size(UserData.Simbad.URL, 2);
+                sameLink = sum(UserData.Simbad.URL == UserData.SimbadMS.URL);
+                
+                if linkLen == sameLink
+                    text(0.2, -0.11, 'Simbad Link:', 'FontSize', 12);
+                    hyperlink = UserData.Simbad.URL;
+                    text(0.2, -0.015, sprintf('Simbad: %s', hyperlink), 'FontSize', 5, 'Interpreter', 'none');
+                else
+                    text(0.2, 0.11, '2 Simbad Links:', 'FontSize', 12);
+                    hyperlink = UserData.Simbad.URL;
+                    text(0.2, 0.015, sprintf('Simbad: %s', hyperlink), 'FontSize', 5, 'Interpreter', 'none');
+                    hyperlink = UserData.SimbadMS.URL;
+                    text(0.2, -0.05, sprintf('Simbad 2: %s', hyperlink), 'FontSize', 5, 'Interpreter', 'none');
+                end
+            end
+            
+            function savePlot(fig, LC, outputDir,str)
+                set(fig, 'PaperPositionMode', 'auto');
+                set(fig, 'PaperUnits', 'inches');
+                set(fig, 'PaperSize', [12 12]);
+                set(fig, 'PaperPosition', [0 0 12 12]);
+                
+                plot_filename = fullfile(outputDir, sprintf('%s_Final_plot_%s_%s_%i_%s.pdf',str, LC.Tel, LC.Date, LC.Table.Subframe, LC.Table.Name));
+                print(fig, plot_filename, '-dpdf', '-bestfit');
+                close(fig);
+            end
+            
+            function plotFluxFigure(results, Iwd, Ibatch, LC, Methods, outputDir,    FluxMethods)
+                fig = figure('Position', [400, 400, 600, 400]);
+                
+                subplot(2,1,1);
+                WDtransits1.plotLightCurve(results, Iwd, Ibatch, LC, Methods,true,    FluxMethods);
+                
+                subplot(2,1,2);
+                WDtransits1.plotFlux(results, Iwd, Ibatch, LC, Methods,    FluxMethods);
+                
+                WDtransits1.savePlot(fig, LC, outputDir,'Flux');
+            end
+            
+            function plotFlux(results, Iwd, Ibatch, LC, Methods,    FluxMethods)
+                t = datetime(LC.JD, 'ConvertFrom', 'jd');
+                y = LC.relFlux;
+                
+                plot(t, y, 'Ok-', 'LineWidth', 2,'DisplayName',sprintf('WD $ \\sigma = %.3f',std(y)));
+                hold on;
+                
+                WDtransits1.plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods,    FluxMethods);
+                
+                yline(1 - 2.5 * LC.typScatter);
+                
+                v = 1:3;
+                formatStr = strjoin(arrayfun(@(x) sprintf('\\#%i', x), v(Methods), 'UniformOutput', false), ' ');
+                title('Relative normalized flux');
+                
+                legend(sprintf('Rel Flux $\\sigma = $ %.3f', LC.typScatter), 'Mag Events', ...
+                    sprintf('1- 2.5 $\\sigma = $ %.3f', 1 - 2.5 * LC.typScatter), 'Location', 'southwest');
+            end
 
         %%
         
