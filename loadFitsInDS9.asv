@@ -36,7 +36,7 @@ function loadFitsInDS9(destinationDir,Args)
          
             for i = 1:length(fitsFiles)
                 fitsFile = fullfile(fitsFiles(i).folder, fitsFiles(i).name);
-                formattedFiles = sprintf('%s %s -zscale -pan to %f %f -regions command "circle(%f,%f,%f)"',...
+                formattedFiles = sprintf('%s %s -zscale -pan to %f %f -regions command "circle(%f,%f,%f) color=white width=2"',...
                     formattedFiles, fitsFile,Args.x,Args.y,Args.x,Args.y,Args.radius);
             end
             
