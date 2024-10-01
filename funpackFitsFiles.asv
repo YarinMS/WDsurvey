@@ -70,7 +70,7 @@ function unpackFitsFilesWithFunpack(startDateTime, endDateTime,baseDir, destinat
                 try
                     fprintf('Unpacking file with funpack: %s\n', fitsFiles(i).name);
                     % Construct the system command to call 'funpack'
-                    funpackCommand = sprintf('funpack -O %s%s %s', destinationDir,fitsFiles(i).name(1:end-3), filePath);
+                    funpackCommand = sprintf('funpack -O %s%s %s', destinationDir,, filePath);
                     % Run the command
                     system(funpackCommand);
                 catch ME
