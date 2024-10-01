@@ -512,7 +512,7 @@ end
                 % TODO : add weights to control stars?>??>>?>?>?>?>?>?>?
                 lcData.Ctrl = WDtransits1.getCloseControl(mms, ind,args,ra,dec);
 
-                lcData = WDtransits1.handleNaNValues(lcData,mms, mms.Nepoch);
+%                lcData = WDtransits1.handleNaNValues(lcData,mms, mms.Nepoch);
 
 
                 % From control group get ensemble photometry
@@ -520,7 +520,7 @@ end
                 deltaMag = lcData.lc-enssembeleLC;
                 relFlux = 10.^(-0.4*(deltaMag));
                 lcData.relFlux = relFlux/median(relFlux,'omitnan'); % Relative normalized flux
-                lcData.relFluxErr = lcData.relFlux .* lcData.Ctrl.fluxErr; % Errors from control group
+              %  lcData.relFluxErr = lcData.relFlux .* lcData.Ctrl.fluxErr; % Errors from control group
                 lcData.typScatter = min(lcData.Ctrl.enssembleFluxScatter, std(lcData.lc,'omitnan'));
                 
 
@@ -1489,6 +1489,15 @@ end
             end
             
             % Generate URLs
+             if ~isfield(LC,'Table')
+                 LC.Table.RA = LC.Coords(1);
+                 LC.Table.Dec = LC.Coords(2);
+                 LC.Table.Gmag = 1;
+                 LC.Table.Total_Visits = 1;
+                 LC.Table.Visits_Found= 1 ;
+                  LC.Table.Subframe = 0;
+             end
+
             [results{Iwd,Ibatch}.UserData.Simbad, results{Iwd,Ibatch}.UserData.SDSS] = WDtransits1.generateURLs(LC.Table.RA, LC.Table.Dec, RAD);
             [results{Iwd,Ibatch}.UserData.SimbadMS, results{Iwd,Ibatch}.UserData.SDSSMS] = WDtransits1.generateURLs(LC.Coords(1), LC.Coords(2), RAD);
             
@@ -1522,7 +1531,7 @@ end
             
             function plotDetectionFigures(results, Iwd, Ibatch, LC, Methods, args, outputDir, FluxMethods)
                 % Plot main figure
-                fig = figure('Position', [400, 400, 600, 400]);
+                fig = figure();
                 
                 % Subplot 1: Light curve
                 subplot(2,1,1);
@@ -1615,8 +1624,8 @@ end
                 set(gca, 'Position', [0.0 0.15 0.8 0.15]);
                 axis off;
                 
-                text(0.5, 0.8, sprintf('Total Visits: %d\nVisits Considered: %d\nBad Flags: %d\nOverlap Flags: %d\nContaminated Flags: %d', ...
-                    LC.Table.Total_Visits, LC.Table.Visits_Found, sum(LC.Flags.BFcounts), LC.Flags.EFcounts, LC.Table.Visits_Found), 'FontSize', 14);
+                text(0.5, 0.8, sprintf('Total Visits: %d\nVisits Considered: %d\nBad Flags: %d\nOverlap Flags: %d\nContaminated Flags: %d \nID: %s', ...
+                    LC.Table.Total_Visits, LC.Table.Visits_Found, sum(LC.Flags.BFcounts), LC.Flags.EFcounts, LC.Table.Visits_Found,LC.Table.Name), 'FontSize', 14);
                 
                 text(0.2, 0.8, sprintf('CropID: %d\nTel: %s\nDate: %s\nNaNs : %d', ...
                     LC.Table.Subframe, LC.Tel, LC.Date, sum(LC.nanIndices)), 'FontSize', 14);
@@ -1647,11 +1656,16 @@ end
             function savePlot(fig, LC, outputDir,str)
                 set(fig, 'PaperPositionMode', 'auto');
                 set(fig, 'PaperUnits', 'inches');
-                set(fig, 'PaperSize', [12 12]);
-                set(fig, 'PaperPosition', [0 0 12 12]);
+                set(fig, 'PaperSize', [12 10]);
+                set(fig, 'PaperPosition', [0 0 12 8]);
                 
-                plot_filename = fullfile(outputDir, sprintf('%s_Final_plot_%s_%s.pdf',str, LC.Tel, LC.Date));
+                plot_filename = fullfile(outputDir, sprintf('%s_Final_plot_%s_%s_%i_%s.pdf',str, LC.Tel, LC.Date, LC.Table.Subframe, LC.Table.Name));
                 print(fig, plot_filename, '-dpdf', '-bestfit');
+                png_filename = fullfile(outputDir, sprintf('%s_Final_plot_%s_%s_%i_%s.png',str, LC.Tel, LC.Date, LC.Table.Subframe, LC.Table.Name));
+                set(gca, 'FontSize', 10);
+                set(gca, 'LooseInset', get(gca, 'TightInset')); 
+                axis tight;
+                exportgraphics(fig, png_filename, 'Resolution', 400);
                 close(fig);
             end
             

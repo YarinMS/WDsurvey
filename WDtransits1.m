@@ -521,6 +521,7 @@ end
                 relFlux = 10.^(-0.4*(deltaMag));
                 lcData.relFlux = relFlux/median(relFlux,'omitnan'); % Relative normalized flux
               %  lcData.relFluxErr = lcData.relFlux .* lcData.Ctrl.fluxErr; % Errors from control group
+              
                 lcData.typScatter = min(lcData.Ctrl.enssembleFluxScatter, std(lcData.lc,'omitnan'));
                 
 
@@ -733,8 +734,8 @@ end
                 results.detection1flux = WDtransits1.detectConsecutivePoints(lcData, args,true);
                 results.detection2 = WDtransits1.runMeanFilter(lcData, args,false);
                 results.detection2flux = WDtransits1.runMeanFilter(lcData, args,true);
-                results.detection3 = WDtransits1.detectAreaEvents(lcData, args,false);
-                results.detection3flux = WDtransits1.detectAreaEvents(lcData, args,true);
+                results.detection3 = [];% WDtransits1.detectAreaEvents(lcData, args,false);
+                results.detection3flux = []%; WDtransits1.detectAreaEvents(lcData, args,true);
                 %results.results     = results;
                 results.lcData     = lcData;
 
@@ -1478,11 +1479,11 @@ end
             
             % Check if any detection method found events
             Detected = ~isempty(results{Iwd,Ibatch}.detection1.events) || ...
-                       ~isempty(results{Iwd,Ibatch}.detection2.events) || ...
-                       sum(results{Iwd,Ibatch}.detection3.events) > 0;
+                       ~isempty(results{Iwd,Ibatch}.detection2.events) ;%|| ...
+                       %sum(results{Iwd,Ibatch}.detection3.events) > 0;
             FluxDetected = ~isempty(results{Iwd,Ibatch}.detection1flux.events) || ...
-                       ~isempty(results{Iwd,Ibatch}.detection2flux.events) || ...
-                       sum(results{Iwd,Ibatch}.detection3flux.events) > 0;
+                       ~isempty(results{Iwd,Ibatch}.detection2flux.events) ;%|| ...
+                       %sum(results{Iwd,Ibatch}.detection3flux.events) > 0;
             
             if ~Detected && ~FluxDetected
                 return
@@ -1503,12 +1504,12 @@ end
             
             % Determine which detection methods were successful
             Methods = [~isempty(results{Iwd,Ibatch}.detection1.events), ...
-                       ~isempty(results{Iwd,Ibatch}.detection2.events), ...
-                       sum(results{Iwd,Ibatch}.detection3.events) > 0];
+                       ~isempty(results{Iwd,Ibatch}.detection2.events),];% ...
+                       %sum(results{Iwd,Ibatch}.detection3.events) > 0];
 
             FluxMethods = [~isempty(results{Iwd,Ibatch}.detection1flux.events), ...
-                       ~isempty(results{Iwd,Ibatch}.detection2flux.events), ...
-                       sum(results{Iwd,Ibatch}.detection3flux.events) > 0];
+                       ~isempty(results{Iwd,Ibatch}.detection2flux.events),];% ...
+                       %sum(results{Iwd,Ibatch}.detection3flux.events) > 0];
             
             if plotFlag
                 if Detected 
@@ -1531,7 +1532,7 @@ end
             
             function plotDetectionFigures(results, Iwd, Ibatch, LC, Methods, args, outputDir, FluxMethods)
                 % Plot main figure
-                fig = figure('Position', [400, 400, 600, 400]);
+                fig = figure();
                 
                 % Subplot 1: Light curve
                 subplot(2,1,1);
@@ -1578,26 +1579,28 @@ end
             end
             
             function plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods,FluxMethods)
+
+                markerSize = 4;
                 if Methods(1)
                     MarkedEvents = results{Iwd,Ibatch}.detection1.events;
-                    plot(t(MarkedEvents), y(MarkedEvents), 'Or', 'MarkerSize', 12,'DisplayName','Events');
+                    plot(t(MarkedEvents), y(MarkedEvents), 'Or', 'MarkerSize', markerSize,'DisplayName','Events');
                 elseif Methods(2)
                     FlagRunMean = results{Iwd,Ibatch}.detection2.FlagRunMean;
-                    plot(t(FlagRunMean), y(FlagRunMean), 'Or', 'MarkerSize', 12,'DisplayName','Events');
-                elseif Methods(3)
-                    D = results{Iwd,Ibatch}.detection3.events;
-                    plot(t(logical(D)), y(logical(D)), 'Or', 'MarkerSize', 12,'DisplayName','Events');
+                    plot(t(FlagRunMean), y(FlagRunMean), 'Or', 'MarkerSize', markerSize,'DisplayName','Events');
+             %   elseif Methods(3)
+              %      D = results{Iwd,Ibatch}.detection3.events;
+               %     plot(t(logical(D)), y(logical(D)), 'Or', 'MarkerSize', markerSize,'DisplayName','Events');
                 end
                 if ~any(Methods)
                     if FluxMethods(1)
                         MarkedEvents = results{Iwd,Ibatch}.detection1flux.events;
-                        plot(t(MarkedEvents), y(MarkedEvents), 'Or', 'MarkerSize', 12,'DisplayName','Events');
+                        plot(t(MarkedEvents), y(MarkedEvents), 'Or', 'MarkerSize', markerSize,'DisplayName','Events');
                     elseif FluxMethods(2)
                         FlagRunMean = results{Iwd,Ibatch}.detection2flux.FlagRunMean;
-                        plot(t(FlagRunMean), y(FlagRunMean), 'Or', 'MarkerSize', 12,'DisplayName','Events');
-                    elseif FluxMethods(3)
-                        D = results{Iwd,Ibatch}.detection3flux.events;
-                        plot(t(logical(D)), y(logical(D)), 'Or', 'MarkerSize', 12,'DisplayName','Events');
+                        plot(t(FlagRunMean), y(FlagRunMean), 'Or', 'MarkerSize', markerSize,'DisplayName','Events');
+               %     elseif FluxMethods(3)
+                %        D = results{Iwd,Ibatch}.detection3flux.events;
+                 %       plot(t(logical(D)), y(logical(D)), 'Or', 'MarkerSize', markerSize,'DisplayName','Events');
                     end
 
                 end
@@ -1656,11 +1659,16 @@ end
             function savePlot(fig, LC, outputDir,str)
                 set(fig, 'PaperPositionMode', 'auto');
                 set(fig, 'PaperUnits', 'inches');
-                set(fig, 'PaperSize', [12 12]);
-                set(fig, 'PaperPosition', [0 0 12 12]);
+                set(fig, 'PaperSize', [12 10]);
+                set(fig, 'PaperPosition', [0 0 12 8]);
                 
                 plot_filename = fullfile(outputDir, sprintf('%s_Final_plot_%s_%s_%i_%s.pdf',str, LC.Tel, LC.Date, LC.Table.Subframe, LC.Table.Name));
                 print(fig, plot_filename, '-dpdf', '-bestfit');
+                png_filename = fullfile(outputDir, sprintf('%s_Final_plot_%s_%s_%i_%s.png',str, LC.Tel, LC.Date, LC.Table.Subframe, LC.Table.Name));
+                set(gca, 'FontSize', 10);
+                set(gca, 'LooseInset', get(gca, 'TightInset')); 
+                axis tight;
+                exportgraphics(fig, png_filename, 'Resolution', 400);
                 close(fig);
             end
             
