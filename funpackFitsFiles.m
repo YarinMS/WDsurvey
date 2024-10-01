@@ -1,4 +1,4 @@
-function unpackFitsFilesWithFunpack(startDateTime, endDateTime,BaseDir, destinationDir)
+function unpackFitsFilesWithFunpack(startDateTime, endDateTime,baseDir, destinationDir)
     % unpackFitsFilesWithFunpack Unpacks .fits.fz files within a date and time range (down to seconds) using funpack
     % and stores the results in a new folder.
     %
