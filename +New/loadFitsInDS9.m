@@ -1,4 +1,4 @@
-function loadFitsInDS9(destinationDir)
+function loadFitsInDS9(destinationDir,Args)
     % loadFitsInDS9 Loads the .fits files from the destination directory into DS9 with Z-scale applied.
     %
     % INPUT:
@@ -8,6 +8,13 @@ function loadFitsInDS9(destinationDir)
     % loadFitsInDS9('~/Documents/to/unpack/')
     % Authors : Yarin Shani & ChatGPT
 
+    arguments
+        destinationDir char
+        Args.x = [];
+        Args.y = [];
+        Args.radius = [];
+        
+    end
     % Ensure DS9 is installed and accessible via system command
     [status, cmdout] = system('which ds9');
     if status ~= 0
@@ -21,15 +28,33 @@ function loadFitsInDS9(destinationDir)
         error('No .fits files found in the directory: %s', destinationDir);
     end
 
-    % Loop over each .fits file and load it into DS9 with Z-scale
-    for i = 1:length(fitsFiles)
-        fitsFile = fullfile(fitsFiles(i).folder, fitsFiles(i).name);
-        fprintf('Loading FITS file in DS9: %s\n', fitsFile);
-        
+    formattedFiles ='';
+     % Loop over each file and format it with a newline at the end
+     
+     if ~isempty(Args.x)
+         
+         
+            for i = 1:length(fitsFiles)
+                fitsFile = fullfile(fitsFiles(i).folder, fitsFiles(i).name);
+                formattedFiles = sprintf('%s %s -zscale -pan to %f %f -regions command "circle(%f,%f,%f)"',...
+                    formattedFiles, fitsFile,Args.x,Args.y,Args.x,Args.y,Args.radius);
+            end
+            
+     else
+         
+             for i = 1:length(fitsFiles)
+                fitsFile = fullfile(fitsFiles(i).folder, fitsFiles(i).name);
+                formattedFiles = sprintf('%s %s -zscale', formattedFiles, fitsFile,x,y);
+            end
+         
+         
+         
+         
+     end
         % Construct the DS9 command to load the FITS file with Z-scale
-        ds9Command = sprintf('ds9 %s -zscale &', fitsFile);
+        ds9Command = sprintf('ds9 %s &', formattedFiles);
         
         % Execute the command to open DS9 with the FITS file
         system(ds9Command);
-    end
+    
 end
