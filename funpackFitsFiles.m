@@ -33,9 +33,16 @@ function funpackFitsFiles(startDateTime, endDateTime,baseDir, destinationDir)
         
         % Check if rawDir exists
         if ~exist(rawDir, 'dir')
+            
+            day = str2num(dayStr);
+            day = day -1;
+            dayStr = sprintf('%02d',day);
+            rawDir = fullfile(baseDir, yearStr, monthStr, dayStr, 'raw');
+            if ~exist(rawDir, 'dir')
             fprintf('Directory does not exist: %s\n', rawDir);
             currentDateTime = currentDateTime + caldays(1);
             continue;
+            end
         end
         
         % Find all .fits.fz files in this directory
