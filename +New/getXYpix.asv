@@ -1,0 +1,26 @@
+function Res = getXYpix(Path,RA,Dec,Args)
+
+
+arguments
+Path char
+RA
+Dec
+Args.CropID = []
+
+
+end
+
+PWD = pwd;
+
+cd(Path)
+
+List = MatchedSources.rdirMatchedSourcesSearch('CROPID',Args.CropID);%sprintf('%02d',x));
+matchedSources = MatchedSources.readList(List);
+MS = matchedSources.merge
+Ind = matchedSources.coneSearch(RA,Dec)
+% Build
+Res = List;
+
+
+
+end
