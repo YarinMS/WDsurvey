@@ -1512,6 +1512,10 @@ end
                        %sum(results{Iwd,Ibatch}.detection3flux.events) > 0];
             
             if plotFlag
+                 if ~exist(outputDir ,'dir')
+                     mkdir(outputDir);
+                     mkdir(strcat(outputDir,'/FluxDetections'));
+                 end
                 if Detected 
                     WDtransits1.plotDetectionFigures(results, Iwd, Ibatch, LC, Methods, args, outputDir,    FluxMethods );
 
@@ -1615,8 +1619,8 @@ end
                 formatStr = strjoin(arrayfun(@(x) sprintf('\\#%i', x), v(Methods), 'UniformOutput', false), ' ');
                 title(sprintf('Detect in Method %s \n %s , %s', formatStr, LC.Tel, LC.Date));
                 
-                xlabel(sprintf('Coord : %.3f , %.3f ;\n Gmag = %.2f', LC.Table.RA, LC.Table.Dec, LC.Table.Gmag));
-                if flux
+                xlabel(sprintf('Coord : %.3f , %.3f ;\n ', LC.Table.RA, LC.Table.Dec));
+                if exist('flux','var')
                     legend('show', 'Location', 'southwest');
                 else
                     legend('show', 'Location', 'northwestoutside');

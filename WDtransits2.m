@@ -75,7 +75,7 @@ classdef WDtransits2
                 
             %end
             choice = [];
-timeout = 30; % Timeout in seconds
+timeout = 300; % Timeout in seconds
 start_time = tic;
 
 while isempty(choice)
@@ -525,7 +525,11 @@ end
                 lcData.relFlux = relFlux/median(relFlux,'omitnan'); % Relative normalized flux
               %  lcData.relFluxErr = lcData.relFlux .* lcData.Ctrl.fluxErr; % Errors from control group
               
-                lcData.typScatter = min(lcData.Ctrl.enssembleFluxScatter, std(lcData.lc,'omitnan'));
+                if isfield(lcData.Ctrl,'enssemnleFluxScatter')
+                    lcData.typScatter = min(lcData.Ctrl.enssembleFluxScatter, std(lcData.lc,'omitnan'));
+                else
+                    lcData.typScatter = [];
+                end
                 
 
                 
@@ -609,7 +613,7 @@ end
 
             if Diff > (1/3600 * 10)
 
-                error('\nProblem finding the source itself in control group.\n')
+                fprintf('\nProblem finding the source itself in control group.\n')
             end
 
             ctrlInd = S.Ind([1:(SIdx-1), SIdx+1:end]);
@@ -1249,8 +1253,11 @@ end
                 FIELDID{i} = AH.Key.FIELDID;
                 JD(i) = AH.Key.JD;
                 FWHM(i) = AH.Key.FWHM;
-                LimMag(i) = AH.Key.LIMMAG;
-        
+                if isfield(AH.Key,'LIMMAG')
+                    LimMag(i) = AH.Key.LIMMAG;
+                else
+                    LimMag(i) = nan;
+                end
                 alpha = [AH.Key.RAU1, AH.Key.RAU2, AH.Key.RAU3, AH.Key.RAU4];
                 delta = [AH.Key.DEC1, AH.Key.DEC2, AH.Key.DEC3, AH.Key.DECU4];
                 RA(i) = mean(alpha);
@@ -1536,7 +1543,7 @@ end
             data = [xData(:), yData(:)];
 
         % Define the filename and save the matrix as a text file
-            filename = fullfile(outputDir, sprintf('XYpix_%s_Batch%d.mat',LC.Table.Name, Ibatch));
+            filename = fullfile(outputDir, sprintf('XYpix_%s_Batch%s.mat',LC.Table.Name,LC.Date));
             save(filename, 'data')
 
             fprintf('Results saved to: %s\n', filename);
@@ -1650,8 +1657,8 @@ end
                 text(0.5, 0.8, sprintf('Total Visits: %d\nVisits Considered: %d\nBad Flags: %d\nOverlap Flags: %d\nContaminated Flags: %d \nID: %s', ...
                     LC.Table.Total_Visits, LC.Table.Visits_Found, sum(LC.Flags.BFcounts), LC.Flags.EFcounts, LC.Table.Visits_Found,LC.Table.Name), 'FontSize', 14);
                 
-                text(0.2, 0.8, sprintf('CropID: %d\nTel: %s\nDate: %s\nNaNs : %d', ...
-                    LC.Table.Subframe, LC.Tel, LC.Date, sum(LC.nanIndices)), 'FontSize', 14);
+                text(0.2, 0.8, sprintf('CropID: %d\nFieldID: %s\nTel: %s\nDate: %s\nNaNs : %d', ...
+                    LC.Table.Subframe,'nn', LC.Tel, LC.Date, sum(LC.nanIndices)), 'FontSize', 14);
                 
                 text(0.8, 0.8, sprintf('%i Visits LC\nMinimal detections: %d', ...
                     args.Nvisits, args.Ndet), 'FontSize', 14);
@@ -1688,7 +1695,7 @@ end
                 set(gca, 'FontSize', 10);
                 set(gca, 'LooseInset', get(gca, 'TightInset')); 
                 axis tight;
-                exportgraphics(fig, png_filename, 'Resolution', 400);
+                 saveas(fig, png_filename);
                 close(fig);
             end
             
@@ -1713,7 +1720,12 @@ end
                 
                 WDtransits2.plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods,    FluxMethods);
                 
-                yline(1 - 2.5 * LC.typScatter);
+                if ~isempty(LC.typScatter)
+                     yline(1 - 2.5 * LC.typScatter);
+
+                else
+                    LC.typScatter = 0;
+                end
                 
                 v = 1:3;
                 formatStr = strjoin(arrayfun(@(x) sprintf('\\#%i', x), v(Methods), 'UniformOutput', false), ' ');
