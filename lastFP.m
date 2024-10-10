@@ -37,14 +37,15 @@ classdef lastFP
                 for data_idx = 1:length(obj.dataDirs)
                     % Construct the base directory for each combination
                     baseDir = sprintf(obj.baseDirPattern, obj.dataDirs{data_idx}, 1, obj.mountNumber, telescope, year, month, day);
+                    baseDir = strcat('/',obj.computerId,baseDir);
                     
-                    if exist(baseDir, 'dir')
+                    if exist(baseDir, 'dir') == 7
                         % Check if data is available for processing
                         fprintf('Processing telescope %02d on mount %02d: %s\n', telescope, obj.mountNumber, baseDir);
                         
                         % Access proc directory and iterate through visits
                         procDir = fullfile(baseDir, 'proc');
-                        if exist(procDir, 'dir')
+                        if exist(procDir, 'dir') == 7 
                             visitDirs = dir(fullfile(procDir, '*v0'));
                             
                             if ~isempty(visitDirs)
@@ -68,11 +69,26 @@ classdef lastFP
         
         % Helper method to sort visits
         function sortedVisits = sortVisits(obj, visitDirs)
-            % Sort the visit directories based on the time information in their names
-            visit_times = arrayfun(@(x) sscanf(x.name, '%*[^_]_%08d.%06d'), visitDirs);
-            [~, idx] = sort(visit_times);
+            % Extract time from visit directory names in the format HHMMSS
+            visitTimes = arrayfun(@(x) obj.extractTime(x.name), visitDirs);
+
+            % Adjust times after midnight to come after evening times
+            adjustedTimes = arrayfun(@(t) t + (t < 120000) * 240000, visitTimes);
+
+            % Sort visits based on adjusted times
+            [~, idx] = sort(adjustedTimes);
             sortedVisits = visitDirs(idx);
         end
+        
+        function time = extractTime(~, visitName)
+            % Extract time information in the format HHMMSS from the visit name
+            hour = str2double(visitName(1:2));
+            minute = str2double(visitName(3:4));
+            second = str2double(visitName(5:6));
+            time = hour * 10000 + minute * 100 + second;
+        end
+
+
         
         % Helper method to group consecutive visits
         function visitBatches = groupConsecutiveVisits(obj, visits, max_time_diff)
