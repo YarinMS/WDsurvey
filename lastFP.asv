@@ -110,7 +110,7 @@ classdef lastFP
                 %[Iy, Im, Id, Iv, Ind]
                 cd(DirVisit(Iv).name);
                 
-                Files = dir('*MergedMat_1.hdf');
+                Files = dir(args.fileTemplate);
                 FN = FileNames.generateFromFileName({Files.name});
                 if FN.nfiles>0
                     Ind = Ind + 1;
