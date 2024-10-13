@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="title"/><w:jc w:val="left"/></w:pPr><w:r><w:t>open Run over all WDs</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="R2018b"><w:pPr><w:pStyle w:val="heading2"/><w:jc w:val="left"/></w:pPr></mc:Choice><mc:Fallback><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr></mc:Fallback></mc:AlternateContent><w:r><w:t>Load WD catalogs</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[RAD = 180 / pi;
+PWD = pwd;
+cd(['~/marvin/catsHTM/WD/WDEDR3/'])
+
+
+ WDS  = catsHTM.cone_search('WDEDR3',50./RAD, 45./RAD, 3600*5156.6201561774, 'OutType','AstroCatalog');
+                
+
+if ~isempty(WDS.Table)
+
+    AllWds = size(WDS.Table,1);
+
+    visWds = WDS.Table{:,11} < 19.6 ;
+    visWds = visWds & WDS.Table{:,7} > 0.75;
+     visWds = visWds & WDS.Table{:,2} > -15./RAD;
+
+    fprintf('\nOut of %i WDs %i are below Gmag 19.6 \n',AllWds,sum(visWds))
+
+     wd= WDS.Table(visWds,:);
+     ra  = WDS.Table{visWds,1}*RAD;
+     dec = WDS.Table{visWds,2}*RAD;
+
+end
+
+cd(PWD)
+
+]]></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[Nwd = height(wd)
+
+Count = 4068
+Counts = 4068
+
+
+
+
+
+% > 1616 > 1925 > 1959 > 6445> 7237 > 8122 > 8298 > 8600 > 9707
+% [1:9951] WD with 3 visits
+
+% problems with 22561 - 24000 
+% did 24000 - 27669
+% next is 30755
+
+Counts =30755;%20700;%18679; %6447%8300%8899%18440;     
+Count =30755;%20700; 18679; %6447%8300%8899%18440;
+h = waitbar(0)
+
+
+
+for Iwd = Counts : Nwd
+
+    Count = Count +1;
+    getData(ra(Iwd),dec(Iwd),'minVis',17,"outputDir",'/home/yarinms/Projects/WD_survey/WDRun_General_N0001',"Name",sprintf("WD N%i",Iwd))
+    
+    waitbar(Iwd/Nwd,h,sprintf("Processed %i / %i WDs",Iwd,Nwd))
+
+
+
+
+
+end
+
+
+
+ getData(RA,Dec,Args)]]></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="R2018b"><w:pPr><w:pStyle w:val="heading2"/><w:jc w:val="left"/></w:pPr></mc:Choice><mc:Fallback><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr></mc:Fallback></mc:AlternateContent><w:r><w:t>Conduct a search in marvin</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Minimum number of visits should be more than 15 (i think)</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t>script for  WD1856+534</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[]]></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="R2018b"><w:pPr><w:pStyle w:val="heading2"/><w:jc w:val="left"/></w:pPr></mc:Choice><mc:Fallback><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr></mc:Fallback></mc:AlternateContent><w:r><w:t>Handle visit grouping</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t>find unique nights with more than mnVisits of the field per night.</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="ListParagraph"/><w:numPr><w:numId w:val="1"/></w:numPr><w:jc w:val="left"/></w:pPr><w:r><w:t>For every path with more than minVisitis we group MS objects of consecutive vivsits intra-night   </w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[]]></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[getData(RA,Dec);
+]]></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="title"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Functions</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="title"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Functions</w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Merge - get lim mag - get lc - detect</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[   % get groupedMS
+   % you neeed Table check its crop id fits to list id
+   function detectInMS(groupedMS,Table,outputDir)
+
+           args = struct(...
+            'MagField', {{'MAG_PSF'}}, ...
+            'MagErrField', {{'MAGERR_PSF'}}, ...
+            'BadFlags', {{'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'}}, ...
+            'EdgeFlags', {{'Overlap'}}, ...
+            'runMeanFilterArgs', {{'Threshold', 5, 'StdFun', 'OutWin'}}, ...
+            'Nvisits', 2, ...
+            'Ndet', 16*2 ...
+        );
+           lcData  = cell(0);
+           batch = groupedMS;
+    
+    
+    for Ibatch = 1 : length(batch)
+                        
+                        catJD = [];
+                        LimMag    = [];
+
+                        for Ivis = 1 : numel(batch{Ibatch})
+
+                            OP        = WDtransits2.EfficientReadFromCat(batch{Ibatch}(Ivis).FileName, Table.CropID);
+                            %obsParams = {obsParams; {OP}};
+                            LimMag    =  [LimMag; OP.LimMag];
+                            catJD    =  [catJD; OP.JD];
+                        end
+
+                    mms = WDtransits2.cleanMatchedSources(batch{Ibatch}, args);
+                    lcData{Ibatch}.limMag = LimMag;
+                    lcData{Ibatch}.catJD = catJD;
+                    lcData{Ibatch} = WDtransits2.extractLightCurve(lcData{Ibatch}, mms,  Table.RA,Table.Dec,args);
+                    
+                    lcData{Ibatch} = WDtransits2.handleNaNValues(lcData{Ibatch},mms, mms.Nepoch);
+                    [~,fname,~] = fileparts(batch{Ibatch}(Ivis).FileName);
+                    part = strsplit(fname,'_');
+                    lcData{Ibatch}.Tel = part{1};
+                    lcData{Ibatch}.Date = part{2};
+                                
+                            
+                    lcData{Ibatch}.Table.RA = Table.RA;
+                    lcData{Ibatch}.Table.Dec = Table.Dec;
+                    lcData{Ibatch}.Table.Gmag = 1;
+                    lcData{Ibatch}.Table.Total_Visits = Table.Nvisits;
+                    lcData{Ibatch}.Table.Visits_Found= length(batch) ;
+                    lcData{Ibatch}.Table.Subframe = Table.CropID;
+                    lcData{Ibatch}.Table.Name = Table.Name;
+
+
+                   % NO TABLE FOR NOW lcData{Iwd,Ibatch}.Table = table(Iwd,:);
+
+
+
+                     % if sum lcData{Iwd,Ibatch}.nanIndinces > 1
+                     % find pattern in more source in mms
+
+
+
+%                    lcData{Iwd,Ibatch} = transitSearch.handleNaNValues(lcData, numel(catJD));
+         
+                  
+
+                   
+
+
+                   results{Ibatch}  = WDtransits2.detectTransits(lcData{Ibatch}, args);
+                   % outputDir = '/Users/yarinms/Documents/Data/6thRun';
+
+                   WDtransits2.plotDetectionResults(results, 1, Ibatch, args, true, outputDir)
+
+    end
+
+   end
+]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Group MS</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[function groupedMS = groupedMS(MSvisits, Nvisits)
+    % Get the total number of visits
+    totalVisits = numel(MSvisits);
+    
+    % Calculate the number of full groups and the remainder
+    numGroups = floor(totalVisits / Nvisits);
+    remainder = mod(totalVisits, Nvisits);
+    
+    % Preallocate the groupedMS cell array
+    groupedMS = cell(1, numGroups + (remainder > 0));
+    
+    % Loop through and group the visits
+    for i = 1:numGroups
+        startIdx = (i-1) * Nvisits + 1;
+        endIdx = i * Nvisits;
+        groupedMS{i} = MSvisits(startIdx:endIdx);
+    end
+    
+    % Handle the remainder if there is one
+    if remainder > 0
+        startIdx = numGroups * Nvisits + 1;
+        groupedMS{end} = MSvisits(startIdx:end);
+    end
+end]]></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Make a consecutive search </w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[    function AllConsecutive = consecutiveSearch(List,Args)
+
+            arguments
+                List
+                Args.MaxTimeBetweenVisits = (20*40)./(86400);
+
+            end
+    
+             % sort List by time
+            AllJD  = [List.MinJD].';
+            [~,Is] = sort(AllJD);
+            Args.List = List(Is);
+
+            AllFields = {List.FieldID}; 
+            UniqueFields = unique(AllFields);
+            Nuf          = numel(UniqueFields);
+            K = 0;
+            for Iuf=1:1:Nuf
+                % for each unique field
+                % search all appearances
+                FlagF = strcmp(UniqueFields{Iuf}, AllFields);
+                IndF  = find(FlagF);
+
+                ListF = List(IndF);
+
+                DiffTime = [diff(AllJD(IndF)); mean(diff(AllJD(IndF)))];
+                FlagConsecutive = abs(DiffTime) < Args.MaxTimeBetweenVisits;
+
+                [ListConsecutive] = tools.find.findListsOfConsecutiveTrue(FlagConsecutive);
+                Ncons = numel(ListConsecutive);
+                for Icons=1:1:Ncons
+                    K = K + 1;
+                    AllConsecutive{K,1} = ListF(ListConsecutive{Icons});
+                end
+            end
+
+    end]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t>make a list for consecutive search</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[    function List = prepListOfConVisits(path,Table,args)
+
+            arguments
+                path
+                Table
+                args.fileTemplate
+                args.CropID
+            end
+            Ind = 0;
+            PWD = pwd;
+            cd(path) % This must be a path to proc directory
+
+            DirVisit = io.files.dirDir();
+            Nv = numel(DirVisit);
+            for Iv=1:1:Nv
+                %[Iy, Im, Id, Iv, Ind]
+                cd(DirVisit(Iv).name);
+                
+                Files = dir(args.fileTemplate);
+                FN = FileNames.generateFromFileName({Files.name});
+                if FN.nfiles>0
+                    Ind = Ind + 1;
+                    CropID = FN.CropID;
+                    JD     = FN.julday;
+                    List(Ind).FieldID = FN.FieldID{1};
+                 
+                    List(Ind).VistDir = DirVisit(Iv).name;
+                    List(Ind).Year    = Table.Year;
+                    List(Ind).Month   = Table.Month;
+                    List(Ind).Day     = Table.Day;
+        
+                    List(Ind).Path    = fullfile(path, DirVisit(Iv).name,'','');
+                    
+                    List(Ind).AllFiles = {Files.name};
+                    List(Ind).CropID   = CropID;
+                    List(Ind).JD       = JD;
+                    List(Ind).MinJD    = min(JD);
+                end
+                cd ..
+            end
+            cd(PWD)
+
+    end]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Group visits from path to consecutive Nvisit MS objects</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[function AllConsecutive = mergeConsecutiveVisits(path,Table,args)
+    arguments
+        path 
+        Table
+        args.MaxTimeBetweenVisits = (20*40)./(86400);
+    end
+    
+     Temp = compose("*%s_000_001_%03i_sci_merged_MergedMat_1.hdf5", Table.FieldID,Table.CropID);
+
+
+
+  
+     List           = prepListOfConVisits(path,Table,"fileTemplate",Temp);
+     AllConsecutive = consecutiveSearch(List);
+     secondDimensions = cellfun(@(x) size(x, 2), AllConsecutive);
+    % AllConsecutive = AllConsecutive{:};
+   
+    fprintf('\n%i consecutive groups in dir: \n %s\n',height(AllConsecutive),path)
+    fprintf('\n%i consecutive visits \n',secondDimensions)
+    
+   
+
+
+
+end]]></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[function MSvisits = consecutiveMS(AllConsecutive,args)
+
+    FileName = [] ;
+    Folder   = [] ;
+
+    for Icon = 1 : size(AllConsecutive,2)
+
+        Folder   = [ Folder; string(AllConsecutive(Icon).Path)];
+        FileName = [FileName; string(AllConsecutive(Icon).AllFiles(1))];
+
+    end
+    list.Folder   = Folder;
+    list.FileName = FileName ; 
+    list.CropID   = AllConsecutive(1).CropID;
+
+    MSvisits      =  MatchedSources.readList(list);
+
+
+end]]></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Find unique directories with minimal number of visits of the same field</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[function [Table,Path] = finduniqueVisits(path,args)
+
+    arguments
+        path
+        args.minVis = 4;
+
+    end
+
+
+    [U, xxx, iu] = unique(path(:, {'Year','Month','Day','Mount','Camera','CropID','FieldID'}));
+
+    uc = accumarray(iu, 1);
+    cond = (uc >= args.minVis); %  18+ visits -> 2+ hrs. ;
+    U = U(cond, :);
+    uc = uc(cond);
+
+    if ~isempty(U)
+        U.Nvisits = uc;
+        Table = U;
+        Path = compose("~/marvin/LAST.01.%02i.%02i/%i/%02i/%02i/proc/", U.Mount, U.Camera, U.Year, U.Month, U.Day);
+        Path = char(Path);    
+
+    else
+         uc = accumarray(iu, 1);
+         Table = [];Path = [];
+        %assert(~isempty(U),sprintf('\nCould not find more than %i consecutive visits for the provided path.\nCheck for a new LASTFields object.',max(uc)))
+    end
+      
+
+end]]></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Get Visit directories for a target within LAST AllFields object</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[    function Paths = getcoordPaths(RA,Dec,args)
+        % Must initilize the path for the LAST visits catalog
+        OT = load('/home/yarinms/marvin/LAST_Visits_20240810.mat');
+        OT = OT.OT;
+ 
+        Flag = celestial.coo.findInBox(RA, Dec, [OT.RAU1, OT.RAU2, OT.RAU3, OT.RAU4], [OT.DECU1, OT.DECU2, OT.DECU3, OT.DECU4]);
+
+        Paths = OT(Flag,:);
+
+    end]]></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[function Visits = getConVis(path,args)
+
+end
+
+function getData(RA,Dec,Args)
+arguments
+    RA
+    Dec
+    Args.minVis = 17;
+    Args.Name = '';
+    Args.outputDir = '/Users/yarinms/Documents/Data/7thRun';
+end
+
+ if ~exist(Args.outputDir ,'dir')
+        mkdir(Args.outputDir);
+        mkdir(strcat(Args.outputDir,'/FluxDetections'));
+ end
+
+Paths = getcoordPaths(RA,Dec);
+Npaths = height(Paths);
+fprintf('\n%i Paths Have been detected for target (%.3f,%.3f)\n',Npaths,RA,Dec)
+[Table,Path] = finduniqueVisits(Paths,"minVis",Args.minVis );
+
+if ~isempty(Table)
+        
+        Npaths = height(Path);
+        
+        for Idir = 1 : Npaths
+            tab  = Table(Idir,:);
+            tab.RA = RA;
+            tab.Dec= Dec;
+            tab.Name =  Args.Name ;
+            path = Path(Idir,:);
+            MSpaths = mergeConsecutiveVisits(path,tab)
+        
+            Ngroups = height(MSpaths);
+        
+            for Ig = 1 : Ngroups
+        
+                MSvisit =  consecutiveMS(MSpaths{Ig});
+                % analyaze MS visit
+                % Group
+                Nvisits = 2;
+                MSgroup = groupedMS(MSvisit, Nvisits);
+                % get lc and detect
+              
+                detectInMS(MSgroup,tab,   Args.outputDir);
+        
+        
+        
+            end
+        
+        end
+else
+    return
+end
+end]]></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="text"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p></w:body></w:document>

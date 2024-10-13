@@ -1,5 +1,5 @@
 
-classdef WDtransits2
+classdef WDtransits3
     properties (Constant)
         DEFAULT_ARGS = struct(...
             'MagField', {{'MAG_PSF'}}, ...
@@ -16,18 +16,18 @@ classdef WDtransits2
 
         function   results = analyzeWDTransits(rootPath, args)
             if nargin < 2
-                args = WDtransits2.DEFAULT_ARGS;
+                args = WDtransits3.DEFAULT_ARGS;
             end
             txtRow = cell(0);
 
-            [msCropID,fieldID] = WDtransits2.findMatchedSources(rootPath);
+            [msCropID,fieldID] = WDtransits3.findMatchedSources(rootPath);
             args.fieldID = fieldID.ID;
             args.allVisits = size(msCropID,2);
 
             % Get WD from catalog per CropID
             tic
-            [Results, wd] = WDtransits2.findWhiteDwarfsInField(msCropID,args);
-            Tab = WDtransits2.createTable(Results,wd);
+            [Results, wd] = WDtransits3.findWhiteDwarfsInField(msCropID,args);
+            Tab = WDtransits3.createTable(Results,wd);
             wdInField = length(unique(Tab{:,3}));
             foundFlag  = (Tab{:,8} > 0);
             wdFoundInField = length(unique(Tab{foundFlag,3}));
@@ -43,7 +43,7 @@ classdef WDtransits2
            
 
 
-            results = WDtransits2.analyzeWhiteDwarfs(msCropID, Tab, Results, args);
+            results = WDtransits3.analyzeWhiteDwarfs(msCropID, Tab, Results, args);
 
 
             %WDtransits.generateOutput(results);
@@ -54,7 +54,7 @@ classdef WDtransits2
             list = MatchedSources.rdirMatchedSourcesSearch('FileTemplate','*.hdf5');
             %list = rdirMSfast();
             allFileNames = {list(16).FileName};
-            [fieldNames,DN,TN] = cellfun(@WDtransits2.extractFieldNames, allFileNames, 'UniformOutput', false);
+            [fieldNames,DN,TN] = cellfun(@WDtransits3.extractFieldNames, allFileNames, 'UniformOutput', false);
             [fieldNames,idx,c] = unique(fieldNames{:});
             
            % fprintf('Available fields:\n');
@@ -112,12 +112,12 @@ end
             selectedField.Tel  = TN{1}{Idx};
             fprintf('Selected field: %s\n', selectedField.ID);
             
-            [~,visIdx] = WDtransits2.filterListByFieldName(list(16).FileName, selectedField.ID);
+            [~,visIdx] = WDtransits3.filterListByFieldName(list(16).FileName, selectedField.ID);
             tic;
             msCropID = [];
             h = waitbar(0,'Creating MS')
-            for Iid = 10
-                [~,visIdx] = WDtransits2.filterListByFieldName(list(Iid).FileName, selectedField.ID);
+            for Iid = 1:24
+                [~,visIdx] = WDtransits3.filterListByFieldName(list(Iid).FileName, selectedField.ID);
                 list(Iid).FileName = list(Iid).FileName(visIdx);
                 list(Iid).Folder   = list(Iid).Folder(visIdx);
                 matchedSources = MatchedSources.readList(list(Iid));
@@ -140,12 +140,12 @@ end
             
             fprintf('\nA single field exist: %s\n', selectedField.ID);
             
-            [~,visIdx1] = WDtransits2.filterListByFieldName(list(16).FileName, selectedField.ID);
+            [~,visIdx1] = WDtransits3.filterListByFieldName(list(16).FileName, selectedField.ID);
             tic;
             msCropID = [];
             h = waitbar(0,'Creating MS')
             for Iid = 1:24
-                [~,visIdx] = WDtransits2.filterListByFieldName(list(Iid).FileName, selectedField.ID);
+                [~,visIdx] = WDtransits3.filterListByFieldName(list(Iid).FileName, selectedField.ID);
                 
                 list(Iid).FileName = list(Iid).FileName(visIdx);
                 list(Iid).Folder   = list(Iid).Folder(visIdx);
@@ -195,7 +195,7 @@ end
                 
 
                         
-               obsParams = WDtransits2.EfficientReadFromCat(ms1.FileName, Iid); % you check only first visit which might be a problem
+               obsParams = WDtransits3.EfficientReadFromCat(ms1.FileName, Iid); % you check only first visit which might be a problem
                obsCoord  = mean(obsParams.Coord,'omitnan');
               % limMag    = mean(obsParams.LimMag,'omitnan'); % this might result iin a lower lim mag!!!
                 
@@ -350,7 +350,7 @@ end
 
         function results = analyzeWhiteDwarfs(matchedSources, table, Results, args)
             results = cell(size(table,1),table.Total_Visits(1));
-            Batch = WDtransits2.groupVisits(table, matchedSources, Results, args);
+            Batch = WDtransits3.groupVisits(table, matchedSources, Results, args);
             lcData = cell(size(table,1),table.Total_Visits(1));
             tic;
             for Iwd = 1 : size(table,1)
@@ -368,18 +368,18 @@ end
 
                         for Ivis = 1 : numel(batch{Ibatch})
 
-                            OP        = WDtransits2.EfficientReadFromCat(batch{Ibatch}(Ivis).FileName, table.Subframe(Iwd));
+                            OP        = WDtransits3.EfficientReadFromCat(batch{Ibatch}(Ivis).FileName, table.Subframe(Iwd));
                             %obsParams = {obsParams; {OP}};
                             LimMag    =  [LimMag; OP.LimMag];
                             catJD    =  [catJD; OP.JD];
                         end
 
-                        mms = WDtransits2.cleanMatchedSources(batch{Ibatch}, args);
+                        mms = WDtransits3.cleanMatchedSources(batch{Ibatch}, args);
                     lcData{Iwd,Ibatch}.limMag = LimMag;
                     lcData{Iwd,Ibatch}.catJD = catJD;
-                    lcData{Iwd,Ibatch} = WDtransits2.extractLightCurve(lcData{Iwd,Ibatch}, mms, table.RA(Iwd), table.Dec(Iwd),args);
+                    lcData{Iwd,Ibatch} = WDtransits3.extractLightCurve(lcData{Iwd,Ibatch}, mms, table.RA(Iwd), table.Dec(Iwd),args);
                     
-                    lcData{Iwd,Ibatch} = WDtransits2.handleNaNValues(lcData{Iwd,Ibatch},mms, mms.Nepoch);
+                    lcData{Iwd,Ibatch} = WDtransits3.handleNaNValues(lcData{Iwd,Ibatch},mms, mms.Nepoch);
                     [~,fname,~] = fileparts(batch{Ibatch}(Ivis).FileName);
                     part = strsplit(fname,'_');
                     lcData{Iwd,Ibatch}.Tel = part{1};
@@ -402,10 +402,10 @@ end
                    
 
 
-                   results{Iwd,Ibatch}  = WDtransits2.detectTransits(lcData{Iwd,Ibatch}, args);
+                   results{Iwd,Ibatch}  = WDtransits3.detectTransits(lcData{Iwd,Ibatch}, args);
                    outputDir = '/Users/yarinms/Documents/Data/5thRun';
 
-                   WDtransits2.plotDetectionResults(results, Iwd, Ibatch, args, true, outputDir)
+                   WDtransits3.plotDetectionResults(results, Iwd, Ibatch, args, true, outputDir)
 
 
                     
@@ -420,7 +420,7 @@ end
             fprintf('\n%.3f seconds to extract all available light curves and their limitng magnitudes',times)
             %finalTable = transitSearch.createTable2(Results, table, lcData, args)
                     i = 1;
-                    Stats = WDtransits2.countCells(lcData,table)
+                    Stats = WDtransits3.countCells(lcData,table)
 
                     LCAvb = Stats.WDs(:,7)./ceil(args.allVisits/ args.Nvisits);
                     MagAvb = Stats.WDs(:,6);
@@ -486,7 +486,7 @@ end
             mms = ms.setBadPhotToNan('BadFlags', args.BadFlags, 'MagField', 'MAG_PSF', 'CreateNewObj', true);
             r = lcUtil.zp_meddiff(ms, 'MagField', args.MagField, 'MagErrField', args.MagErrField);
             [mms, ~] = applyZP(mms, r.FitZP, 'ApplyToMagField', args.MagField);
-            mms = WDtransits2.removeSourcesWithFewDetections(mms, args.Ndet);
+            mms = WDtransits3.removeSourcesWithFewDetections(mms, args.Ndet);
         end
         
         function mms = removeSourcesWithFewDetections(mms, minNdet)
@@ -505,17 +505,23 @@ end
                 lcData.Coords = [MSra,MSdec];
                 lcData.JD = mms.JD;
                 lcData.lc = mms.Data.MAG_PSF(:, ind);
+                lcData.lc_2 = mms.Data.MAG_APER_2(:, ind);
+                lcData.lc_3 = mms.Data.MAG_APER_3(:, ind);
+                lcData.lcErr = mms.Data.MAGERR_PSF(:, ind);
+                lcData.lcErr_2 = mms.Data.MAGERR_APER_2(:, ind);
+                lcData.lcErr_3 = mms.Data.MAGERR_APER_3(:, ind);
+                lcData.SN_2 = mms.Data.SN_2(:,ind);
+                lcData.SN_3 = mms.Data.SN_3(:,ind);
                 lcData.x  = mms.Data.X1(:,ind);
                 lcData.y  = mms.Data.Y1(:,ind);
-                lcData.lcErr = mms.Data.MAGERR_PSF(:, ind);
                 lcData.typicalSD = clusteredSD1(mms, 'Isrc', ind);
-                 lcData.Flags = getFlags1(mms,'SrcIdx',ind);
+                lcData.Flags = getFlags1(mms,'SrcIdx',ind);
                 % get control star |version 1
                 %lcData.Ctrl = transitSearch.getControl(mms,ind,args) ;
                 % TODO : add weights to control stars?>??>>?>?>?>?>?>?>?
-                lcData.Ctrl = WDtransits2.getCloseControl(mms, ind,args,ra,dec);
+                lcData.Ctrl = WDtransits3.getCloseControl(mms, ind,args,ra,dec);
 
-%                lcData = WDtransits1.handleNaNValues(lcData,mms, mms.Nepoch);
+%               lcData = WDtransits1.handleNaNValues(lcData,mms, mms.Nepoch);
 
 
                 % From control group get ensemble photometry
@@ -540,7 +546,7 @@ end
 
                 end
             else
-                lcData.Res = 'Empty coneSearch result.';
+                lcData.Res = 'Source dont have enough detections';
             end
 
         end
@@ -737,10 +743,10 @@ end
 
             if sum(lcData.nanIndices) < args.Ndet*args.Nvisits
 
-                results.detection1 = WDtransits2.detectConsecutivePoints(lcData, args,false);
-                results.detection1flux = WDtransits2.detectConsecutivePoints(lcData, args,true);
-                results.detection2 = WDtransits2.runMeanFilter(lcData, args,false);
-                results.detection2flux = WDtransits2.runMeanFilter(lcData, args,true);
+                results.detection1 = WDtransits3.detectConsecutivePoints(lcData, args,false);
+                results.detection1flux = WDtransits3.detectConsecutivePoints(lcData, args,true);
+                results.detection2 = WDtransits3.runMeanFilter(lcData, args,false);
+                results.detection2flux = WDtransits3.runMeanFilter(lcData, args,true);
                 results.detection3 = [];% WDtransits1.detectAreaEvents(lcData, args,false);
                 results.detection3flux = []%; WDtransits1.detectAreaEvents(lcData, args,true);
                 %results.results     = results;
@@ -962,7 +968,7 @@ end
                     contaminated = [contaminated; any(subframData.Contaminated(j,:))];
 
                     % Calculate average detections
-                    detections = cellfun(@(x) WDtransits2.ifelse(isempty(x), 0, x), subframData.Ndet(j,:));
+                    detections = cellfun(@(x) WDtransits3.ifelse(isempty(x), 0, x), subframData.Ndet(j,:));
                     avgDetections = [avgDetections; mean(detections)];
                 end
             end
@@ -987,7 +993,7 @@ end
 
     
             % Create the plots %%
-            [hist_filename, scatter_filename] = WDtransits2.createEfficiencyPlots(Results,table);
+            [hist_filename, scatter_filename] = WDtransits3.createEfficiencyPlots(Results,table);
     
             % Create a LaTeX table
             numRows = size(table, 1);
@@ -1185,7 +1191,7 @@ function res = groupVisits(table, matchedSources, Results, args)
             
             % Find the corresponding RA and detection values
             [~, j] = find(Results{CropID}.ra == table.RA(Iwd));
-            detections = cellfun(@(x) WDtransits2.ifelse(isempty(x), 0, x), Results{CropID}.Ndet(j, :));
+            detections = cellfun(@(x) WDtransits3.ifelse(isempty(x), 0, x), Results{CropID}.Ndet(j, :));
             
             if any(detections < Nvis)
                 %fprintf('\nCannot find source in all visits\n %i', detections);
@@ -1194,14 +1200,14 @@ function res = groupVisits(table, matchedSources, Results, args)
                 
                 if sum(visToTake) > 0
                     mms = matchedSources(CropID, visToTake);
-                    batches = WDtransits2.groupBatches(mms, args.Nvisits);
+                    batches = WDtransits3.groupBatches(mms, args.Nvisits);
                 else
                     fprintf('\nCannot find source # %i at all  \n Gmag = %.2f ', Iwd, table.Gmag(Iwd));
                     continue;
                 end
             else
                 fprintf('\nFound source  #%i in all visits',Iwd);
-                batches =  WDtransits2.groupBatches(matchedSources(CropID, :), args.Nvisits);
+                batches =  WDtransits3.groupBatches(matchedSources(CropID, :), args.Nvisits);
             end
             
             %[ms, res] = TranS.findSourceInMatchedSources(matchedSources, table.RA(Iwd), table.Dec(Iwd));
@@ -1417,7 +1423,7 @@ end
             contaminated = [contaminated; any(subframData.Contaminated(j,:))];
 
             % Calculate average detections
-            detections = cellfun(@(x) WDtransits2.ifelse(isempty(x), 0, x), subframData.Ndet(j,:));
+            detections = cellfun(@(x) WDtransits3.ifelse(isempty(x), 0, x), subframData.Ndet(j,:));
             avgDetections = [avgDetections; mean(detections)];
             
             % Extract additional information from lcData
@@ -1509,8 +1515,8 @@ end
                   LC.Table.Subframe = 0;
              end
 
-            [results{Iwd,Ibatch}.UserData.Simbad, results{Iwd,Ibatch}.UserData.SDSS] = WDtransits2.generateURLs(LC.Table.RA, LC.Table.Dec, RAD);
-            [results{Iwd,Ibatch}.UserData.SimbadMS, results{Iwd,Ibatch}.UserData.SDSSMS] = WDtransits2.generateURLs(LC.Coords(1), LC.Coords(2), RAD);
+            [results{Iwd,Ibatch}.UserData.Simbad, results{Iwd,Ibatch}.UserData.SDSS] = WDtransits3.generateURLs(LC.Table.RA, LC.Table.Dec, RAD);
+            [results{Iwd,Ibatch}.UserData.SimbadMS, results{Iwd,Ibatch}.UserData.SDSSMS] = WDtransits3.generateURLs(LC.Coords(1), LC.Coords(2), RAD);
             
             % Determine which detection methods were successful
             Methods = [~isempty(results{Iwd,Ibatch}.detection1.events), ...
@@ -1523,11 +1529,11 @@ end
             
             if plotFlag
                 if Detected 
-                    WDtransits2.plotDetectionFigures(results, Iwd, Ibatch, LC, Methods, args, outputDir,    FluxMethods );
+                    WDtransits3.plotDetectionFigures(results, Iwd, Ibatch, LC, Methods, args, outputDir,    FluxMethods );
 
                 else
                     outputDir = fullfile(outputDir ,'/FluxDetections');
-                    WDtransits2.plotDetectionFigures(results, Iwd, Ibatch, LC, Methods, args, outputDir,    FluxMethods);
+                    WDtransits3.plotDetectionFigures(results, Iwd, Ibatch, LC, Methods, args, outputDir,    FluxMethods);
 
                 end
                 
@@ -1563,18 +1569,18 @@ end
                 
                 % Subplot 1: Light curve
                 subplot(2,1,1);
-                WDtransits2.plotLightCurve(results, Iwd, Ibatch, LC, Methods,false, FluxMethods);
+                WDtransits3.plotLightCurve(results, Iwd, Ibatch, LC, Methods,false, FluxMethods);
                 
                 % Subplot 2: Additional information
                 subplot(2,1,2);
-                WDtransits2.plotAdditionalInfo(LC, args, results{Iwd,Ibatch}.UserData);
+                WDtransits3.plotAdditionalInfo(LC, args, results{Iwd,Ibatch}.UserData);
                 
                 % Save the plot
          
-                WDtransits2.savePlot(fig, LC,outputDir,'Mag_Info' );
+                WDtransits3.savePlot(fig, LC,outputDir,'Mag_Info' );
                 
                 % Plot flux figure
-                WDtransits2.plotFluxFigure(results, Iwd, Ibatch, LC, Methods, outputDir,    FluxMethods);
+                WDtransits3.plotFluxFigure(results, Iwd, Ibatch, LC, Methods, outputDir,    FluxMethods);
             end
             
             function plotLightCurve(results, Iwd, Ibatch, LC, Methods,flux, FluxMethods)
@@ -1588,7 +1594,7 @@ end
                 plot(t, y, 'Ok-', 'LineWidth', 2,'DisplayName', sprintf('WD $\\sigma =$ %.3f',std(y,'omitnan')));
                 hold on;
                 
-                WDtransits2.plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods, FluxMethods);
+                WDtransits3.plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods, FluxMethods);
                 
                 plot(lmt, lm, 'sr-','DisplayName', 'Lim Mag');
                 
@@ -1602,7 +1608,7 @@ end
                     plot(t(LC.nanIndices), y(LC.nanIndices), 'kx', 'MarkerSize', 15,'DisplayName', 'NaNs');
                 end
                 
-                WDtransits2.formatLightCurvePlot(LC, Methods, y,flux);
+                WDtransits3.formatLightCurvePlot(LC, Methods, y,flux);
             end
             
             function plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods,FluxMethods)
@@ -1663,7 +1669,7 @@ end
                 text(0.8, 0.8, sprintf('%i Visits LC\nMinimal detections: %d', ...
                     args.Nvisits, args.Ndet), 'FontSize', 14);
                 
-                WDtransits2.addSimbadLink(UserData);
+                WDtransits3.addSimbadLink(UserData);
             end
             
             function addSimbadLink(UserData)
@@ -1703,22 +1709,22 @@ end
                 fig = figure('Position', [400, 400, 600, 400]);
                 
                 subplot(2,1,1);
-                WDtransits2.plotLightCurve(results, Iwd, Ibatch, LC, Methods,true,    FluxMethods);
+                WDtransits3.plotLightCurve(results, Iwd, Ibatch, LC, Methods,true,    FluxMethods);
                 
                 subplot(2,1,2);
-                WDtransits2.plotFlux(results, Iwd, Ibatch, LC, Methods,    FluxMethods);
+                WDtransits3.plotFlux(results, Iwd, Ibatch, LC, Methods,    FluxMethods);
                 
-                WDtransits2.savePlot(fig, LC, outputDir,'Flux');
+                WDtransits3.savePlot(fig, LC, outputDir,'Flux');
             end
             
             function plotFlux(results, Iwd, Ibatch, LC, Methods,    FluxMethods)
                 t = datetime(LC.JD, 'ConvertFrom', 'jd');
                 y = LC.relFlux;
                 
-                plot(t, y, 'Ok-', 'LineWidth', 2,'DisplayName',sprintf('WD $ \\sigma = %.3f',std(y)));
+                plot(t, y, 'Ok-', 'LineWidth', 2,'DisplayName',sprintf('WD $ \\sigma = %.3f',std(y,'omitnan')));
                 hold on;
                 
-                WDtransits2.plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods,    FluxMethods);
+                WDtransits3.plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods,    FluxMethods);
                 
                 if ~isempty(LC.typScatter)
                      yline(1 - 2.5 * LC.typScatter);
