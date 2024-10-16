@@ -19,13 +19,18 @@ function runPipelineScript(telescopeNumber, year, month, day)
     % Update base paths for reprocessing
     D.BasePath = strcat(D.BasePath, '_re');
     D.DefCalibPath = CalibPath;
-    D.DefNewPath = NewYPath;
+    D.DefNewPath = NewYPath
     
     % Load the calibration data for the specified date (year, month, day)
     D.loadCalib('FlatNearJD', [year, month, day]);
+    D.prepMasterDark;
+    D.prepMasterFlat;
+
+
+
     
     % Run the pipeline with 'StopWhenDone' set to true
-    D.main('StopWhenDone', true);
+    D.main('StopButton',false,'StopWhenDone', true);
     
     % Optionally: Print a message after successful completion
     fprintf('Pipeline completed for Telescope %d on %d-%02d-%02d.\n', telescopeNumber, year, month, day);

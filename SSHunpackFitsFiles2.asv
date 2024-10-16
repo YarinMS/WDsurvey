@@ -112,7 +112,7 @@ function SSHunpackFitsFiles(Data)
 
 
         % Run remote pipeline
-        telescopeNumber = str2double(eventInfo.telescope(end-1:end))
+        telescopeNumber = str2double(eventInfo.telescope(end-1:end));
         year  = str2double(eventInfo.year);
         month = str2double(eventInfo.month);
         day   = str2double(eventInfo.day);
@@ -377,27 +377,28 @@ function sortedFiles = sortVisitFiles(visitFiles)
 end
 
 
-
-function runRemotePipeline(ipAddress, telescopeNumber, dataDir, year, month, day)
+function runRemotePipeline(ipAddress, telescopeNumber, year, month, day)
     % Build the MATLAB command to add the path and run the pipeline remotely
     matlabCommand = sprintf([ ...
-        'addpath(''~/Documents/WDsurvey/'');', ...
-        'runPipelineScript(%d, %d, %d, %d);', ...
-        'exit;'], telescopeNumber, year, month, day);
+        'addpath(''/home/ocs/Documents/WDsurvey/'');', ...   % Correct the path with absolute path
+        'runPipelineScript(%d, %d, %d, %d);', ...            % Run the pipeline script with arguments
+        'exit;'], telescopeNumber, year, month, day);        % Exit MATLAB after execution
 
-    % SSH command to run MATLAB remotely
+    % SSH command to run MATLAB remotely using sshpass
     remoteMatlabCommand = sprintf( ...
         '/usr/local/bin/sshpass -p "physics" ssh ocs@%s "matlab -nodesktop -nodisplay -r ''%s''"', ...
         ipAddress, matlabCommand);
-
-    % Execute the remote MATLAB pipeline
+    
+    % Execute the remote MATLAB command
     status = system(remoteMatlabCommand);
 
+    % Check for execution success
     if status == 0
         fprintf('Pipeline executed successfully on remote machine %s.\n', ipAddress);
     else
         fprintf('Failed to execute pipeline on remote machine %s.\n', ipAddress);
     end
 end
+
 
 
