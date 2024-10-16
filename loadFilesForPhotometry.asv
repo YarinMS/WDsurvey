@@ -1,8 +1,7 @@
-function AI = loadFilesForPhotometry(baseDir, cropID)
+function fileList = loadFilesForPhotometry(baseDir, cropID)
 
 
     %procDir = fullfile(baseDir, 'proc');
-    cd(baseDir)
     procDir   = baseDir;
     visitDirs = dir(procDir);  % List all files/folders in procDir
     visitDirs = visitDirs([visitDirs.isdir]);  % Keep only directories
@@ -14,19 +13,18 @@ function AI = loadFilesForPhotometry(baseDir, cropID)
     fileList = {};
     AI = [];
     % Loop over each visit directory
-    PWD = pwd;
     for i = 1:length(visitDirs)
-        
         visitDirPath = fullfile(procDir, visitDirs(i).name);  % Full path to the visit directory
         % Search for files matching the Crop ID pattern inside the visit directory
-        cd(visitDirPath )
-        fn    = FileNames.generateFromFileName(fullfile(visitDirPath, filePattern));
         
+        files = dir(fullfile(visitDirPath, filePattern));
+        fn    = FileNames.generateFromFileName(fullfile(visitDirPath, filePattern));
         AI = [AI  AstroImage.readFileNamesObj(fn)];
         % Add each found file to the fileList
-
+        for j = 1:length(files)
+            fileList{end+1} = fullfile(files(j).folder, files(j).name); %#ok<AGROW>
+        end
     end
-    cd(PWD)
     
     % Display results
     if isempty(fileList)

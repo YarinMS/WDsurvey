@@ -1,0 +1,8 @@
+r = lcUtil.zp_meddiff(FP, 'MagField',{'MAG_PSF'}, 'MagErrField',{'MAGERR_PSF'});
+            [mms, ~] = applyZP(FP, r.FitZP, 'ApplyToMagField',{'MAG_PSF'});
+            
+            
+T = datetime(FP.JD,'c
+figure(); plot(FP.Data.MAG_PSF(:,1),'-ok') ; set(gca,'YDir','reverse')
+
+hold on; plot(mms.Data.MAG_PSF(:,1),'-or') ; 
