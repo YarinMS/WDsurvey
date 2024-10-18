@@ -19,7 +19,7 @@ function runPipelineScript(telescopeNumber, year, month, day)
     % Update base paths for reprocessing
     D.BasePath = strcat(D.BasePath, '_re');
     D.DefCalibPath = CalibPath;
-    D.DefNewPath = NewYPath
+    D.DefNewPath = NewYPath;
     
     % Load the calibration data for the specified date (year, month, day)
     D.loadCalib('FlatNearJD', [year, month, day]);
