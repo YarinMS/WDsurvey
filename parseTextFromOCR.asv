@@ -32,7 +32,7 @@ function eventInfo = parseTextFromOCR(textData)
     eventInfo.telescope = telescope{1};
 
     % Parse WD_ID
-    idPattern = 'ID:\s*(WD\s*\w+)';
+    idPattern = 'ID:\s*(\s*\d+)';
     id        = regexp(textData,idPattern,'tokens','once');
     eventInfo.ID = id{1};
     

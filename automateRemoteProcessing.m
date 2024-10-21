@@ -58,7 +58,7 @@ function automateRemoteProcessing(r)
     system(createDirCommand);  % Create Temp directory if it doesn't exist
     
     % Define the save filename format
-    formattedName = sprintf('%.6f_%.6f_%s_%s_%d_%s', ra, dec, computerID, dateStr, cropID, r.eventInfo.fieldID);
+    formattedName = sprintf('%.6f_%.6f_%s_%s_%d_%s_%s', ra, dec, computerID, dateStr, cropID, r.eventInfo.fieldID,r.eventInfo.ID);
     matFilePath = fullfile(saveDir, [formattedName, '.mat']);
     pngFilePath = fullfile(saveDir, [formattedName, '.png']);
 

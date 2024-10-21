@@ -89,6 +89,7 @@ function SSHunpackFitsFiles(Data)
     visitFilenamesStart = date2visFileNames(startTime, datesJd, counters, filenames);
     visitFilenamesMid = date2visFileNames(midTime, datesJd, counters, filenames);
     visitFilenamesEnd = date2visFileNames(endTime, datesJd, counters, filenames);
+   
     allVisFileNames   = [visitFilenamesStart,visitFilenamesMid,visitFilenamesEnd];
     uniqueVisitFilenames = unique(allVisFileNames);
     % Prepare the decompress command for the selected files
@@ -116,7 +117,7 @@ function SSHunpackFitsFiles(Data)
         year  = str2double(eventInfo.year);
         month = str2double(eventInfo.month);
         day   = str2double(eventInfo.day);
-        runRemotePipeline(ipAddress, telescopeNumber, year, month, day)
+        runRemotePipeline3(ipAddress, telescopeNumber, year, month, day)
     else
         fprintf('Failed to decompress files.\n');
     end
@@ -346,13 +347,22 @@ function visitFiles = getVisitFiles(counters, filenames, idxClosest)
     closestCounter = counters(idxClosest);
 
     % Number of files to collect before and after the closest counter
-    maxBefore = min(closestCounter - 1, 20);  
-    maxAfter = min(20 - closestCounter, 20);  
+    if closestCounter < 21 
+        maxBefore = min(closestCounter - 1, 20);  
+        maxAfter = min(20 - closestCounter, 20);
+
+    else 
+        closestCounterM  = mod(closestCounter,20);
+        maxBefore = min(closestCounterM - 1, 20);  
+        maxAfter = min(20 - closestCounterM, 20);
+        maxBefore =   maxBefore;
+   
+    end
 
     % Step 1: Collect previous files from closestCounter - maxBefore down to 001
     for i = closestCounter - maxBefore-1:closestCounter-1
         % Find the index of the file with this counter
-        idx = idxClosest - i;
+        idx = i;
         if ~isempty(idx)
             visitFiles{end+1} = filenames{idx};  % Add this file to the visit list
         end
@@ -375,6 +385,8 @@ function sortedFiles = sortVisitFiles(visitFiles)
     % This function sorts the visit files based on their counters.
     sortedFiles = sort(visitFiles);  % Assuming filenames are ordered by counter naturally
 end
+
+
 
 
 function runRemotePipeline(ipAddress, telescopeNumber, year, month, day)
@@ -401,4 +413,91 @@ function runRemotePipeline(ipAddress, telescopeNumber, year, month, day)
 end
 
 
+function runRemotePipeline2(ipAddress, telescopeNumber, year, month, day)
+    % Inline MATLAB code to be run remotely
+    matlabCommand = sprintf([ ...
+        'D = pipeline.DemonLAST;', ...
+        'if mod(%d, 2) == 1;', ...                                % Determine dataDir based on telescopeNumber (odd/even)
+        'D.DataDir = ''data1'';', ...                             
+        'else;', ...
+        'D.DataDir = ''data2'';', ...
+        'end;', ...
+        'D.CamNumber = sprintf(''%02d'', %d);', ...               % Set the CamNumber based on telescopeNumber
+        'CalibPath = D.CalibPath;', ...
+        'NewYPath = strcat(D.NewPath, ''Y'');', ...
+        'D.BasePath = strcat(D.BasePath, ''_re'');', ...
+        'D.DefCalibPath = CalibPath;', ...
+        'D.DefNewPath = NewYPath;', ...
+        'D.loadCalib(''FlatNearJD'', [%d, %d, %d]);', ...         % Load calibration based on year, month, day
+        'D.main(''StopWhenDone'', true);', ...                    % Run the main pipeline
+        'exit;'], telescopeNumber, telescopeNumber, telescopeNumber, year, month, day);
 
+    % SSH command to execute MATLAB remotely using sshpass
+    remoteMatlabCommand = sprintf( ...
+        '/usr/local/bin/sshpass -p "physics" ssh ocs@%s "matlab -nodesktop -nodisplay -r ''%s''"', ...
+        ipAddress, matlabCommand);
+    
+    % Execute the SSH command
+    status = system(remoteMatlabCommand);
+
+    % Check for execution success
+    if status == 0
+        fprintf('Pipeline executed successfully on remote machine %s.\n', ipAddress);
+    else
+        fprintf('Failed to execute pipeline on remote machine %s.\n', ipAddress);
+    end
+end
+
+
+
+
+function ensureRemoteScriptExists(ipAddress, localScriptPath, remoteScriptPath)
+    % Check if the script exists on the remote machine
+    checkScriptCommand = sprintf( ...
+        '/usr/local/bin/sshpass -p "physics" ssh ocs@%s "test -f %s"', ...
+        ipAddress, remoteScriptPath);
+
+    % Execute the check command
+    [status, ~] = system(checkScriptCommand);
+
+    % If the script doesn't exist, upload it via scp
+    if status ~= 0
+        fprintf('runPipelineScript.m not found on remote machine. Uploading it...\n');
+        scpCommand = sprintf( ...
+            '/usr/local/bin/sshpass -p "physics" scp %s ocs@%s:%s', ...
+            localScriptPath, ipAddress, remoteScriptPath);
+        system(scpCommand);  % Upload the script
+    else
+        fprintf('runPipelineScript.m already exists on the remote machine.\n');
+    end
+end
+
+
+function runRemotePipeline3(ipAddress, telescopeNumber, year, month, day)
+        
+        
+    localScriptPath = '~/WDsurvey/WDsurvey/runPipelineScript.m'; % Local path of the script
+    remoteScriptPath = '/home/ocs/Documents/MATLAB/runPipelineScript.m'; % Remote path
+
+
+    ensureRemoteScriptExists(ipAddress, localScriptPath, remoteScriptPath) 
+    % Build the MATLAB command to run the pipeline remotely
+    matlabCommand = sprintf([ ...
+        'runPipelineScript(%d, %d, %d, %d);', ...  % Pass the parameters to the script
+        'exit;'], telescopeNumber, year, month, day);
+
+    % SSH command to execute MATLAB remotely
+    remoteMatlabCommand = sprintf( ...
+        '/usr/local/bin/sshpass -p "physics" ssh ocs@%s "matlab -nodesktop -nodisplay -r ''%s''"', ...
+        ipAddress, matlabCommand);
+
+    % Execute the remote MATLAB command via SSH
+    status = system(remoteMatlabCommand);
+
+    % Check for execution success
+    if status == 0
+        fprintf('Pipeline executed successfully on remote machine %s.\n', ipAddress);
+    else
+        fprintf('Failed to execute pipeline on remote machine %s.\n', ipAddress);
+    end
+end

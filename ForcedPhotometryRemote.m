@@ -1,9 +1,9 @@
 function ForcedPhotometryRemote(cropID, ra, dec)
     addpath('~/Documents/WDsurvey/');
-    rePath = '/last08e/data1/archive/LAST.01.08.01_re/2023/09/15/proc/';
-    matFilePath = '~/Documents/Temp/26.639000_31.038000_LAST.01.08.01_20230916.013430.186_17_nn.mat';
-    pngFilePath = '~/Documents/Temp/26.639000_31.038000_LAST.01.08.01_20230916.013430.186_17_nn.png';
-    removePath = '/last08e/data1/archive/LAST.01.08.01_re/2023/09/15/';
+    rePath = '/last05e/data2/archive/LAST.01.05.02_re/2023/06/20/proc/';
+    matFilePath = '~/Documents/Temp/273.856543_6.727045_LAST.01.05.02_20230621.002555.535_22_2734_WD N56386.mat';
+    pngFilePath = '~/Documents/Temp/273.856543_6.727045_LAST.01.05.02_20230621.002555.535_22_2734_WD N56386.png';
+    removePath = '/last05e/data2/archive/LAST.01.05.02_re/2023/06/20/';
     AI = loadFilesForPhotometry(rePath, cropID);
     FP = imProc.sources.forcedPhot(AI, 'Coo', [ra, dec], ...
 'ColNames', {'RA', 'Dec', 'X', 'Y', 'Xstart', 'Ystart', 'Chi2dof', 'FLUX_PSF', 'FLUXERR_PSF', 'MAG_PSF', 'MAGERR_PSF', 'BACK_ANNULUS', 'STD_ANNULUS', 'FLUX_APER', 'FLAG_POS', 'FLAGS'});
@@ -52,7 +52,7 @@ function ForcedPhotometryRemote(cropID, ra, dec)
     set(gcf, 'PaperPositionMode', 'auto');
     set(gcf, 'PaperUnits', 'inches');
     set(gcf, 'PaperPosition', [0 0 12 8]);
-    print(gcf, '~/Documents/Temp/26.639000_31.038000_LAST.01.08.01_20230916.013430.186_17_nn.png', '-dpng', '-r300');
+    print(gcf, '~/Documents/Temp/273.856543_6.727045_LAST.01.05.02_20230621.002555.535_22_2734_WD N56386.png', '-dpng', '-r300');
     save(matFilePath, 'lcData');
     rmdir(removePath, 's');
 end

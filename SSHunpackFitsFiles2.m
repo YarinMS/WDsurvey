@@ -89,6 +89,7 @@ function SSHunpackFitsFiles(Data)
     visitFilenamesStart = date2visFileNames(startTime, datesJd, counters, filenames);
     visitFilenamesMid = date2visFileNames(midTime, datesJd, counters, filenames);
     visitFilenamesEnd = date2visFileNames(endTime, datesJd, counters, filenames);
+   
     allVisFileNames   = [visitFilenamesStart,visitFilenamesMid,visitFilenamesEnd];
     uniqueVisitFilenames = unique(allVisFileNames);
     % Prepare the decompress command for the selected files
@@ -346,13 +347,22 @@ function visitFiles = getVisitFiles(counters, filenames, idxClosest)
     closestCounter = counters(idxClosest);
 
     % Number of files to collect before and after the closest counter
-    maxBefore = min(closestCounter - 1, 20);  
-    maxAfter = min(20 - closestCounter, 20);  
+    if closestCounter < 21 
+        maxBefore = min(closestCounter - 1, 20);  
+        maxAfter = min(20 - closestCounter, 20);
+
+    else 
+        closestCounterM  = mod(closestCounter,20);
+        maxBefore = min(closestCounterM - 1, 20);  
+        maxAfter = min(20 - closestCounterM, 20);
+        maxBefore =   maxBefore;
+   
+    end
 
     % Step 1: Collect previous files from closestCounter - maxBefore down to 001
-    for i = closestCounter - maxBefore-1:closestCounter-1
+    for i = idxClosest - maxBefore-1:idxClosest-1
         % Find the index of the file with this counter
-        idx = idxClosest - i;
+        idx = i;
         if ~isempty(idx)
             visitFiles{end+1} = filenames{idx};  % Add this file to the visit list
         end
