@@ -43,7 +43,13 @@ function processObservingNight3(mount, telescope, year, month, day, batchSize,ar
     dateFolder = sprintf('%04d/%02d/%02d/proc/', year, month, day);
     fullPath = fullfile(basePath, dateFolder);
 
-     % Initialize the catalog analysis report
+     
+    % Initialize the catalog analysis report
+    if ~exist(args.saveDir, 'dir')
+        mkdir(args.saveDir);
+    end
+
+
     catalogReportFile = fullfile(args.saveDir, sprintf('Catalog_Report_%04d_%02d_%02d_Mount%d_1.pdf', year, month, day, mount));
     rptCatalog = initializeReport(catalogReportFile, 'Catalog Analysis Report');
     
@@ -926,7 +932,7 @@ function processWdSources(wdSources, FPAI, MS, batchSize, saveDir,args,chapter)
     
     % Set up the directory to save outputs
     if nargin < 5 || isempty(saveDir)
-        saveDir = '~/Projects/WD_Transits/Results/';
+        saveDir = '~/Documents/Temp/';
     end
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
