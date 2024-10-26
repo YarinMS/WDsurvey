@@ -8,7 +8,16 @@ function [mms] = cleanBadSources(ms,args)
     if size(ms,2) > 1
         ms = mergeByCoo(ms, ms(1));
     end
-    ms.bestMag;
+    
+    try
+        
+        ms.bestMag;
+        
+    catch
+        
+        ms.Data.MAG_BEST = ms.Data.MAG_PSF;
+        
+    end
     
      
      % Consider all sources with NdetPts > args.Ndet measurements then NaNs. 
