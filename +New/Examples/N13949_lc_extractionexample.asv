@@ -1,0 +1,13 @@
+a = extractLCFromObs(['~/marvin/LAST.01.04.02/2023/08/15' ...
+    '/proc'])
+
+%%
+Table.CropID = 9;
+Table.RA = 247.126775;
+Table.Dec = 40.810510;
+Table.Nvisits =5;
+Table.Name = 'N53207_a'
+%%
+MS = a
+MSgroups = groupMS(MS,Table.Nvisits)
+Res = getLCfromMS(MSgroups,Table,'~/Projects/WD_survey/LCs/N53207/')

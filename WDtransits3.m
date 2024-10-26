@@ -607,7 +607,7 @@ end
             enoughC = 0;
             deg = 0.1;
             
-            while enoughC < 10 && deg < 0.75
+            while enoughC < 10 && deg < 1
             S = mms.coneSearch(ra,dec,(deg)*3600);
             % make sure the center of coneSearch is your taget
             SIdx = find(S.Dist == min(S.Dist));
@@ -634,6 +634,7 @@ end
             enoughC = sum(goodC);
 
             deg = deg +0.05;
+            window = window + 0.01;
 
             end
 
@@ -748,7 +749,7 @@ end
                 results.detection2 = WDtransits3.runMeanFilter(lcData, args,false);
                 results.detection2flux = WDtransits3.runMeanFilter(lcData, args,true);
                 results.detection3 = [];% WDtransits1.detectAreaEvents(lcData, args,false);
-                results.detection3flux = []%; WDtransits1.detectAreaEvents(lcData, args,true);
+                results.detection3flux = [];%; WDtransits1.detectAreaEvents(lcData, args,true);
                 %results.results     = results;
                 results.lcData     = lcData;
 
@@ -1591,21 +1592,21 @@ end
                 lm = LC.limMag;
                 lmt = datetime(LC.catJD, 'ConvertFrom', 'jd');
                 
-                plot(t, y, 'Ok-', 'LineWidth', 2,'DisplayName', sprintf('WD $\\sigma =$ %.3f',std(y,'omitnan')));
+                plot(t, y, 'O-','Color', [0.25, 0.25, 0.25], 'LineWidth', 2,'DisplayName', sprintf('$\\sigma =$ %.3f',std(y,'omitnan')));
                 hold on;
                 
                 WDtransits3.plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods, FluxMethods);
                 
-                plot(lmt, lm, 'sr-','DisplayName', 'Lim Mag');
+                plot(lmt, lm, 's-','Color', [0.6350, 0.0780, 0.1840],'LineWidth', 1.5,'DisplayName', 'Lim Mag');
                 
                 if ~isempty(c)
-                    plot(t, c, '.b--', 'LineWidth', 1.5,'DisplayName', 'Control Star');
+                   % plot(t, c, '-','Color',[0, 0.4470, 0.7410], 'LineWidth', 1.0,'DisplayName', 'Control Star');
                 end
 
-                plot(t, C, '-', 'LineWidth', 0.75,'DisplayName', 'Averaged control');
+                plot(t, C, '-','Color',[0, 0.4470, 0.7410], 'LineWidth', 1,'DisplayName', 'Control LC');
                 
                 if ~isempty(LC.nanIndices)
-                    plot(t(LC.nanIndices), y(LC.nanIndices), 'kx', 'MarkerSize', 15,'DisplayName', 'NaNs');
+                  %  plot(t(LC.nanIndices), y(LC.nanIndices), 'kx', 'MarkerSize', 15,'DisplayName', 'NaNs');
                 end
                 
                 WDtransits3.formatLightCurvePlot(LC, Methods, y,flux);
@@ -1613,7 +1614,7 @@ end
             
             function plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods,FluxMethods)
 
-                markerSize = 4;
+                markerSize = 6;
                 if Methods(1)
                     MarkedEvents = results{Iwd,Ibatch}.detection1.events;
                     plot(t(MarkedEvents), y(MarkedEvents), 'Or', 'MarkerSize', markerSize,'DisplayName','Events');
@@ -1648,7 +1649,7 @@ end
                 formatStr = strjoin(arrayfun(@(x) sprintf('\\#%i', x), v(Methods), 'UniformOutput', false), ' ');
                 title(sprintf('Detect in Method %s \n %s , %s', formatStr, LC.Tel, LC.Date));
                 
-                xlabel(sprintf('Coord : %.3f , %.3f ;\n Gmag = %.2f', LC.Table.RA, LC.Table.Dec, LC.Table.Gmag));
+                xlabel(sprintf('Coord : %.6f , %.6f ;\n Gmag = %.3f', LC.Table.RA, LC.Table.Dec, LC.Table.Gmag));
                 if flux
                     legend('show', 'Location', 'southwest');
                 else
@@ -1664,10 +1665,10 @@ end
                     LC.Table.Total_Visits, LC.Table.Visits_Found, sum(LC.Flags.BFcounts), LC.Flags.EFcounts, LC.Table.Visits_Found,LC.Table.Name), 'FontSize', 14);
                 
                 text(0.2, 0.8, sprintf('CropID: %d\nFieldID: %s\nTel: %s\nDate: %s\nNaNs : %d', ...
-                    LC.Table.Subframe,'nn', LC.Tel, LC.Date, sum(LC.nanIndices)), 'FontSize', 14);
+                    LC.Table.Subframe,LC.Table.FieldID, LC.Tel, LC.Date, sum(LC.nanIndices)), 'FontSize', 14);
                 
-                text(0.8, 0.8, sprintf('%i Visits LC\nMinimal detections: %d', ...
-                    args.Nvisits, args.Ndet), 'FontSize', 14);
+                text(0.8, 0.8, sprintf('$P_{WD}$ = %.4f \n$B_p-R_p$ = %.4f\nAbs $G$ = %.3f\n%i Visits LC\nMinimal detections: %d', ...
+                    LC.Table.Pwd,LC.Table.BpRp,LC.Table.AbsMag,args.Nvisits, args.Ndet), 'FontSize', 14);
                 
                 WDtransits3.addSimbadLink(UserData);
             end
@@ -1690,6 +1691,9 @@ end
             end
             
             function savePlot(fig, LC, outputDir,str)
+                if ~exist("outputDir","dir")
+                    mkdir(outputDir)
+                end
                 set(fig, 'PaperPositionMode', 'auto');
                 set(fig, 'PaperUnits', 'inches');
                 set(fig, 'PaperSize', [12 10]);
@@ -1703,6 +1707,10 @@ end
                 axis tight;
                  saveas(fig, png_filename);
                 close(fig);
+                % Save or append the plot to the PDF
+                fig2 = plot_hr_diagram('~/Documents/gaia_bp_rp_mg.mat',LC.Table.BpRp,LC.Table.AbsMag);%
+                exportgraphics(fig2, plot_filename, 'ContentType', 'image', 'Append', true);
+                close(fig2)
             end
             
             function plotFluxFigure(results, Iwd, Ibatch, LC, Methods, outputDir,    FluxMethods)

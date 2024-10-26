@@ -1,4 +1,4 @@
-function [mms,nanIdx] = cleanMatchedSources1(ms, args)
+function [mms,nanIdx] = cleanMatchedSources2(ms, args)
 % cleanMatchedSources gets an MS object, merges it. filtering sources with
 % NaNs > 3*args.Nvisit (up to 3 nans per visit allowed). All surviving
 % points NaN are going to limiting magnitude as an upper bound. Then, all
@@ -9,10 +9,11 @@ function [mms,nanIdx] = cleanMatchedSources1(ms, args)
         ms = mergeByCoo(ms, ms(args.mergeBy));
     end
     
-     % Only consider sources with NdetPts > args.Ndet = Nepoch - 3*Nvisits
-     
+     ind = ms.coneSearch(args.RA,args.Dec,6).Ind ; 
+     % Consider all sources with all nans sources with NdetPts > args.Ndet. 
      NdetGood = sum(~isnan(ms.Data.MAG_PSF), 1);
-     Fndet = NdetGood > (ms.Nepoch-3*args.Nvisits);
+     Fndet = NdetGood > (ms.Nepoch-0.5*ms.Nepoch);
+     Fndet(ind) = true;
      ms = ms.selectBySrcIndex(Fndet, 'CreateNewObj', false);
      ms.sortData;
     
@@ -22,14 +23,14 @@ function [mms,nanIdx] = cleanMatchedSources1(ms, args)
      limMagt = args.catJD;
             
     % Check if JD needs sorting
-    if mean(abs(jd - limMagt(1:length(jd)))) > 20 / (24 * 60)
+    if mean(abs(jd - limMagt)) > 20 / (24 * 60)
         [limMagt, sorted] = sort(args.catJD);
         limMag = args.LimMag(sorted);
         
         fprintf('\nSorted JD');
         
         % Double-check after sorting
-        if mean(abs(jd - limMagt(1:length(jd)))) > 20 / (24 * 60)
+        if mean(abs(jd - limMagt)) > 20 / (24 * 60)
            % error('\nProblem with JD and lim mag JD. Please check.\n');
         end
     end

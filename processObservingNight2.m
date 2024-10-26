@@ -1,4 +1,4 @@
-function processObservingNightLocal(mount, telescope, year, month, day, batchSize)
+function processObservingNight2(mount, telescope, year, month, day, batchSize,args)
     % Main Template for Forced Photometry Routine for LAST
     % Inputs:
     % mount - mount number (e.g., 1, 2, 3, ...)
@@ -7,6 +7,17 @@ function processObservingNightLocal(mount, telescope, year, month, day, batchSiz
     % batchSize - number of visits per batch for processing
     % Author: Yarin Shani
     % Date: 2024-10-20
+
+    arguments
+        mount
+        telescope
+        year
+        month
+        day
+        batchSize
+        args.saveDir = '~/Documents/Temp/WD_survey/';
+
+    end
 
     %% Setup Paths
 
@@ -114,59 +125,51 @@ function processObservingNightLocal(mount, telescope, year, month, day, batchSiz
             % get coords of first image (from header)
             [RA,Dec,fieldCoords,AI] = getMScoords(subframeFitsFiles{1});
             % Use catsHTM to query sources within rectangular region (modify catsHTM for rectangular search)
+            
             wdSources = querySourcesRectangle(RA,Dec,fieldCoords);
 
-                
-        
-            % FPAI = cellfun(@(file) AstroImage.readFileNamesObj(file, 'AddProduct', {'Mask'}), subframeFitsFiles, 'UniformOutput', false);
-            FPAI = generateFPImg(cropId,subframeFitsFolders,subframeFitsNames)
-            %FPAI = reshape([FPAI{:}], 1, length(subframeFitsFiles));
+            %% Create Image visit Batch 
+            FPAI = generateFPImg(cropId,subframeFitsFolders,subframeFitsNames);
+            % Store in args.
+            args.LimMag = arrayfun(@(x) x.Key.LIMMAG, FPAI)';
+            args.airmass = arrayfun(@(x) x.Key.AIRMASS, FPAI)';
+            args.catJD = arrayfun(@(x) x.Key.JD, FPAI)';
+            args.FWHM = arrayfun(@(x) x.Key.FWHM, FPAI)';
+
             
-            for Iwd = 1 : height(wdSources)
-                %% Perform Forced Photometry
+            
+            %% Good sources Logic
+            msAll = getGoodSources(MS,args);
 
-                [FP,results,lcData] = applyFP(FPAI,wdSources,Iwd)
-                args.catJD =lcData.catJD ; args.LimMag = lcData.limMag;
-                args.Nvisits = batchSize;
-                %% Compare to catalogs
+            % Detect all
+            args.reportFN = sprintf('Variable_candidates_LAST.01.%02d.%02d_%04d%02d%02d_batch_%i_%s.pdf',mount,telescope,year,month,day,b,cropId{1});
 
-                [mms,nanIdx] = searchNclean(MS,wdSources(Iwd,:),args);
-                 
-                if ~isempty(mms)
-                    args.nanIdx  = nanIdx;
-                    [lcDataCat,resCat] = getCatLC(mms,wdSources(Iwd,:),args)
-                      hold on 
-                        plotLightCurveSpec({resCat}, 1, 1, lcDataCat{1}, resCat.Methods, lcDataCat{1}.relFlux, resCat.FluxMethods);
-        
-                      hold off
-                end
-              
-                % 
+            [Cand,WDcand, FlagComb, ReportFile] = findVariableCandidates(msAll,'Plot',true,'Report',true,'args',args);
+
+            if ~isempty(Cand)
+
+                % Consider WD candidates.
+                Implemenrt=1 ;
+
+
+                % conside WD photometry candidates. 
+            
+
+                % Summarize
             end
+
             
             
-            % Process Each FITS File in the Subframe
-            %for j = 1:length(subframeFitsFiles)
-             %   fitsFile = subframeFitsFiles{j};
-              %  hdf5File = subframeHdf5File{1};
-
-                % Load Image Data
-               % imageData = fitsread(fitsFile);
-               % fitsInfo = fitsinfo(fitsFile);
-                % Extract center coordinates from FITS header
-               % raCenter = fitsInfo.PrimaryData.Keywords{strcmp(fitsInfo.PrimaryData.Keywords(:, 1), 'CRVAL1'), 2};
-               % decCenter = fitsInfo.PrimaryData.Keywords{strcmp(fitsInfo.PrimaryData.Keywords(:, 1), 'CRVAL2'), 2};
+            
+            % Specifically consider WDs
+            %% WD sources + FP logic
 
                 
-                
-                
-                % Perform PSF and Aperture photometry on the detected sources
-                %forcedResults = performForcedPhotometry(imageData, wdSources);
 
+            processWdSources(wdSources, FPAI, MS, batchSize, args.saveDir,args)
                 
-                %catalogData = loadHdf5Catalog(hdf5File);
-                %comparePhotometry(forcedResults, catalogData);
-            %end
+            
+        
         end
     end
 
@@ -342,8 +345,8 @@ function [FP,results,lcData] = applyFP(AI,wdTable,Iwd)
     results.res.Methods = [~isempty(results.detection1.events), ~isempty(results.detection2.events)];
     results.res.FluxMethods = [~isempty(results.detection1flux.events), ~isempty(results.detection2flux.events)];
     
-    figure()
-    WDtransits3.plotLightCurve({results}, 1, 1, lcData, results.res.Methods, lcData.relFlux, results.res.FluxMethods);
+   % figure()
+   % WDtransits3.plotLightCurve({results}, 1, 1, lcData, results.res.Methods, lcData.relFlux, results.res.FluxMethods);
 
 
 end
@@ -368,7 +371,7 @@ if ~isempty(firstNonEmptyInd)
     args.RA = wdTable.RA ; args.Dec = wdTable.Dec;
 else
    
-    disp('Ind is empty for all elements.');
+    %disp('Ind is empty for all elements.');
     mms =[];
     nanIdx =[];
     return
@@ -381,6 +384,19 @@ args.BadFlags = {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'};
 
 
 end
+
+
+
+%% Clean MS
+
+
+function mms = getGoodSources(MS,args)
+
+    args.BadFlags = {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'};
+    mms =  cleanBadSources(MS,args);
+
+end
+
 
 
 
@@ -436,6 +452,7 @@ function [lcData,res] = getCatLC(mms,wdTable,args)
                       % find how many detections you had of this target TBD
                       % in the future
                         a = 1;
+                        res =[]
 
                   else
                         %Nnans =  sum(nanIdx);
@@ -854,3 +871,121 @@ end
 
 
 
+function processWdSources(wdSources, FPAI, MS, batchSize, saveDir,args)
+    % Function to process WD sources and perform forced photometry, catalog comparison, and plotting
+    % Inputs:
+    %   wdSources  - Table of WD sources to process, containing RA and Dec columns
+    %   FPAI       - Forced Photometry Analysis Input
+    %   MS         - Catalog or observation data for comparison
+    %   batchSize  - Number of visits (used in args.Nvisits)
+    %   saveDir    - Directory to save plots and data (optional)
+    
+    % Set up the directory to save outputs
+    if nargin < 5 || isempty(saveDir)
+        saveDir = '~/Projects/WD_Transits/Results/';
+    end
+    if ~exist(saveDir, 'dir')
+        mkdir(saveDir);
+    end
+    
+    % Loop over each WD source
+    for Iwd = 1 : height(wdSources)
+        %% Perform Forced Photometry
+        [FP, results, lcData] = applyFP(FPAI, wdSources, Iwd);
+        args.Nvisits = batchSize;
+        
+        %% Compare to catalogs
+        [mms, nanIdx] = searchNclean(MS, wdSources(Iwd,:), args);
+        
+        if ~isempty(mms)
+            args.nanIdx = nanIdx;
+            [lcDataCat, resCat] = getCatLC(mms, wdSources(Iwd,:), args);
+            
+            if ~isempty(resCat)
+                % Check if we need to plot both light curves
+                if any(results.res.Methods == 1) || any(results.res.FluxMethods == 1) || ...
+                   any(resCat.Methods == 1) || any(resCat.FluxMethods == 1)
+                    
+                    % Plot both light curves and save
+                    plotAndSaveLightCurves(results, lcData, resCat, lcDataCat, saveDir, wdSources, Iwd);
+                end
+            end
+            
+        else
+            % No catalog match: plot only the source's light curve
+            if any(results.res.Methods == 1) || any(results.res.FluxMethods == 1)
+                plotAndSaveSingleLightCurve(results, lcData, saveDir, wdSources, Iwd);
+            end
+        end
+    end
+end
+
+% ---------- Helper Functions -----------
+
+function plotAndSaveLightCurves(results, lcData, resCat, lcDataCat, saveDir, wdSources, Iwd)
+    % Helper function to plot two light curves on top of each other and save them
+    
+    % Create a new figure
+    figure();
+    
+    % Plot the first light curve (results)
+    WDtransits3.plotLightCurve({results}, 1, 1, lcData, results.res.Methods, lcData.relFlux, results.res.FluxMethods);
+    hold on;
+    
+    % Plot the catalog light curve
+    plotLightCurveSpec({resCat}, 1, 1, lcDataCat{1}, resCat.Methods, lcDataCat{1}.relFlux, resCat.FluxMethods);
+    hold off;
+    axis tight;
+    % Retrieve RA and Dec for naming purposes
+    RA = wdSources.RA(Iwd);
+    Dec = wdSources.Dec(Iwd);
+    
+    % Generate filename with RA and Dec in the name
+    filename = sprintf('%sRA_%.6f_Dec_%.6f_Observation_%d_LC.png', saveDir, RA, Dec, Iwd);
+    
+    % Save the figure
+    saveas(gcf, filename);
+    
+    % Save relevant data as .mat file
+    dataFile = sprintf('%sRA_%.6f_Dec_%.6f_Observation_%d_Info.mat', saveDir, RA, Dec, Iwd);
+    save(dataFile, 'results', 'lcData', 'resCat', 'lcDataCat');
+end
+
+function plotAndSaveSingleLightCurve(results, lcData, saveDir, wdSources, Iwd)
+    % Helper function to plot a single light curve and save it
+    
+    % Create a new figure
+    figure();
+    
+    % Plot the light curve
+    WDtransits3.plotLightCurve({results}, 1, 1, lcData, results.res.Methods, lcData.relFlux, results.res.FluxMethods);
+    axis tight;
+    % Retrieve RA and Dec for naming purposes
+    RA = wdSources.RA(Iwd);
+    Dec = wdSources.Dec(Iwd);
+    
+    % Generate filename with RA and Dec in the name
+    filename = sprintf('%sRA_%.6f_Dec_%.6f_Observation_%d_LC_NoCat.png', saveDir, RA, Dec, Iwd);
+    
+    % Save the figure
+    saveas(gcf, filename);
+    
+    % Save relevant data as .mat file
+    dataFile = sprintf('%sRA_%.6f_Dec_%.6f_Observation_%d_NoCat_Info.mat', saveDir, RA, Dec, Iwd);
+    save(dataFile, 'results', 'lcData');
+end
+function finalizeReport()
+    % Finalize and close the report once all sections have been appended
+    persistent Rpt ch1 reportInitialized;
+    
+    if reportInitialized
+        append(Rpt, ch1);  % Append chapter to the report
+        close(Rpt);  % Close and save the report
+        disp('PDF Report finalized and saved.');
+        
+        % Clear persistent variables
+        reportInitialized = [];
+        Rpt = [];
+        ch1 = [];
+    end
+end

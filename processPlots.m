@@ -17,7 +17,7 @@ function processPlots(Path)
     
 
     % Iterate over each image file
-    for i = 3:numel(imageFiles)
+    for i = 5:numel(imageFiles)
         fileName = imageFiles(i).name;
         
         % Check if the file exists
@@ -50,7 +50,7 @@ function processPlots(Path)
             Table.CropID = cropID;
             Table.RA = ra;
             Table.Dec = dec;
-            Table.Nvisits = length(matchedSources);  % Assuming 3 visits as a constant for now
+            Table.Nvisits = 4;%length(matchedSources);  % Assuming 3 visits as a constant for now
             Table.Name = sprintf('Source_%03d', i);  % Generate source name
 
             % Step 3.5 look in Gentile fussilo catalog.
@@ -61,11 +61,11 @@ function processPlots(Path)
             cd(PWD);
 
             if height(WDS.Table) > 0
-                Savedir = sprintf('~/Projects/WD_survey/10.2WhiteDwarfsRandom/%s_%.4f_%.4f/', Table.Name,ra,dec);
+                Savedir = sprintf('~/Projects/WD_survey/WWD/%s_%.4f_%.4f/', Table.Name,ra,dec);
 
             else
 
-                Savedir = sprintf('~/Projects/WD_survey/10.2LCs/%s_%.4f_%.4f/', Table.Name,ra,dec);
+                Savedir = sprintf('~/Projects/WD_survey/WLC/%s_%.4f_%.4f/', Table.Name,ra,dec);
             end
 
             % Step 4: Group Matched Sources and get light curve

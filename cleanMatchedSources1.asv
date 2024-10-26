@@ -9,8 +9,7 @@ function [mms,nanIdx] = cleanMatchedSources1(ms, args)
         ms = mergeByCoo(ms, ms(args.mergeBy));
     end
     
-     % Only consider sources with NdetPts > args.Ndet = Nepoch - 3*Nvisits
-     
+     % Only consider sources with NdetPts > args.Ndet = Nepoch - 3*Nvisits 
      NdetGood = sum(~isnan(ms.Data.MAG_PSF), 1);
      Fndet = NdetGood > (ms.Nepoch-3*args.Nvisits);
      ms = ms.selectBySrcIndex(Fndet, 'CreateNewObj', false);

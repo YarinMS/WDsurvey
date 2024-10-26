@@ -16,12 +16,12 @@ function [AbsMag, Plx, Dist, NonSingleStar, Neighbors, Identifiers] = getWDParam
     if ~isempty(AC.Table)
         if size(AC.Table, 1) == 1
             NonSingleStar = AC.Table.non_single_star;
-            AbsMag = AC.Table.phot_bp_mean_mag - (5 * log10(1000 / AC.Table.Plx) - 5);
+            AbsMag = AC.Table.phot_g_mean_mag - (5 * log10(1000 / AC.Table.Plx) - 5);
             Plx = AC.Table.Plx;
             Dist = 1000 / AC.Table.Plx;
         elseif size(AC.Table, 1) > 1
             NonSingleStar = AC.Table.non_single_star(1);
-            AbsMag = AC.Table.phot_bp_mean_mag(1) - (5 * log10(1000 / AC.Table.Plx(1)) - 5);
+            AbsMag = AC.Table.phot_g_mean_mag(1) - (5 * log10(1000 / AC.Table.Plx(1)) - 5);
             Plx = AC.Table.Plx(1);
             Dist = 1000 / AC.Table.Plx(1);
             Neighbors = size(AC.Table, 1) - 1;

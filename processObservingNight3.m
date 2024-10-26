@@ -1,4 +1,4 @@
-function processObservingNightLocal(mount, telescope, year, month, day, batchSize)
+function processObservingNight3(mount, telescope, year, month, day, batchSize,args)
     % Main Template for Forced Photometry Routine for LAST
     % Inputs:
     % mount - mount number (e.g., 1, 2, 3, ...)
@@ -7,6 +7,21 @@ function processObservingNightLocal(mount, telescope, year, month, day, batchSiz
     % batchSize - number of visits per batch for processing
     % Author: Yarin Shani
     % Date: 2024-10-20
+
+    % Import MATLAB report generator class:
+    
+
+    arguments
+        mount
+        telescope
+        year
+        month
+        day
+        batchSize
+        args.saveDir = '~/Documents/Temp/WD_survey/';
+        args.runMeanFilterArgs = {'Threshold', 6.5, 'StdFun', 'OutWin'};
+
+    end
 
     %% Setup Paths
 
@@ -27,160 +42,197 @@ function processObservingNightLocal(mount, telescope, year, month, day, batchSiz
     
     dateFolder = sprintf('%04d/%02d/%02d/proc/', year, month, day);
     fullPath = fullfile(basePath, dateFolder);
-    
-    %% Load Visit Directories and Sort Properly
-    visitDirs = dir(fullfile(fullPath, '*v0'));
-    visitNames = {visitDirs.name};
-    
-    % Extract hour, minute, second from folder names and handle AM/PM sorting
-    visitTimes = cellfun(@(x) sscanf(x, '%06dv0'), visitNames);
-    visitHours = floor(visitTimes / 10000);
-    amPmMask = visitHours < 12; % AM: hours < 12, PM: hours >= 12
-    amVisits = visitDirs(amPmMask);
-    pmVisits = visitDirs(~amPmMask);
-    
-    % Sort AM and PM visits separately
-    [~, amOrder] = sort(visitTimes(amPmMask));
-    [~, pmOrder] = sort(visitTimes(~amPmMask));
-    
-    % Concatenate PM visits first, then AM visits
-    sortedVisits = [pmVisits(pmOrder); amVisits(amOrder)];
-    
-    %% Batch Visits for Processing
-    numVisits = length(sortedVisits);
-    batches = cell(ceil(numVisits / batchSize), 1);
-    for i = 1:length(batches)
-        startIdx = (i - 1) * batchSize + 1;
-        endIdx = min(i * batchSize, numVisits);
-        batches{i} = sortedVisits(startIdx:endIdx);
-    end
 
-        %% Process Each Batch of Visits
-    for b = 1:length(batches)
+     % Initialize the catalog analysis report
+    catalogReportFile = fullfile(args.saveDir, sprintf('Catalog_Report_%04d_%02d_%02d_Mount%d_1.pdf', year, month, day, mount));
+    rptCatalog = initializeReport(catalogReportFile, 'Catalog Analysis Report');
+    
+    % Initialize the forced photometry report
+    fpReportFile = fullfile(args.saveDir, sprintf('Photometry_Report_%04d_%02d_%02d_Mount%d.pdf', year, month, day, mount));
+    rptPhotometry = initializeReport(fpReportFile, 'Forced Photometry Report');
+
+    
+    %% Load Visit Directories, Sort consecutively and create batch Visits for Processing
+     batches = organizeBatches(fullPath, batchSize);
+
+
+
+     r = 0;
+     h = waitbar(0)
+     pos = get(h, 'Position');  % Get current position: [left, bottom, width, height]
+     pos(4) = 100;
+     pos(3) = 80;
+     set(h, 'Position', pos);
+     wbCounter = 0;
+
+     for b =1:length(batches)
         batch = batches{b};
-        fitsFilesBatch = {};
-        hdf5FilesBatch = {};
-        fitsFilesNames = {};
-        hdf5FilesNames  = {};
-        fitsFilesFolders = {};
-        hdf5FilesFolders = {};
-        for i = 1:length(batch)
-            visitPath = fullfile(fullPath, batch(i).name);
-            fitsFiles = dir(fullfile(visitPath, '*proc_Image_1.fits'));
-            hdf5Files = dir(fullfile(visitPath, '*.hdf5'));
-            
-            % Add files to the batch lists
-            fitsFilesBatch = [fitsFilesBatch; fullfile({fitsFiles.folder}, {fitsFiles.name})']; %#ok<AGROW>
-            hdf5FilesBatch = [hdf5FilesBatch; fullfile({hdf5Files.folder}, {hdf5Files.name})']; %#ok<AGROW>
-            fitsFilesNames = [fitsFilesNames; {fitsFiles.name}'];
-            hdf5FilesNames  = [hdf5FilesNames; {hdf5Files.name}'];
-            fitsFilesFolders = [fitsFilesFolders; {fitsFiles.folder}'];
-            hdf5FilesFolders = [hdf5FilesFolders; {hdf5Files.folder}'];
-        end
         
-        %% Categorize FITS and HDF5 Files y CropID
+        % Data extraction for FITS and HDF5 files (from Step 2)
+        [fitsFilesBatch, hdf5FilesBatch, fitsFilesNames, hdf5FilesNames, fitsFilesFolders, hdf5FilesFolders] = extractDataFiles(batch, fullPath);
+    
+        % Extract CropIDs from FITS and HDF5 file names
         cropIdsFits = regexp(fitsFilesBatch, '_\d{3}_\d{3}_(\d{3})_sci_proc', 'tokens', 'once');
         cropIdsFits = cellfun(@(x) x{1}, cropIdsFits, 'UniformOutput', false);
-        uniqueCropIdsFits = unique(cropIdsFits);
+        uniqueCropIds = unique(cropIdsFits); % Get unique CropIDs
 
         cropIdsHdf5 = regexp(hdf5FilesBatch, '_\d{3}_\d{3}_(\d{3})_sci_merged', 'tokens', 'once');
         cropIdsHdf5 = cellfun(@(x) x{1}, cropIdsHdf5, 'UniformOutput', false);
         uniqueCropIdsHdf5 = unique(cropIdsHdf5);
         
-        nightData = struct;
-        %% Iterate Over Subframes
-        for cropId = uniqueCropIdsFits'
-            args.CropID = cropId;
-            subframeFitsFiles   = fitsFilesBatch(strcmp(cropIdsFits, cropId));
-            subframeHdf5File    = hdf5FilesBatch(strcmp(cropIdsHdf5, cropId));
+        % Process each CropID individually
+        for c =1:length(uniqueCropIds)
+            wbCounter = wbCounter +1;
+            cropId = uniqueCropIds{c};
+            args.CropID = cropId; % Set the CropID for this iteration
+    
+            % Get FITS and HDF5 files for this specific CropID
+            subframeFitsFiles = fitsFilesBatch(strcmp(cropIdsFits, cropId));
+            subframeHdf5File = hdf5FilesBatch(strcmp(cropIdsHdf5, cropId));
             subframeFitsNames   = fitsFilesNames(strcmp(cropIdsFits, cropId));
             subframeHdf5Names   = hdf5FilesNames(strcmp(cropIdsHdf5, cropId));
             subframeFitsFolders = fitsFilesFolders(strcmp(cropIdsFits, cropId));
             subframeHdf5Folders = hdf5FilesFolders(strcmp(cropIdsHdf5, cropId));
             
+            % Generate forced photometry image input
+          %  FPAI = generateFPImg(cropId,subframeFitsFolders,subframeFitsNames);
+            FPAI = AstroHeader(subframeFitsFiles);
+            
+            % Extract relevant photometry data for analysis
+            args.LimMag = arrayfun(@(x) x.Key.LIMMAG, FPAI)';
+            args.airmass = arrayfun(@(x) x.Key.AIRMASS, FPAI)';
+            args.catJD = arrayfun(@(x) x.Key.JD, FPAI)';
+            args.FWHM = arrayfun(@(x) x.Key.FWHM, FPAI)';
+            % Process catalog data (HDF5 files) for this CropID
+            msAll = processCatalogData(cropId, subframeHdf5Names,subframeHdf5Folders,args );
+            catalogSection = createChapter(sprintf('Batch %d, Subframe (CropID): %s', b, cropId));
+            
+            %chapterCatalog = Chapter('Catalog Analysis');
+            [Cand, WDcand, FlagComb,resultChapter] = findVariableCandidates3(msAll, 'args',args,'catalogChapter', catalogSection);
+
+            if ~isempty(WDcand) || ~isempty(Cand)
+                append(rptCatalog,resultChapter)
+                r=r +1;
+                % if WD is not empty we want to store its data in the
+                % length(WDcand) Ind sources. 
+                % forced photometry pdf. 
+                % together with its FP light curve.
+                if ~isempty(WDcand)
+                    
+
+                    
+                    append(rptCatalog,resultChapter)
+
+                    
+                    % Report WD in sub frame 
+                    forcedChapter = createChapter(sprintf('Batch %d, Subframe (CropID): %s', b, cropId));
+
+                    % 2 consec points detecrtio
+                    % in report HR di  processWdSourcesagram ? maybe int th
+                    FPAI = generateFPImg(cropId,subframeFitsFolders,subframeFitsNames);
+                    Nwds = length(WDcand);
+                    for Iwd = 1:Nwds
+                    
+                        wdSources = WDcand{Iwd}.WD.Table;
+                        wdSources.RA = WDcand{Iwd}.WD.Table.RA(:).*180/pi;
+                        wdSources.Dec = WDcand{Iwd}.WD.Table.Dec(:).*180/pi;
+                        
+                        appendWDToReport(forcedChapter, wdSources.RA,wdSources.Dec,wdSources);
+                        processWdSources(wdSources, FPAI, msAll, batchSize, args.saveDir, args,forcedChapter);
+                        
+                    
+                    
+                    end
+
+
+                    append(rptPhotometry,forcedChapter)
+
+                end
+                
+                
+                waitbar((wbCounter)/(24*length(batches)),h,sprintf('Processing %s/%s\nBatch # %i/%i\nCropID # %i\nTotal Detections : %i\n %i/%i ',fullPath,subframeHdf5Folders{1},b,length(batches),c,r,wbCounter,24*length(batches)))
+            end
+           
+            % Query and find White Dwarfs (WDs) for this CropID
+  %          [RA, Dec, fieldCoords, ~] = getMScoords(subframeFitsFiles{1});
+ %           wdSources = findWhiteDwarfs(RA, Dec, fieldCoords);
+            
+            % Further processing can go here, such as processing WD sources
+%            processWdSources(wdSources, FPAI, msAll, batchSize, args.saveDir, args);
+             %% Report Generation for Catalog and Photometry
+            % Catalog report section
+            %appendCatalogReport(rptCatalog, msAll, subframeHdf5Names, b, cropId, wdSources);
+
+            % Photometry report section
+            %appendPhotometryReport(rptPhotometry, FPAI, subframeFitsNames, b, cropId, RA, Dec, args.saveDir);
+
+        end
+     end
+     %% Finalize and Save Both Reports
+    close(rptCatalog);
+    close(rptPhotometry);
+    disp(['Catalog report generated: ' catalogReportFile]);
+    disp(['Photometry report generated: ' fpReportFile]);
+
+
+        %% Process Each Batch of Visits
+    for b = 1:length(batches)
+       
+        %% Iterate Over Subframes
+        for cropId = uniqueCropIdsFits'
           
             
+            %% Create Image visit Batch 
+            FPAI = generateFPImg(cropId,subframeFitsFolders,subframeFitsNames);
+            % Store in args.
+            args.LimMag = arrayfun(@(x) x.Key.LIMMAG, FPAI)';
+            args.airmass = arrayfun(@(x) x.Key.AIRMASS, FPAI)';
+            args.catJD = arrayfun(@(x) x.Key.JD, FPAI)';
+            args.FWHM = arrayfun(@(x) x.Key.FWHM, FPAI)';
+
             
-            % Process catlaog data 
-            MS = createMSlist(str2double(cropId),subframeHdf5Names,subframeHdf5Folders);
-            args.FileName = MS(1).FileName;
-            args.runMeanFilterArgs = {'Threshold', 6, 'StdFun', 'OutWin'};
-                % # cleanMS
-                    % # Detect in MS - All good sources use 2 detection methods. + be able to gather all the data you need. 
-                        % # Look for WDs in results
+            
+            %% Good sources Logic
+            msAll = getGoodSources(MS,args);
+
+            % Detect all
+            args.reportFN = sprintf('Variable_candidates_LAST.01.%02d.%02d_%04d%02d%02d_batch_%i_%s.pdf',mount,telescope,year,month,day,b,cropId{1});
+
+            [Cand,WDcand, FlagComb, ReportFile] = findVariableCandidates(msAll,'Plot',true,'Report',true,'args',args);
+
+            if ~isempty(WDCand)
+
+                % Consider WD candidates.
+                Implemenrt=1 ;
+
+
+                % conside WD photometry candidates. 
             
 
-            %% Query Sources in Field
-            % get coords of first image (from header)
-            [RA,Dec,fieldCoords,AI] = getMScoords(subframeFitsFiles{1});
-            % Use catsHTM to query sources within rectangular region (modify catsHTM for rectangular search)
-            wdSources = querySourcesRectangle(RA,Dec,fieldCoords);
-
-                
-        
-            % FPAI = cellfun(@(file) AstroImage.readFileNamesObj(file, 'AddProduct', {'Mask'}), subframeFitsFiles, 'UniformOutput', false);
-            FPAI = generateFPImg(cropId,subframeFitsFolders,subframeFitsNames)
-            %FPAI = reshape([FPAI{:}], 1, length(subframeFitsFiles));
-            
-            for Iwd = 1 : height(wdSources)
-                %% Perform Forced Photometry
-
-                [FP,results,lcData] = applyFP(FPAI,wdSources,Iwd)
-                args.catJD =lcData.catJD ; args.LimMag = lcData.limMag;
-                args.Nvisits = batchSize;
-                %% Compare to catalogs
-
-                [mms,nanIdx] = searchNclean(MS,wdSources(Iwd,:),args);
-                 
-                if ~isempty(mms)
-                    args.nanIdx  = nanIdx;
-                    [lcDataCat,resCat] = getCatLC(mms,wdSources(Iwd,:),args)
-                      hold on 
-                        plotLightCurveSpec({resCat}, 1, 1, lcDataCat{1}, resCat.Methods, lcDataCat{1}.relFlux, resCat.FluxMethods);
-        
-                      hold off
-                end
-              
-                % 
+                % Summarize
             end
+
             
             
-            % Process Each FITS File in the Subframe
-            %for j = 1:length(subframeFitsFiles)
-             %   fitsFile = subframeFitsFiles{j};
-              %  hdf5File = subframeHdf5File{1};
-
-                % Load Image Data
-               % imageData = fitsread(fitsFile);
-               % fitsInfo = fitsinfo(fitsFile);
-                % Extract center coordinates from FITS header
-               % raCenter = fitsInfo.PrimaryData.Keywords{strcmp(fitsInfo.PrimaryData.Keywords(:, 1), 'CRVAL1'), 2};
-               % decCenter = fitsInfo.PrimaryData.Keywords{strcmp(fitsInfo.PrimaryData.Keywords(:, 1), 'CRVAL2'), 2};
+            
+            % Specifically consider WDs
+            %% WD sources + FP logic
 
                 
-                
-                
-                % Perform PSF and Aperture photometry on the detected sources
-                %forcedResults = performForcedPhotometry(imageData, wdSources);
 
+            processWdSources(wdSources, FPAI, MS, batchSize, args.saveDir,args)
                 
-                %catalogData = loadHdf5Catalog(hdf5File);
-                %comparePhotometry(forcedResults, catalogData);
-            %end
+            
+        
+
+
+
+            
+     
         end
     end
 
-    %% Merge Matched Sources for All Visits
-    mergedMs = mergeMatchedSources(hdf5Files);
-    % Apply ZP correction
-    mergedMs = applyZpCorrection(mergedMs);
-
-    %% Visualize Results
-    visualizeLightCurves(mergedMs);
     
-    %% Save Results
-    outputFile = sprintf('Processed_%04d_%02d_%02d_Mount%d.mat', year, month, day, mount);
-    save(outputFile, 'mergedMs');
 end
 
 function MS = createMSlist(subframe,subframeHdf5Names,subframeHdf5Folders)
@@ -245,7 +297,7 @@ AI = [];
 for Ivis = 1 : length(uniqueVisits)
 
     cd(uniqueVisits{Ivis})
-    fitsFiles = dir(fullfile(uniqueVisits{Ivis}, sprintf('*%s_sci_proc_Image_1.fits',cropID{1})));
+    fitsFiles = dir(fullfile(uniqueVisits{Ivis}, sprintf('*%s_sci_proc_Image_1.fits',cropID)));
     
 
         fn    = FileNames.generateFromFileName({fitsFiles.name});
@@ -256,11 +308,6 @@ cd(PWD)
 end
 
 
-function results = performForcedPhotometry(imageData, sources)
-    % Placeholder for forced photometry routine
-    % Use both PSF and aperture photometry
-    results = []; % Replace with actual photometry implementation
-end
 
 function catalog = loadHdf5Catalog(hdf5File)
     % Load HDF5 Catalog Data
@@ -342,8 +389,8 @@ function [FP,results,lcData] = applyFP(AI,wdTable,Iwd)
     results.res.Methods = [~isempty(results.detection1.events), ~isempty(results.detection2.events)];
     results.res.FluxMethods = [~isempty(results.detection1flux.events), ~isempty(results.detection2flux.events)];
     
-    figure()
-    WDtransits3.plotLightCurve({results}, 1, 1, lcData, results.res.Methods, lcData.relFlux, results.res.FluxMethods);
+   % figure()
+   % WDtransits3.plotLightCurve({results}, 1, 1, lcData, results.res.Methods, lcData.relFlux, results.res.FluxMethods);
 
 
 end
@@ -368,7 +415,7 @@ if ~isempty(firstNonEmptyInd)
     args.RA = wdTable.RA ; args.Dec = wdTable.Dec;
 else
    
-    disp('Ind is empty for all elements.');
+    %disp('Ind is empty for all elements.');
     mms =[];
     nanIdx =[];
     return
@@ -381,6 +428,19 @@ args.BadFlags = {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'};
 
 
 end
+
+
+
+%% Clean MS
+
+
+function mms = getGoodSources(MS,args)
+
+    args.BadFlags = {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'};
+    mms =  cleanBadSources(MS,args);
+
+end
+
 
 
 
@@ -436,6 +496,7 @@ function [lcData,res] = getCatLC(mms,wdTable,args)
                       % find how many detections you had of this target TBD
                       % in the future
                         a = 1;
+                        res =[]
 
                   else
                         %Nnans =  sum(nanIdx);
@@ -854,3 +915,458 @@ end
 
 
 
+function processWdSources(wdSources, FPAI, MS, batchSize, saveDir,args,chapter)
+    % Function to process WD sources and perform forced photometry, catalog comparison, and plotting
+    % Inputs:
+    %   wdSources  - Table of WD sources to process, containing RA and Dec columns
+    %   FPAI       - Forced Photometry Analysis Input
+    %   MS         - Catalog or observation data for comparison
+    %   batchSize  - Number of visits (used in args.Nvisits)
+    %   saveDir    - Directory to save plots and data (optional)
+    
+    % Set up the directory to save outputs
+    if nargin < 5 || isempty(saveDir)
+        saveDir = '~/Projects/WD_Transits/Results/';
+    end
+    if ~exist(saveDir, 'dir')
+        mkdir(saveDir);
+    end
+    
+    % Loop over each WD source
+    for Iwd = 1 : height(wdSources)
+        %% Perform Forced Photometry
+        [FP, results, lcData] = applyFP(FPAI, wdSources, Iwd);
+        args.Nvisits = batchSize;
+        
+        %% Compare to catalogs
+        [mms, nanIdx] = searchNclean(MS, wdSources(Iwd,:), args);
+        
+        if ~isempty(mms)
+            args.nanIdx = nanIdx;
+            args.FileName = FPAI(1).Key.FILENAME;
+            [lcDataCat, resCat] = getCatLC(mms, wdSources(Iwd,:), args);
+            
+            if ~isempty(resCat)
+                % Check if we need to plot both light curves
+                if (any(results.res.Methods == 1) || any(results.res.FluxMethods == 1) ) || ...
+                    (any(resCat.Methods == 1) || any(resCat.FluxMethods == 1))
+                    
+                    % Plot both light curves and save
+                    plotAndSaveLightCurves(results, lcData, resCat, lcDataCat, saveDir, wdSources, Iwd);
+                    AppendLC(results, lcData, resCat, lcDataCat, saveDir, wdSources, Iwd,chapter)
+                end
+            end
+            
+        else
+            % No catalog match: plot only the source's light curve
+            if any(results.res.Methods == 1) || any(results.res.FluxMethods == 1)
+                plotAndSaveLightCurves(results, lcData, resCat, lcDataCat, saveDir, wdSources, Iwd);
+                AppendLC(results, lcData, resCat, lcDataCat, saveDir, wdSources, Iwd)
+                %plotAndSaveSingleLightCurve(results, lcData, saveDir, wdSources, Iwd);
+            end
+        end
+    end
+end
+
+% ---------- Helper Functions -----------
+
+function plotAndSaveLightCurves(results, lcData, resCat, lcDataCat, saveDir, wdSources, Iwd)
+    % Helper function to plot two light curves on top of each other and save them
+    
+    % Create a new figure
+    figure();
+    
+    % Plot the first light curve (results)
+    WDtransits3.plotLightCurve({results}, 1, 1, lcData, results.res.Methods, lcData.relFlux, results.res.FluxMethods);
+    hold on;
+    
+    % Plot the catalog light curve
+    plotLightCurveSpec({resCat}, 1, 1, lcDataCat{1}, resCat.Methods, lcDataCat{1}.relFlux, resCat.FluxMethods);
+    hold off;
+    axis tight;
+    % Retrieve RA and Dec for naming purposes
+    RA = wdSources.RA(Iwd);
+    Dec = wdSources.Dec(Iwd);
+    
+    % Generate filename with RA and Dec in the name
+    filename = sprintf('%sRA_%.6f_Dec_%.6f_Observation_%d_LC.png', saveDir, RA, Dec, Iwd);
+    
+    % Save the figure
+    saveas(gcf, filename);
+    
+    % Save relevant data as .mat file
+    dataFile = sprintf('%sRA_%.6f_Dec_%.6f_Observation_%d_Info.mat', saveDir, RA, Dec, Iwd);
+    save(dataFile, 'results', 'lcData', 'resCat', 'lcDataCat');
+end
+
+function plotAndSaveSingleLightCurve(results, lcData, saveDir, wdSources, Iwd)
+    % Helper function to plot a single light curve and save it
+    
+    % Create a new figure
+    figure();
+    
+    % Plot the light curve
+    WDtransits3.plotLightCurve({results}, 1, 1, lcData, results.res.Methods, lcData.relFlux, results.res.FluxMethods);
+    axis tight;
+    % Retrieve RA and Dec for naming purposes
+    RA = wdSources.RA(Iwd);
+    Dec = wdSources.Dec(Iwd);
+    
+    % Generate filename with RA and Dec in the name
+    filename = sprintf('%sRA_%.6f_Dec_%.6f_Observation_%d_LC_NoCat.png', saveDir, RA, Dec, Iwd);
+    
+    % Save the figure
+    saveas(gcf, filename);
+    
+    % Save relevant data as .mat file
+    dataFile = sprintf('%sRA_%.6f_Dec_%.6f_Observation_%d_NoCat_Info.mat', saveDir, RA, Dec, Iwd);
+    save(dataFile, 'results', 'lcData');
+end
+function finalizeReport()
+    % Finalize and close the report once all sections have been appended
+    persistent Rpt ch1 reportInitialized;
+    
+    if reportInitialized
+        append(Rpt, ch1);  % Append chapter to the report
+        close(Rpt);  % Close and save the report
+        disp('PDF Report finalized and saved.');
+        
+        % Clear persistent variables
+        reportInitialized = [];
+        Rpt = [];
+        ch1 = [];
+    end
+end
+
+
+
+
+%%%%% New edit 
+
+function msAll = processCatalogData(cropId,subframeHdf5Names,subframeHdf5Folders, args)
+    % PROCESSCATALOGDATA Processes catalog data from HDF5 files
+    % Inputs:
+    %   hdf5FilesBatch - List of HDF5 files for the batch
+    %   cropId - Crop ID of the subframe to process
+    %   args - Configuration and threshold arguments
+    % Outputs:
+    %   msAll - Matched sources after cleaning and processing
+    
+    % Create a matched sources object from the HDF5 catalog data
+    MS = createMSlist(cropId, subframeHdf5Names,subframeHdf5Folders);
+
+    % Clean the matched sources and get "good" sources
+    msAll = getGoodSources(MS, args);
+    
+    % Apply Zero Point correction if necessary
+    msAll = applyZpCorrection(msAll);
+end
+
+
+function [FPAI,args] = getVisImages(cropId,subframeFitsFolders,subframeFitsNames,args)
+    % PERFORMFORCEDPHOTOMETRY Performs forced photometry on FITS images
+    % Inputs:
+    %   fitsFilesBatch - List of FITS files for the batch
+    %   cropId - Crop ID of the subframe to process
+    %   args - Configuration and photometry parameters
+    % Outputs:
+    %   FPAI - Forced photometry analysis input (results of the photometry)
+
+    % Generate forced photometry image input (using AstroPack or custom methods)
+    FPAI = generateFPImg(cropId,subframeFitsFolders,subframeFitsNames);
+    
+    % Extract relevant photometry data for analysis
+    args.LimMag = arrayfun(@(x) x.Key.LIMMAG, FPAI)';
+    args.airmass = arrayfun(@(x) x.Key.AIRMASS, FPAI)';
+    args.catJD = arrayfun(@(x) x.Key.JD, FPAI)';
+    args.FWHM = arrayfun(@(x) x.Key.FWHM, FPAI)';
+
+    % Expand this section to perform additional photometry analysis
+end
+
+
+
+function wdSources = findWhiteDwarfs(RA, Dec, fieldCoords)
+    % FINDWHITEDWARFS Queries and finds white dwarf candidates in the field
+    % Inputs:
+    %   RA, Dec - Coordinates of the image field center
+    %   fieldCoords - Struct containing boundary coordinates of the field
+    % Outputs:
+    %   wdSources - Table of potential White Dwarf sources in the field
+    
+    % Define cone search radius based on field coordinates
+    coneSearchRadius = sqrt(abs(fieldCoords.raMax - fieldCoords.raMin)^2 + ...
+                            abs(fieldCoords.decMax - fieldCoords.decMin)^2) / 2 + 0.01;
+
+    % Query the WD catalog (using AstroPack's catsHTM or custom method)
+    wdSources = catsHTM.cone_search('WDEDR3', RA * pi / 180, Dec * pi / 180, ...
+                                    3600 * coneSearchRadius, 'OutType', 'AstroCatalog');
+
+    % Filter the sources by magnitude or other criteria
+    wdTable = wdSources.Table;
+    wdTable.RA = wdTable.RA / pi * 180;
+    wdTable.Dec = wdTable.Dec / pi * 180;
+    withinRaRange = (wdTable.RA >= fieldCoords.raMin) & (wdTable.RA <= fieldCoords.raMax);
+    withinDecRange = (wdTable.Dec >= fieldCoords.decMin) & (wdTable.Dec <= fieldCoords.decMax);
+    withinMagRange = wdTable.BPmag < 19.6;
+    
+    % Return only White Dwarfs in the field
+    wdSources = wdTable(withinRaRange & withinDecRange & withinMagRange, :);
+end
+
+
+
+%%%%%% Reporting
+function chapter = createChapter(chapterName)
+import mlreportgen.report.*
+import mlreportgen.dom.*
+
+
+chapter = Chapter(chapterName);
+
+end
+
+
+
+
+function appendPhotometryReport(rptPhotometry, FPAI, subframeFitsNames, batchNum, cropId, RA, Dec, saveDir)
+    import mlreportgen.dom.*
+    import mlreportgen.report.*
+
+    % Create a new chapter for forced photometry data
+    photometrySection = Chapter(sprintf('Batch %d, Subframe (CropID): %s', batchNum, cropId));
+    append(photometrySection, Paragraph(sprintf('FITS Files Processed: %s', strjoin(subframeFitsNames, ', '))));
+
+    % Add photometry results if available
+    if ~isempty(FPAI)
+        append(photometrySection, Paragraph(sprintf('Photometry results for CropID %s:', cropId)));
+        % Add more details, e.g., limiting magnitudes, airmass, etc.
+    else
+        append(photometrySection, Paragraph('No forced photometry data available.'));
+    end
+
+    % Append light curve plot (if available)
+    imgFile = sprintf('%sRA_%.6f_Dec_%.6f_CropID_%s_LightCurve.png', saveDir, RA, Dec, cropId);
+    if exist(imgFile, 'file')
+        img = Image(imgFile);
+        img.Height = '3in';
+        img.Width = '5in';
+        append(photometrySection, img);
+    end
+
+    % Append the photometry section to the report
+    append(rptPhotometry, photometrySection);
+end
+
+function appendCatalogReport(rptCatalog, msAll, subframeHdf5Names, batchNum, cropId, wdSources)
+    import mlreportgen.dom.*
+    import mlreportgen.report.*
+
+    % Create a new chapter for catalog data
+    catalogSection = Chapter(sprintf('Batch %d, Subframe (CropID): %s', batchNum, cropId));
+    append(catalogSection, Paragraph(sprintf('Catalog Files Processed: %s', strjoin(subframeHdf5Names, ', '))));
+
+    % Add catalog data details (msAll object)
+    if ~isempty(msAll)
+        append(catalogSection, Paragraph('Matched sources processed:'));
+        % Additional details could be added here
+    else
+        append(catalogSection, Paragraph('No catalog data found.'));
+    end
+
+    % Add WD table if WDs were found
+    if ~isempty(wdSources)
+        wdTable = createWDTable(wdSources);
+        append(catalogSection, wdTable);
+    else
+        append(catalogSection, Paragraph('No White Dwarfs Found.'));
+    end
+
+    % Append the catalog section to the report
+    append(rptCatalog, catalogSection);
+end
+
+function rpt = initializeReport(reportFile, reportTitle)
+    import mlreportgen.report.*
+    import mlreportgen.dom.*
+
+    rpt = Report(reportFile, 'pdf');
+    titlePage = TitlePage;
+    titlePage.Title = reportTitle;
+    titlePage.Author = 'WD Survey';
+    titlePage.PubDate = date;
+    append(rpt, titlePage);
+    append(rpt, TableOfContents);
+end
+
+
+
+function wdTable = createWDTable(wdSources)
+    import mlreportgen.dom.*
+
+    % Create a table for White Dwarf (WD) sources
+    wdTable = Table();
+    
+    % Define the header row
+    headerRow = TableRow();
+    append(headerRow, TableEntry('RA [deg]  '));
+    append(headerRow, TableEntry('Dec [deg]  '))
+    append(headerRow, TableEntry('Gmag  '));
+    append(headerRow, TableEntry('BPmag  '));
+    append(headerRow, TableEntry('RPmag  '));
+    append(headerRow, TableEntry('AbsMag  '));
+    append(headerRow, TableEntry('Bp-Rp  '));
+    append(headerRow, TableEntry('Parallax [mas]'));
+    append(headerRow, TableEntry('Distance [pc]'));
+    append(wdTable, headerRow);
+    
+    % Loop through WD sources and add rows to the table
+    for i = 1:height(wdSources)
+        wdTableRow = TableRow();
+        append(wdTableRow, TableEntry(num2str(wdSources.RA(i))));
+        append(wdTableRow, TableEntry(num2str(wdSources.Dec(i))));
+        append(wdTableRow, TableEntry(num2str(wdSources.Gmag(i))));
+        append(wdTableRow, TableEntry(num2str(wdSources.BPmag(i))));
+        append(wdTableRow, TableEntry(num2str(wdSources.RPmag(i))));
+        
+        append(wdTableRow, TableEntry(num2str(wdSources.Gmag(i)-5*log10(1000/wdSources.Plx(i))+5)));
+        append(wdTableRow, TableEntry(num2str(wdSources.BPmag(i)-wdSources.RPmag(i))));
+        append(wdTableRow, TableEntry(num2str(wdSources.Plx(i))));
+        append(wdTableRow, TableEntry(num2str(1000/wdSources.Plx(i))));
+        append(wdTable, wdTableRow);
+    end
+    
+    % Optional: Set table styles (border, alignment, etc.)
+    wdTable.Border = 'solid';
+    wdTable.ColSep = 'solid';
+    wdTable.RowSep = 'solid';
+end
+
+
+
+
+function AppendLC(results, lcData, resCat, lcDataCat, saveDir, wdSources, Iwd,chapter)
+    % Helper function to plot two light curves on top of each other and save them
+    import mlreportgen.dom.*
+    import mlreportgen.report.*
+    % Create a new figure
+    figure('Visible','off');
+    
+    % Plot the first light curve (results)
+    WDtransits3.plotLightCurve({results}, 1, 1, lcData, results.res.Methods, lcData.relFlux, results.res.FluxMethods);
+    hold on;
+    
+    % Plot the catalog light curve
+    plotLightCurveSpec({resCat}, 1, 1, lcDataCat{1}, resCat.Methods, lcDataCat{1}.relFlux, resCat.FluxMethods);
+    hold off;
+    axis tight;
+    % Retrieve RA and Dec for naming purposes
+    RA = wdSources.RA(Iwd);
+    Dec = wdSources.Dec(Iwd);
+    
+
+    % Insert figure
+
+    fig = Figure(gcf);
+    fig.Snapshot.Height = '5in';
+    fig.Snapshot.Width = '7in';
+    append(chapter, fig);
+
+    pageBreak = PageBreak();
+    append(chapter, pageBreak);
+    
+
+
+    % Insert simbad link
+
+
+
+
+
+    % Generate filename with RA and Dec in the name
+    %filename = sprintf('%sRA_%.6f_Dec_%.6f_Observation_%d_LC.png', saveDir, RA, Dec, Iwd);
+    
+    % Save the figure
+    %saveas(gcf, filename);
+    
+    % Save relevant data as .mat file
+    %dataFile = sprintf('%sRA_%.6f_Dec_%.6f_Observation_%d_Info.mat', saveDir, RA, Dec, Iwd);
+    %save(dataFile, 'results', 'lcData', 'resCat', 'lcDataCat');
+end
+
+
+function sec1 = appendWDToReport(ch1, RA, Dec,wdTable)
+    import mlreportgen.report.*;
+    import mlreportgen.dom.*;
+
+   
+    
+    sec1 = Section;
+     % Define the text that will be displayed in the paragraph
+
+    sec1.Title = sprintf('RA=%.6f Dec=%.6f', RA, Dec);
+    
+    AbsMag = calcAbsMag(RA, Dec);
+    Color = wdTable.BPmag - wdTable.RPmag;
+    
+    para = Text(sprintf('AbsMag=%.2f Color=%.2f\n', AbsMag, Color));
+    append(sec1, para);
+
+
+    WDTable = createWDTable(wdTable);
+    append(sec1, WDTable);
+
+   % append(sec1,Paragraph(FlagsType))
+
+    [simbadLink, ~] = WDtransits3.generateURLs(RA, Dec, 180/pi);
+
+     % Use Hyperlink instead of ExternalLink
+  %  link = ExternalLink(simbadLink.URL,'Simbad Link');  % Create the hyperlink
+  %  append(link, Text('Simbad Link'));  % Set the display text of the link
+    %par1 = Paragraph();
+    % Insert the link into a paragraph and add to the chapter
+   % append(par1, Paragraph(link));
+
+    insertLinkToChapter(sec1,simbadLink.URL,'Simbad Link');
+
+ 
+    % Flag if WD
+ 
+        
+    % Create the section and the formatted paragraph
+    paraWD = Paragraph();
+    
+    % Create and format the text for the Pwd value
+    highlightedText = Text(sprintf('Pwd = %.4f',wdTable.Pwd));
+    highlightedText.Bold = true;         % Make text bold
+    highlightedText.Color = '#FF8C00';       % Change text color to red
+    highlightedText.FontSize = '14pt';   % Increase font size
+    
+    % Append the formatted text to the paragraph and add it to the section
+    append(paraWD, highlightedText);
+    append(sec1, paraWD);
+  
+
+
+ 
+    append(ch1, sec1);
+end
+
+
+
+function AbsMag = calcAbsMag( RA, Dec)
+    % Calculate absolute magnitude
+    PWD = pwd;
+    cd('~/marvin/catalogs/GAIA/DR3/');
+    AC = catsHTM.cone_search('GAIADR3', RA*pi./180, Dec*pi./180, 3, 'OutType', 'AstroCatalog');
+    cd(PWD);
+    
+    AbsMag = AC.Table.phot_g_mean_mag - (5 * log10(1000 ./ AC.Table.Plx) - 5);
+end
+function insertLinkToChapter(chapter, linkURL, linkText)
+    % Insert a hyperlink into a report chapter
+    import mlreportgen.dom.*;  % Ensure the required class is imported
+    
+    link = ExternalLink(linkURL, linkText);  % Create the external link
+    append(chapter, Paragraph(link));  % Insert it into a paragraph and add to chapter
+end

@@ -61,6 +61,7 @@ arguments
     Args.plotTitle string = "(RA,Dec) LAST.01.XX.XX Date CropID"
     Args.saveVars logical = false
     Args.savePath string = "~/Projects/WD_survey/LC_output_%i"
+    Args.ID = 1:24;
 end
 
 % Step 1: Search for matched sources

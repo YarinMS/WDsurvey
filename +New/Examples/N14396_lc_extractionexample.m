@@ -1,12 +1,12 @@
-a = extractLCFromObs('~/marvin/LAST.01.06.04/2023/09/15/proc')
+a = extractLCFromObs('~/marvin/LAST.01.03.04/2024/07/09/proc')
 
 %%
-Table.CropID = 10;
-Table.RA = 19.860;
-Table.Dec = 36.067;
-Table.Nvisits =36
-Table.Name = 'N14396_cropID10'
+Table.CropID = 12;
+Table.RA = 10.413;
+Table.Dec = 42.120;
+Table.Nvisits =3
+Table.Name = 'N13949_3'
 %%
 %MS = a(Table.CropID,:)
 MSgroups = groupMS(MS,Table.Nvisits)
-Res = getLCfromMS(MSgroups,Table,'~/Projects/WD_survey/LCs/N1396/')
+Res = getLCfromMS(MSgroups,Table,'~/Projects/WD_survey/LCs/N13949/')

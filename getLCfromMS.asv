@@ -11,7 +11,7 @@ function results = getLCfromMS(groupedMS,Table,outputDir,Args)
         Args.EdgeFlags = {'Overlap'}
         Args.runMeanFilterArgs = {'Threshold', 5, 'StdFun', 'OutWin'}
         Args.Nvisits (1,1) double {mustBePositive} = 2  % Example constraint: must be positive
-        Args.Ndet (1,1) double = 1 * 200000
+        Args.Ndet (1,1) double = 1 * 2
         Args.plotAll (1,1) logical = true  % Assuming plotAll is boolean (use true/false instead of 1/0)
     end
            lcData  = cell(0);
@@ -20,24 +20,7 @@ function results = getLCfromMS(groupedMS,Table,outputDir,Args)
     
     
     for Ibatch = 1 : length(batch)
-
-                        % Look for source in batch:
-                        Src = batch{Ibatch}.coneSearch(Table.RA,Table.Dec);
-                        IndValues = {Src.Ind};
-
-                        % Check for non-empty 'Ind' values
-                        firstNonEmptyInd = find(cellfun(@(x) ~isempty(x), IndValues), 1);
-
-                        % Analyze the result
-                        if ~isempty(firstNonEmptyInd)
-                            args.mergeBy = firstNonEmptyInd;
-                        else
-                           
-                            disp('Ind is empty for all elements.');
-                            continue;
-                        end
-
-
+                        
                         catJD = [];
                         LimMag    = [];
 
@@ -58,34 +41,12 @@ function results = getLCfromMS(groupedMS,Table,outputDir,Args)
 
                             end
                         end
-                    args.catJD =catJD ; args.LimMag = LimMag;
-                    args.RA =  Table.RA; args.Dec = Table.Dec;
-                    [mms,nanIdx] =  cleanMatchedSources2(batch{Ibatch}, args);
+
+                    [mms,nanIdx] =  cleanMatchedSources1(batch{Ibatch}, args);
                     lcData{Ibatch}.limMag = LimMag;
                     lcData{Ibatch}.catJD = catJD;
                     lcData{Ibatch} = WDtransits3.extractLightCurve(lcData{Ibatch}, mms,  Table.RA,Table.Dec,args);
-                    if isfield(lcData{Ibatch},'Ind')
-                        lcData{Ibatch}.nanIndices = nanIdx(:,lcData{Ibatch}.Ind);
-                    end
-                       [~,fname,~] = fileparts(batch{Ibatch}(Ivis).FileName);
-                    part = strsplit(fname,'_');
-                    lcData{Ibatch}.Tel = '';
-                    lcData{Ibatch}.Date ='';
-                    lcData{Ibatch}.Table.visTable = Table;
-                    lcData{Ibatch}.Table.FieldID  = '';
-                    lcData{Ibatch}.Table.fwhm    = '';
-                    lcData{Ibatch}.Table.airmass = '';
-                    lcData{Ibatch}.Table.RA = Table.RA;
-                    lcData{Ibatch}.Table.Dec = Table.Dec;
-                    lcData{Ibatch}.Table.Gmag = 1;
-                    lcData{Ibatch}.Table.BPmag = 1;
-                    lcData{Ibatch}.Table.BpRp = 1;
-                    lcData{Ibatch}.Table.Pwd = 1;
-                    lcData{Ibatch}.Table.AbsMag=1;
-                    lcData{Ibatch}.Table.Total_Visits = 1;
-                    lcData{Ibatch}.Table.Visits_Found= length(batch) ;
-                    lcData{Ibatch}.Table.Subframe = Table.CropID;
-                    lcData{Ibatch}.Table.Name = Table.Name;
+                    lcData{Ibatch}.nanIndices = nanIdx(:,lcData{Ibatch}.Ind);
                     
 
                    
@@ -103,7 +64,7 @@ function results = getLCfromMS(groupedMS,Table,outputDir,Args)
                     lcData{Ibatch}.Table.Total_Visits = Table.Nvisits;
                     lcData{Ibatch}.Table.Visits_Found= length(batch) ;
                     lcData{Ibatch}.Table.Subframe = Table.CropID;
-                    lcData{Ibatch}.Table.Gmag = 1.0;
+                    lcData{Ibatch}.Table.Name = Table.Name;
 
 
                    % NO TABLE FOR NOW lcData{Iwd,Ibatch}.Table = table(Iwd,:);
@@ -121,8 +82,8 @@ function results = getLCfromMS(groupedMS,Table,outputDir,Args)
 
                         if isfield(lcData{Ibatch},'lc')
 
-                         figure();
-                         plotLightCurve([],1,Ibatch,lcData{Ibatch})
+                        figure();
+                        plotLightCurve([],1,Ibatch,lcData{Ibatch})
                         
                         end
 

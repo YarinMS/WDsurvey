@@ -113,13 +113,14 @@
                                                 % else
                                                 %     clf;
                                                 % end
+                                             
                                                 FigLC  = Obj.plotLC(IndSrc);
                                                 FigRMS = Obj.plotRMS(IndSrc, 'NsigmaPredRMS',7);
                                                 H = gca;
                                                 H.YLim(1) = 1e-3;
                                                 [FigPS, FigPh] = Obj.plotPS(IndSrc);
                                                 drawnow;
-                                                filepath = sprintf('~/Projects/Variables/M10T3/%.6f_%.6f_IND_%i_CropID_%i_%s.png',RA,Dec,IndSrc,Icrop,Obj.MS.FileName{1});
+                                                filepath = sprintf('~/Projects/Variables/M6T2/%.6f_%.6f_IND_%i_CropID_%i_%s.png',RA,Dec,IndSrc,Icrop,Obj.MS.FileName{1});
                                                 saveas(FigLC, filepath);
     
                                                 [SimbadURL]=VO.search.simbad_url(RA./RAD, Dec./RAD)

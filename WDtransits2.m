@@ -116,7 +116,7 @@ end
             tic;
             msCropID = [];
             h = waitbar(0,'Creating MS')
-            for Iid = 10
+            for Iid = 8
                 [~,visIdx] = WDtransits2.filterListByFieldName(list(Iid).FileName, selectedField.ID);
                 list(Iid).FileName = list(Iid).FileName(visIdx);
                 list(Iid).Folder   = list(Iid).Folder(visIdx);

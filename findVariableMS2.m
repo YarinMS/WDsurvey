@@ -25,21 +25,23 @@ function [Flag, FlagInfo, Summary]=findVariableMS2(Obj, Args)
             arguments
                 Obj
                
-                Args.BadFlags              = {'Saturated','NaN','Negative'};%{'Overlap','NearEdge','CR_DeltaHT','Saturated','NaN','Negative'};
+                Args.BadFlags              = {'Saturated','NaN','Negative','NearEdge'};%{'Overlap','NearEdge','CR_DeltaHT','Saturated','NaN','Negative'};
 
                 Args.MagField              = 'MAG_BEST';
-                Args.MaxChi2Dof            = 3;
+                Args.MaxChi2Dof            = 3   ;
 
-                Args.MinNdet               = 2;
-                Args.MaxOverlapFrac        = 0.5;
+                Args.MinNdet               = 2   ;
+                Args.MaxOverlapFrac        = 0.5 ;
 
-                Args.ThresholdPS           = 12;
+                Args.ThresholdPS           = 16  ;
 
-                Args.NsigmaPredRMS         = 10;
-                Args.NsigmaStdRMS          = 7;
-                Args.MinDetRMS             = 15;
-                Args.MinNptRMS             = 10;
-                Args.MinRMS4poly           = 5;
+                Args.NsigmaPredRMS         = 10  ;
+                Args.NsigmaStdRMS          = 7   ;
+                Args.MinDetRMS             = 15  ; 
+                Args.MinNptRMS             = 10  ;
+                Args.MinRMS4poly           = 8   ;
+                Args.thresholdRMF          = 6   ;
+                Args.winSizeRMF            = 2   ;
             end
 
             % set to NaN photometry with bad flags
@@ -71,7 +73,7 @@ function [Flag, FlagInfo, Summary]=findVariableMS2(Obj, Args)
             Flag.Poly(ResRMS.NsigmaStd<Args.MinRMS4poly & Flag.Poly) = false;
 
             % running mean filter
-            RMFilt = timeSeries.filter.runMeanFilter(Obj.MS.Data.(Args.MagField));
+            RMFilt = timeSeries.filter.runMeanFilter(Obj.MS.Data.(Args.MagField),'Threshold', Args.thresholdRMF, 'StdFun', 'OutWin','WinSize',Args.winSizeRMF);
             Flag.RunMeanFilt = any(RMFilt.FlagCand, 1);
 
             Summary.FreqVec   = FreqVec;
