@@ -14,7 +14,7 @@ function plotLightCurveSpec(results, Iwd, Ibatch, LC, Methods,flux, FluxMethods)
               %  plot(lmt, lm, 's-','Color', [0.6350, 0.0780, 0.1840],'LineWidth', 1.5,'DisplayName', 'Lim Mag');
                 
                 if ~isempty(c)
-                    plot(t, c, '-','Color',[0.8500, 0.3250, 0.0980], 'LineWidth', 1.0,'DisplayName', 'Catalog Control Star');
+                  %  plot(t, c, '-','Color',[0.8500, 0.3250, 0.0980], 'LineWidth', 1.0,'DisplayName', 'Catalog Control Star');
                 end
 
                % plot(t, C, '-','Color',[0, 0.4470, 0.7410], 'LineWidth', 1,'DisplayName', 'Control LC');

@@ -171,7 +171,7 @@ function sec1 = appendToReport(ch1, Obj, Cand, Flag, RA, Dec, Args)
     
     para = Text(sprintf('RA=%.6f Dec=%.6f\n AbsMag=%.2f Color=%.2f\n', RA, Dec, AbsMag, Color));
     append(sec1, para);
-    append(sec1,Paragraph(FlagsType))
+    % append(sec1,Paragraph(FlagsType))
 
     [simbadLink, ~] = WDtransits3.generateURLs(RA, Dec, 180/pi);
 

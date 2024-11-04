@@ -1,0 +1,23 @@
+tic;
+profile on
+for i = [8,6,4]
+
+    for c = 1
+        if c == 2 && i == 4
+            continue;
+        end
+
+        for d = [26,27,28,29,30,31,8,10,22,23,24,30,31]
+        tic
+        processObservingNightForced1(8,2,2024,10,d,3)
+        a = toc
+        end
+
+    end
+
+end
+
+toc
+
+profile off 
+profile viewer

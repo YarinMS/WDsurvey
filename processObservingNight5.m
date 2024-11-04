@@ -1,4 +1,4 @@
-function processObservingNight3(mount, telescope, year, month, day, batchSize,args)
+function processObservingNight5(mount, telescope, year, month, day, batchSize,args)
     % Main Template for Forced Photometry Routine for LAST
     % Inputs:
     % mount - mount number (e.g., 1, 2, 3, ...)
@@ -32,23 +32,31 @@ function processObservingNight3(mount, telescope, year, month, day, batchSize,ar
     end
 
     
-    if mod(telescope, 2) == 0
+   % if mod(telescope, 2) == 0
       
-        basePath = sprintf('/%s/data2/archive/LAST.01.%02d.%02d_re/', computer, mount,telescope);
-    else
+        %basePath = sprintf('/%s/data2/archive/LAST.01.%02d.%02d_re/', computer, mount,telescope);
+        basePath = sprintf('~/marvin/LAST.01.%02d.%02d/', mount,telescope);
+   % else
         
-        basePath = sprintf('/%s/data1/archive/LAST.01.%02d.%02d_re/', computer, mount,telescope);
-    end
+        %basePath = sprintf('/%s/data1/archive/LAST.01.%02d.%02d_re/', computer, mount,telescope);
+   %     basePath = sprintf('~/marvin/LAST.01.%02d.%02d/', mount,telescope);
+   % end
     
     dateFolder = sprintf('%04d/%02d/%02d/proc/', year, month, day);
     fullPath = fullfile(basePath, dateFolder);
 
-     % Initialize the catalog analysis report
-    catalogReportFile = fullfile(args.saveDir, sprintf('Catalog_Report_%04d_%02d_%02d_Mount%d_1.pdf', year, month, day, mount));
+     
+    % Initialize the catalog analysis report
+    if ~exist(args.saveDir, 'dir')
+        mkdir(args.saveDir);
+    end
+
+
+    catalogReportFile = fullfile(args.saveDir, sprintf('Catalog_Report_%04d_%02d_%02d_Mount%02d_%i.pdf', year, month, day, mount,telescope));
     rptCatalog = initializeReport(catalogReportFile, 'Catalog Analysis Report');
     
     % Initialize the forced photometry report
-    fpReportFile = fullfile(args.saveDir, sprintf('Photometry_Report_%04d_%02d_%02d_Mount%d.pdf', year, month, day, mount));
+    fpReportFile = fullfile(args.saveDir, sprintf('Photometry_Report_%04d_%02d_%02d_Mount%02d_%i.pdf', year, month, day, mount,telescope));
     rptPhotometry = initializeReport(fpReportFile, 'Forced Photometry Report');
 
     
@@ -61,9 +69,11 @@ function processObservingNight3(mount, telescope, year, month, day, batchSize,ar
      h = waitbar(0)
      pos = get(h, 'Position');  % Get current position: [left, bottom, width, height]
      pos(4) = 100;
-     pos(3) = 80;
+     %pos(3) = 400;
      set(h, 'Position', pos);
      wbCounter = 0;
+     WDcounter = 0;
+     FieldsID = [];
 
      for b =1:length(batches)
         batch = batches{b};
@@ -81,7 +91,7 @@ function processObservingNight3(mount, telescope, year, month, day, batchSize,ar
         uniqueCropIdsHdf5 = unique(cropIdsHdf5);
         
         % Process each CropID individually
-        for c =1:length(uniqueCropIds)
+        for c = 1:length(uniqueCropIds)
             wbCounter = wbCounter +1;
             cropId = uniqueCropIds{c};
             args.CropID = cropId; % Set the CropID for this iteration
@@ -99,16 +109,70 @@ function processObservingNight3(mount, telescope, year, month, day, batchSize,ar
             FPAI = AstroHeader(subframeFitsFiles);
             
             % Extract relevant photometry data for analysis
+            try
+
             args.LimMag = arrayfun(@(x) x.Key.LIMMAG, FPAI)';
             args.airmass = arrayfun(@(x) x.Key.AIRMASS, FPAI)';
             args.catJD = arrayfun(@(x) x.Key.JD, FPAI)';
             args.FWHM = arrayfun(@(x) x.Key.FWHM, FPAI)';
+            args.FieldID = arrayfun(@(x) x.Key.FIELDID, FPAI,'UniformOutput',false);
+
+            catch
+                args.LimMag = arrayfun(@(x) x.Key.AIRMASS+18, FPAI)';
+                args.airmass = arrayfun(@(x) x.Key.AIRMASS, FPAI)';
+                args.catJD = arrayfun(@(x) x.Key.JD, FPAI)';
+                args.FWHM = arrayfun(@(x) x.Key.FWHM, FPAI)';
+                args.FieldID = arrayfun(@(x) x.Key.FIELDID, FPAI,'UniformOutput',false);
+
+            end
+
+            
+            try
+                a = unique(args.FieldID);
+                currentFieldID = a{1};
+                if isempty(FieldsID)
+                    FieldsID = currentFieldID;
+                    args.FIELDID = currentFieldID;
+
+                else
+                    args.FIELDID = FieldsID;
+
+                    if ~ismember(currentFieldID,FieldsID)
+                        FieldsID = [FieldsID; currentFieldID];
+                        args.FIELDID = currentFieldID;
+                    end
+                end
+            
+
+            catch
+                %
+            end
+
             % Process catalog data (HDF5 files) for this CropID
             msAll = processCatalogData(cropId, subframeHdf5Names,subframeHdf5Folders,args );
             catalogSection = createChapter(sprintf('Batch %d, Subframe (CropID): %s', b, cropId));
             
+           
+
+            if isempty(msAll)
+
+                continue
+
+            end
+
+
             %chapterCatalog = Chapter('Catalog Analysis');
             [Cand, WDcand, FlagComb,resultChapter] = findVariableCandidates3(msAll, 'args',args,'catalogChapter', catalogSection);
+
+
+            [RA, Dec, fieldCoords, ~] = getMScoords(subframeFitsFiles{1});
+            wdSources = findWhiteDwarfs(RA, Dec, fieldCoords);
+            forcedMChapter = createChapter(sprintf('Batch %d, Subframe (CropID): %s Nwd: %d', b, cropId,height(wdSources)));
+
+
+            if b == 1 
+                WDcounter = WDcounter + height(wdSources)
+            end
 
             if ~isempty(WDcand) || ~isempty(Cand)
                 append(rptCatalog,resultChapter)
@@ -122,10 +186,22 @@ function processObservingNight3(mount, telescope, year, month, day, batchSize,ar
 
                     
                     append(rptCatalog,resultChapter)
+                                if ~isempty(wdSources)
+                                     appendWDSummaryToReport(forcedMChapter, b, cropId, wdSources, args, FPAI)
+                                     append(rptPhotometry,forcedMChapter)
+                                end
+
+                    forcedChapter = createChapter(sprintf('Batch %d, Subframe (CropID): %s', b, cropId));
+                    % Report WD in sub frame 
+                    
+                    % Insert WD subframe information to the first section
+                    % of the focedChapter.
 
                     
-                    % Report WD in sub frame 
-                    forcedChapter = createChapter(sprintf('Batch %d, Subframe (CropID): %s', b, cropId));
+
+
+
+
 
                     % 2 consec points detecrtio
                     % in report HR di  processWdSourcesagram ? maybe int th
@@ -175,63 +251,7 @@ function processObservingNight3(mount, telescope, year, month, day, batchSize,ar
     disp(['Photometry report generated: ' fpReportFile]);
 
 
-        %% Process Each Batch of Visits
-    for b = 1:length(batches)
        
-        %% Iterate Over Subframes
-        for cropId = uniqueCropIdsFits'
-          
-            
-            %% Create Image visit Batch 
-            FPAI = generateFPImg(cropId,subframeFitsFolders,subframeFitsNames);
-            % Store in args.
-            args.LimMag = arrayfun(@(x) x.Key.LIMMAG, FPAI)';
-            args.airmass = arrayfun(@(x) x.Key.AIRMASS, FPAI)';
-            args.catJD = arrayfun(@(x) x.Key.JD, FPAI)';
-            args.FWHM = arrayfun(@(x) x.Key.FWHM, FPAI)';
-
-            
-            
-            %% Good sources Logic
-            msAll = getGoodSources(MS,args);
-
-            % Detect all
-            args.reportFN = sprintf('Variable_candidates_LAST.01.%02d.%02d_%04d%02d%02d_batch_%i_%s.pdf',mount,telescope,year,month,day,b,cropId{1});
-
-            [Cand,WDcand, FlagComb, ReportFile] = findVariableCandidates(msAll,'Plot',true,'Report',true,'args',args);
-
-            if ~isempty(WDCand)
-
-                % Consider WD candidates.
-                Implemenrt=1 ;
-
-
-                % conside WD photometry candidates. 
-            
-
-                % Summarize
-            end
-
-            
-            
-            
-            % Specifically consider WDs
-            %% WD sources + FP logic
-
-                
-
-            processWdSources(wdSources, FPAI, MS, batchSize, args.saveDir,args)
-                
-            
-        
-
-
-
-            
-     
-        end
-    end
-
     
 end
 
@@ -437,8 +457,11 @@ end
 function mms = getGoodSources(MS,args)
 
     args.BadFlags = {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'};
-    mms =  cleanBadSources(MS,args);
-
+    try 
+        mms =  cleanBadSources(MS,args);
+    catch
+        mms =[];
+    end
 end
 
 
@@ -926,7 +949,7 @@ function processWdSources(wdSources, FPAI, MS, batchSize, saveDir,args,chapter)
     
     % Set up the directory to save outputs
     if nargin < 5 || isempty(saveDir)
-        saveDir = '~/Projects/WD_Transits/Results/';
+        saveDir = '~/Documents/Temp/';
     end
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
@@ -1053,13 +1076,19 @@ function msAll = processCatalogData(cropId,subframeHdf5Names,subframeHdf5Folders
     %   msAll - Matched sources after cleaning and processing
     
     % Create a matched sources object from the HDF5 catalog data
-    MS = createMSlist(cropId, subframeHdf5Names,subframeHdf5Folders);
+    try
 
-    % Clean the matched sources and get "good" sources
-    msAll = getGoodSources(MS, args);
-    
-    % Apply Zero Point correction if necessary
+    MS = createMSlist(cropId, subframeHdf5Names,subframeHdf5Folders);
+    msAll = getGoodSources(MS, args); 
     msAll = applyZpCorrection(msAll);
+
+
+    catch
+        msAll = []
+
+    end
+
+  
 end
 
 
@@ -1369,4 +1398,100 @@ function insertLinkToChapter(chapter, linkURL, linkText)
     
     link = ExternalLink(linkURL, linkText);  % Create the external link
     append(chapter, Paragraph(link));  % Insert it into a paragraph and add to chapter
+end
+
+
+
+function appendWDSummaryToReport(forcedChapter, b, cropId, wdSources, args, FPAI)
+    import mlreportgen.dom.*;
+    import mlreportgen.report.*;
+
+    % --- Section for WD Sources Summary ---
+    wdSummarySec = Section('White Dwarf Sources Summary');
+
+    % Add batch and subframe information
+    batchInfoPara = Paragraph(sprintf('Batch: %d, Subframe (CropID): %s Nwd: %d', b, cropId,height(wdSources)));
+    batchInfoPara.Style = {Bold(true), Color('DarkSlateBlue'), FontSize('12pt')};
+    append(wdSummarySec, batchInfoPara);
+
+    % Calculate and append the field center coordinates
+    [fieldRA, fieldDec] = calculateFieldCenter(FPAI);
+    fieldCenterPara = Paragraph(sprintf('Field Center - RA: %.5f, Dec: %.5f', fieldRA, fieldDec));
+    fieldCenterPara.Style = {Bold(true), Color('Indigo'), FontSize('11pt')};
+    append(wdSummarySec, fieldCenterPara);
+
+    % --- WD Sources Table ---
+    
+    if ~isempty(wdSources)
+        headerRow = {'RA', 'Dec', 'Gmag', 'BPmag', 'RPmag','Color', 'Dist [pc]'};
+        wdData = [num2cell([wdSources.RA, wdSources.Dec]), num2cell(wdSources.Gmag), ...
+                  num2cell(wdSources.BPmag), num2cell(wdSources.RPmag),num2cell(wdSources.BPmag - wdSources.RPmag), num2cell(1000./wdSources.Plx)];
+        
+        % Construct a DOM Table
+        wdTableData = [headerRow; wdData];  % Include header
+        wdTable = Table(wdTableData);
+        wdTable.Style = {Border('solid'), ColSep('solid'), RowSep('solid'), FontSize('10pt')};
+
+        % Append table to the section
+        append(wdSummarySec, wdTable);
+    else
+        % No WD sources detected in this subframe
+        append(wdSummarySec, Paragraph('No White Dwarf sources detected in this subframe.'));
+    end
+
+    % --- Generate Plots ---
+    f = figure('Visible', 'off');  % Suppress figure display for performance
+    try
+        % Plot FWHM vs JD
+        subplot(3, 1, 2);
+        plot(args.catJD, args.FWHM, '-o', 'Color', [0.8500 0.3250 0.0980],'LineWidth',2);
+        xlabel('JD');
+        ylabel('FWHM');
+        title('FWHM vs JD');
+        grid on;
+
+        % Plot Airmass vs JD
+        subplot(3, 1, 1);
+        plot(args.catJD, args.airmass, '-o', 'Color', [0.2941, 0.0000, 0.5098],'LineWidth',2);
+        xlabel('JD');
+        ylabel('Airmass');
+        title('Airmass vs JD');
+        set(gca,'YDir','reverse')
+        grid on;
+
+        % Plot Limiting Magnitude vs JD
+        subplot(3, 1, 3);
+        plot(args.catJD, args.LimMag, '-o', 'Color', [0.5451, 0.0000, 0.000],'LineWidth',2);
+        xlabel('JD');
+        ylabel('Limiting Magnitude');
+        title('Limiting Magnitude vs JD');
+        set(gca,'YDir','reverse')
+        grid on;
+
+        % Save and append the plot
+        plotFile = fullfile(args.saveDir, sprintf('Batch_%d_Subframe_%s_Plot.png', b, cropId));
+        saveas(f, plotFile);
+        img = Image(plotFile);
+        img.Style = {ScaleToFit(true), Height('6in')};
+        append(wdSummarySec, img);
+    catch plotError
+       % warning('Plot generation failed: %s', plotError.message);
+    end
+    close(f);
+
+    % Append wdSummarySec to forcedChapter
+    append(forcedChapter, wdSummarySec);
+
+    % Add a new page for clarity
+    append(forcedChapter, PageBreak);
+end
+
+function [centerRA, centerDec] = calculateFieldCenter(FPAI)
+    % Calculate the centroid of the field of view based on RA/Dec corner coordinates
+    raCorners = [mean(arrayfun(@(x) x.Key.RAU1,FPAI)), mean(arrayfun(@(x) x.Key.RAU2,FPAI)), mean(arrayfun(@(x) x.Key.RAU3,FPAI)), mean(arrayfun(@(x) x.Key.RAU4,FPAI))];
+    decCorners = [mean(arrayfun(@(x) x.Key.DECU1,FPAI)), mean(arrayfun(@(x) x.Key.DECU2,FPAI)), mean(arrayfun(@(x) x.Key.DECU3,FPAI)), mean(arrayfun(@(x) x.Key.DECU4,FPAI))];
+
+    % Compute average RA and Dec as centroid
+    centerRA = mean(raCorners);
+    centerDec = mean(decCorners);
 end
