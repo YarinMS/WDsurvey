@@ -10,7 +10,7 @@ function [AbsMag, Plx, Dist, NonSingleStar, Neighbors, Identifiers] = getWDParam
     Identifiers = {'None', 'None'};
     
     % Gaia catalog query
-    cd('~/marvin/catalogs/GAIA/DR3/');
+   % cd('~/marvin/catalogs/GAIA/DR3/');
     AC = catsHTM.cone_search('GAIADR3', ra / RAD, dec / RAD, 3, 'OutType', 'AstroCatalog');
     
     if ~isempty(AC.Table)
