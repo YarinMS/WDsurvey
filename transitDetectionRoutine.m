@@ -1537,7 +1537,7 @@ function AppendSingleLC(results, lcData, saveDir, wdSources, Iwd,chapter)
     %fig.Snapshot.Width = '7in';
     
       % Define the file path where the plot will be saved
-        plotFile = fullfile(Args.saveDir, sprintf('%.3f_%.3fSubframe_%s_Plot.png', RA,Dec, Iwd));
+        plotFile = fullfile(saveDir, sprintf('%.3f_%.3fSubframe_%s_Plot.png', RA,Dec, Iwd));
 
         % Save the figure
         saveas(f, plotFile);

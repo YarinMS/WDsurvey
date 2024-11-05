@@ -1,6 +1,6 @@
 % Parameters
 folderPath = '/last04e/data1/archive/LAST.01.04.01/2024/11/04/proc';
-N = 3; % Minimum number of new directories required
+N = 4; % Minimum number of new directories required
 timerPeriod =10*60; % Check every 60 seconds
 % Define the folder path where you want to save the log file
 logFolderPath = '~/Documents/WD_survey/';

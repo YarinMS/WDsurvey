@@ -59,6 +59,7 @@ function checkForNewDirectories1(folderPath, N, logFile)
         end
         
         processedDirs = [processedDirs; {'--------'}];
+        
     end
 
     % Write updated processed directories back to the log file
