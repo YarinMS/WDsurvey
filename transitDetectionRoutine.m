@@ -241,12 +241,11 @@ function transitDetectionRoutine(visitGroup,Args)
                 end
             waitbar(c/24,h,sprintf('FieldID %s\nvisitID # %s\nCropID # %i\n',Args.FieldID{1},visitID,c))
      
-
+            close all;
         end
 
      %% Finalize and Save Both Reports
-    import mlreportgen.report.*
-    import mlreportgen.dom.*
+   
     close(rptCatalog);
     close(rptPhotometry);
     disp(['Catalog report generated: ' catalogReportFile]);
@@ -1515,7 +1514,7 @@ function AppendSingleLC(results, lcData, saveDir, wdSources, Iwd,chapter)
     import mlreportgen.dom.*
     import mlreportgen.report.*
     % Create a new figure
-    f = figure('Visible','off');
+    figure('Visible','off');
     
     % Plot the first light curve (results)
     WDtransits3.plotLightCurve({results}, 1, 1, lcData, results.res.Methods, lcData.relFlux, results.res.FluxMethods);
@@ -1536,22 +1535,16 @@ function AppendSingleLC(results, lcData, saveDir, wdSources, Iwd,chapter)
     %fig.Snapshot.Height = '5in';
     %fig.Snapshot.Width = '7in';
     
-      % Define the file path where the plot will be saved
-        plotFile = fullfile(saveDir, sprintf('%.3f_%.3fSubframe_%s_Plot.png', RA,Dec, Iwd));
+       fig = Figure(gcf);
+    fig.Snapshot.Height = '5in';
+    fig.Snapshot.Width = '7in';
 
-        % Save the figure
-        saveas(f, plotFile);
+    % Append the figure directly to the report chapter
+    append(chapter, fig);
+    %close all;  % Close the figure after appending
 
-        % Create the image for the report with specified dimensions
-        img = Image(plotFile);
-        img.Style = {Height('4in'), Width('6in')};  % Set both height and width to control scaling
 
-        % Append the image to the report section
-        append(chapter, img);
-        close(f)
-        % Delete the image file after it has been added to the report
-        delete(plotFile);
-    %append(chapter, fig);
+
 
     pageBreak = PageBreak();
     append(chapter, pageBreak);
@@ -1692,7 +1685,7 @@ function appendWDSummaryToReport(forcedChapter, b, cropId, wdSources, args, FPAI
     end
 
     % --- Generate Plots ---
-    f = figure('Visible', 'off');  % Suppress figure display for performance
+    figure('Visible', 'off');  % Suppress figure display for performance
     try
         % Plot FWHM vs JD
         subplot(3, 1, 2);
@@ -1720,26 +1713,24 @@ function appendWDSummaryToReport(forcedChapter, b, cropId, wdSources, args, FPAI
         set(gca,'YDir','reverse')
         grid on;
 
-        % Define the file path where the plot will be saved
-        plotFile = fullfile(args.saveDir, sprintf('Batch_%S_Subframe_%s_Plot.png', b, cropId));
+        fig = Figure(gcf);
+        fig.Snapshot.Height = '5in';
+        fig.Snapshot.Width = '7in';
 
-        % Save the figure
-        saveas(f, plotFile);
+        % Append the figure directly to the report chapter
+        append(wdSummarySec, fig);
+        %close all;  % Close the figure after appending
 
-        % Create the image for the report with specified dimensions
-        img = Image(plotFile);
-        img.Style = {Height('4in'), Width('6in')};  % Set both height and width to control scaling
 
-        % Append the image to the report section
-        append(wdSummarySec, img);
-        close(f)
-        % Delete the image file after it has been added to the report
-        delete(plotFile);
+
+        pageBreak = PageBreak();
+        append(chapter, pageBreak);
+      
 
     catch plotError
        % warning('Plot generation failed: %s', plotError.message);
     end
-    close(f);
+    
 
     % Append wdSummarySec to forcedChapter
     append(forcedChapter, wdSummarySec);
