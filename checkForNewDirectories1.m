@@ -1,6 +1,9 @@
 function checkForNewDirectories1(folderPath, N, logFile)
 
     persistent waitStartTime;
+    
+    % Set figure style to docked 
+    set(0, 'DefaultFigureWindowStyle', 'docked');
 
     % Load processed directories from the log file
     if isfile(logFile)
@@ -48,7 +51,7 @@ function checkForNewDirectories1(folderPath, N, logFile)
     end
 
     % Process each valid group and update the log file
-    for i = 1:numel(validGroups)
+    for i = 24:numel(validGroups)
         fprintf('Starting transit detection for FIELD ID:: %s\nVisit Group %i out of %i\n', fieldIDs{i},i,numel(validGroups));
         transitDetectionRoutine(validGroups{i},'BatchSize',N); % Call the detection routine
 

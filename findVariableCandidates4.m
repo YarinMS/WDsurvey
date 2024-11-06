@@ -79,10 +79,12 @@ function [Cand, WDcand, FlagComb,resultChapter] = findVariableCandidates3(ms, Ar
                     Iwd = Iwd + 1;
                     WDcand{Iwd} = createCandidateStruct(IndSrc, Ncand, flag, Summary, Obj, RA, Dec);
                     WDcand{Iwd}.WD = WD;
+                    Args.WD = true;
+                    Args.args.WD = true;
                     % Append details to the chapter - ***
                     if ~isempty(Args.catalogChapter)
-                          Args.WD = true;
-                          Args.WDtable = WD.Table;
+                          
+                          Args.args.WDtable = WD.Table;
                           appendToReport(Args.catalogChapter, Obj, WDcand{Iwd}, flag, RA, Dec, Args.args);
                           plotCandidateAndAppend(Obj, IndSrc, RA, Dec, Args.catalogChapter,Args);
                      
