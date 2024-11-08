@@ -1,9 +1,9 @@
 % Parameters
-folderPath = '/last04e/data1/archive/LAST.01.04.01/2024/11/04/proc';
+folderPath = '/last04e/data1/archive/LAST.01.04.01/2024/11/05/proc';
 N = 4; % Minimum number of new directories required
-timerPeriod =60*60; % Check every 60 seconds 
+timerPeriod =30; % Check every 60 seconds 
 % Define the folder path where you want to save the log file
-logFolderPath = '~/Documents/WD_survey/';
+logFolderPath = '~/Documents/WD_survey/Temp1/';
 
 % Generate the current date as a string in the format YYYYMMDD
 currentDate = datestr(now, 'yyyymmdd');

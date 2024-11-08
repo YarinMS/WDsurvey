@@ -6,7 +6,7 @@ function transitDetectionRoutine(visitGroup,Args)
     arguments
         visitGroup
         Args.def      = 0;
-        Args.saveDir  = '/home/ocs/Documents/WD_survey/Temp/'
+        Args.saveDir  = '/home/ocs/Documents/WD_survey/Temp1/'
         Args.BatchSize = 2;
         
         Args.runMeanFilterArgs = {'Threshold', 5, 'StdFun', 'OutWin'};
@@ -60,7 +60,7 @@ function transitDetectionRoutine(visitGroup,Args)
          %pos(3) = 600;
          set(h, 'Position', pos);
         % Process each CropID individually
-        for c =13: length(uniqueCropIds)
+        for c =1: length(uniqueCropIds)
          
             cropId = uniqueCropIds{c};
             Args.CropID = cropId; % Set the CropID for this iteration
@@ -104,26 +104,7 @@ function transitDetectionRoutine(visitGroup,Args)
 
 
             
-            try
-                a = unique(Args.FieldID);
-                currentFieldID = a{1};
-                if isempty(FieldsID)
-                    FieldsID = currentFieldID;
-                    Args.FIELDID = currentFieldID;
-
-                else
-                    Args.FIELDID = FieldsID;
-
-                    if ~ismember(currentFieldID,FieldsID)
-                        FieldsID = [FieldsID; currentFieldID];
-                        Args.FIELDID = currentFieldID;
-                    end
-                end
             
-
-            catch
-                %
-            end
 
             % Process catalog data (HDF5 files) for this CropID
             msAll = processCatalogData(cropId, subframeHdf5Names,subframeHdf5Folders,Args );
@@ -201,7 +182,7 @@ function transitDetectionRoutine(visitGroup,Args)
                     end
 
 
-                    append(rptPhotometry,forcedChapter)
+                    append(rptCatalog,forcedChapter)
 
                 end
                 
@@ -217,21 +198,22 @@ function transitDetectionRoutine(visitGroup,Args)
 
                          FPAI = generateFPImg(cropId,subframeFitsFolders,subframeFitsNames);
                          forcedMChapter = createChapter(sprintf('Obs Info; visitID %s, Subframe (CropID): %s Nwd: %d', visitID, cropId,height(wdSources)));
-                         appendWDSummaryToReport(forcedMChapter,visitID, cropId, wdSources, Args, FPAI);
-                         append(rptPhotometry,forcedMChapter);
+                         
+                         
                          forcedWDChapter = createChapter(sprintf('Forced Batch; visitID %s, Subframe (CropID): %s', visitID, cropId));
                          processWdSources(wdSources, FPAI, msAll, batchSize, Args.saveDir, Args,forcedWDChapter,rptPhotometry);
                          
-                         
+                         appendWDSummaryToReport(forcedMChapter,visitID, cropId, wdSources, Args, FPAI,RA,Dec);
+                         append(rptPhotometry,forcedMChapter);
 
                 elseif height(wdSources) > 0
 
                      forcedMChapter = createChapter(sprintf('Obs Info; visitID %s, Subframe (CropID): %s Nwd: %d', visitID, cropId,height(wdSources)));
-                     appendWDSummaryToReport(forcedMChapter, visitID, cropId, wdSources, Args, FPAI);
+                     appendWDSummaryToReport(forcedMChapter, visitID, cropId, wdSources, Args, FPAI,RA,Dec);
                      append(rptPhotometry,forcedMChapter);
 
                     forcedWDChapter = createChapter(sprintf('Forced Batch; visitIS %s, Subframe (CropID): %s', visitID, cropId));
-                    processWdSources(wdSources, FPAI, msAll, batchSize, Args.saveDir, Args,forcedWDChapter,rptPhotometry);
+                    if processWdSources(wdSources, FPAI, msAll, batchSize, Args.saveDir, Args,forcedWDChapter,rptPhotometry);
                     append(rptPhotometry,forcedWDChapter);
 
 
@@ -388,29 +370,24 @@ function [FP,results,lcData] = applyFP(AI,wdTable,Iwd,momentMaxIter)
         'ColNames', {'RA', 'Dec', 'X', 'Y', 'Xstart', 'Ystart', 'Chi2dof', 'FLUX_PSF', 'FLUXERR_PSF', 'MAG_PSF', 'MAGERR_PSF', 'BACK_ANNULUS',...
         'STD_ANNULUS', 'FLUX_APER', 'FLAG_POS', 'FLAGS'},...
         'MomentMaxIter',momentMaxIter,'UseMomCoo',true,'HeaderZP',true,'ReconstructPSF',false,'constructPSFArgs' , {'RepopulatePSF' true 'ThresholdPSF' 20 'RangeSN' [50,1000] 'RadiusPSF' 6} );
-     nFiles       = numel(FPAI);  
-           LimMag  = NaN(nFiles, 1); 
-            airmass = NaN(nFiles, 1);
-           catJD   = NaN(nFiles, 1);
-            Args.FWHM    = NaN(nFiles, 1);
-            Args.FieldID = cell(nFiles, 1);
+     nFiles       = numel(AI);  
+     limMag  = NaN(nFiles, 1); 
+     airmass = NaN(nFiles, 1);
+     catJD   = NaN(nFiles, 1);
+     FWHM    = NaN(nFiles, 1);
+     FieldID = cell(nFiles, 1);
 
             try
 
-                Args.LimMag = arrayfun(@(x) x.Key.LIMMAG, FPAI)';
+                limMag = arrayfun(@(x) x.Key.LIMMAG, AI)';
            
             catch
-                Args.LimMag = arrayfun(@(x) x.Key.AIRMASS+18, FPAI)';
+                limMag = arrayfun(@(x) x.Key.AIRMASS+20, AI)';
                 
 
             end
             
-            Args.airmass = arrayfun(@(x) x.Key.AIRMASS, FPAI)';
-            Args.catJD = arrayfun(@(x) x.Key.JD, FPAI)';
-            Args.FWHM = arrayfun(@(x) x.Key.FWHM, FPAI)';
-            Args.FieldID = arrayfun(@(x) x.Key.FIELDID, FPAI,'UniformOutput',false);
-
-    limMag = arrayfun(@(x) x.Key.LIMMAG, AI)';
+       
     airmass = arrayfun(@(x) x.Key.AIRMASS, AI)';
     JD = arrayfun(@(x) x.Key.JD, AI)';
     FWHM = arrayfun(@(x) x.Key.FWHM, AI)';
@@ -1094,7 +1071,7 @@ end
 
 
 
-function processWdSources(wdSources, FPAI, MS, batchSize, saveDir,args,chapter,Rpt)
+function report = processWdSources(wdSources, FPAI, MS, batchSize, saveDir,args,chapter,Rpt)
     % Function to process WD sources and perform forced photometry, catalog comparison, and plotting
     % Inputs:
     %   wdSources  - Table of WD sources to process, containing RA and Dec columns
@@ -1667,7 +1644,7 @@ end
 
 
 
-function appendWDSummaryToReport(forcedChapter, b, cropId, wdSources, args, FPAI)
+function appendWDSummaryToReport(forcedChapter, b, cropId, wdSources, args, FPAI,fieldRA, fieldDec)
     import mlreportgen.dom.*;
     import mlreportgen.report.*;
 
@@ -1681,7 +1658,7 @@ function appendWDSummaryToReport(forcedChapter, b, cropId, wdSources, args, FPAI
 
     % Calculate and append the field center coordinates
     
-    [fieldRA, fieldDec] = calculateFieldCenter(FPAI);
+    %[fieldRA, fieldDec] = calculateFieldCenter(FPAI);
     fieldCenterPara = Paragraph(sprintf('Field Center - RA: %.5f, Dec: %.5f', fieldRA, fieldDec));
     fieldCenterPara.Style = {Bold(true), Color('Indigo'), FontSize('11pt')};
     append(wdSummarySec, fieldCenterPara);

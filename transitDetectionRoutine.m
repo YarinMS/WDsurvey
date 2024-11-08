@@ -6,7 +6,7 @@ function transitDetectionRoutine(visitGroup,Args)
     arguments
         visitGroup
         Args.def      = 0;
-        Args.saveDir  = '/home/ocs/Documents/WD_survey/Temp/'
+        Args.saveDir  = '/home/ocs/Documents/WD_survey/Temp1/'
         Args.BatchSize = 2;
         
         Args.runMeanFilterArgs = {'Threshold', 5, 'StdFun', 'OutWin'};
@@ -104,26 +104,7 @@ function transitDetectionRoutine(visitGroup,Args)
 
 
             
-            try
-                a = unique(Args.FieldID);
-                currentFieldID = a{1};
-                if isempty(FieldsID)
-                    FieldsID = currentFieldID;
-                    Args.FIELDID = currentFieldID;
-
-                else
-                    Args.FIELDID = FieldsID;
-
-                    if ~ismember(currentFieldID,FieldsID)
-                        FieldsID = [FieldsID; currentFieldID];
-                        Args.FIELDID = currentFieldID;
-                    end
-                end
             
-
-            catch
-                %
-            end
 
             % Process catalog data (HDF5 files) for this CropID
             msAll = processCatalogData(cropId, subframeHdf5Names,subframeHdf5Folders,Args );
@@ -201,7 +182,7 @@ function transitDetectionRoutine(visitGroup,Args)
                     end
 
 
-                    append(rptPhotometry,forcedChapter)
+                    append(rptCatalog,forcedChapter)
 
                 end
                 
@@ -216,23 +197,30 @@ function transitDetectionRoutine(visitGroup,Args)
                     
 
                          FPAI = generateFPImg(cropId,subframeFitsFolders,subframeFitsNames);
+                         
+                         
+                         forcedWDChapter = createChapter(sprintf('Forced Batch; visitID %s, Subframe (CropID): %s', visitID, cropId));
+                         if processWdSources(wdSources, FPAI, msAll, batchSize, Args.saveDir, Args,forcedWDChapter,rptPhotometry);
+                         append(rptPhotometry,forcedWDChapter);
                          forcedMChapter = createChapter(sprintf('Obs Info; visitID %s, Subframe (CropID): %s Nwd: %d', visitID, cropId,height(wdSources)));
                          appendWDSummaryToReport(forcedMChapter,visitID, cropId, wdSources, Args, FPAI,RA,Dec);
                          append(rptPhotometry,forcedMChapter);
-                         forcedWDChapter = createChapter(sprintf('Forced Batch; visitID %s, Subframe (CropID): %s', visitID, cropId));
-                         processWdSources(wdSources, FPAI, msAll, batchSize, Args.saveDir, Args,forcedWDChapter,rptPhotometry);
                          
-                         
+                         end
 
                 elseif height(wdSources) > 0
 
-                     forcedMChapter = createChapter(sprintf('Obs Info; visitID %s, Subframe (CropID): %s Nwd: %d', visitID, cropId,height(wdSources)));
-                     appendWDSummaryToReport(forcedMChapter, visitID, cropId, wdSources, Args, FPAI,RA,Dec);
-                     append(rptPhotometry,forcedMChapter);
+                     
+                     
 
                     forcedWDChapter = createChapter(sprintf('Forced Batch; visitIS %s, Subframe (CropID): %s', visitID, cropId));
-                    processWdSources(wdSources, FPAI, msAll, batchSize, Args.saveDir, Args,forcedWDChapter,rptPhotometry);
-                    append(rptPhotometry,forcedWDChapter);
+                    if processWdSources(wdSources, FPAI, msAll, batchSize, Args.saveDir, Args,forcedWDChapter,rptPhotometry);
+                        append(rptPhotometry,forcedWDChapter);
+                        forcedMChapter = createChapter(sprintf('Obs Info; visitID %s, Subframe (CropID): %s Nwd: %d', visitID, cropId,height(wdSources)));
+                        appendWDSummaryToReport(forcedMChapter, visitID, cropId, wdSources, Args, FPAI,RA,Dec);
+                    
+                    end
+                       
 
 
                         
@@ -412,12 +400,12 @@ function [FP,results,lcData] = applyFP(AI,wdTable,Iwd,momentMaxIter)
 
     mms = FP.setBadPhotToNan('BadFlags', {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'}, 'MagField', 'MAG_PSF', 'CreateNewObj', true);
    
-    NdetGood = sum(~isnan(mms.Data.MAG_PSF), 1);
+    NdetGood = sum((mms.Data.MAG_PSF ~= 25), 1);
     Fndet = NdetGood > 0.15*mms.Nepoch ;
     Fndet(1) = 1;
     mms = mms.selectBySrcIndex(Fndet, 'CreateNewObj', false);
 
-    r = lcUtil.zp_meddiff(mms, 'MagField', {'MAG_PSF'}, 'MagErrField', {'MAGERR_PSF'});
+    r = lcUtil.zp_meddiff(mms, 'MagField', {'MAG_PSF'}, 'MagErrField', {'MAGERR_PSF'},'MinNsrc' ,3);
     [ms, ~] = applyZP(mms, r.FitZP, 'ApplyToMagField', {'MAG_PSF'});
     lcData.lc = ms.Data.MAG_PSF(:,1);
     lcData.JD = ms.JD;
@@ -1089,7 +1077,7 @@ end
 
 
 
-function processWdSources(wdSources, FPAI, MS, batchSize, saveDir,args,chapter,Rpt)
+function report = processWdSources(wdSources, FPAI, MS, batchSize, saveDir,args,chapter,Rpt)
     % Function to process WD sources and perform forced photometry, catalog comparison, and plotting
     % Inputs:
     %   wdSources  - Table of WD sources to process, containing RA and Dec columns

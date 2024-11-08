@@ -1,4 +1,4 @@
-function checkForNewDirectories1(folderPath, N, logFile)
+function checkForNewDirectories12(folderPath, N, logFile)
 
     persistent waitStartTime;
     
@@ -33,22 +33,7 @@ function checkForNewDirectories1(folderPath, N, logFile)
     % Check for Field ID and consecutive batches of N
     [validGroups, fieldIDs] = groupByFieldAndConsecutive(visitDirs, N, folderPath);
     
-    % If the last group is smaller than N and hasn't reached the 25-minute limit, wait
-    if numel(validGroups) > 0 && numel(validGroups{end}) < N
-        if isempty(waitStartTime)
-            waitStartTime = datetime('now');
-        end
-        elapsedTime = minutes(datetime('now') - waitStartTime);
-        if elapsedTime < 2
-            fprintf('Waiting for more visits to fill the last group... Time elapsed: %.2f minutes.\n', elapsedTime);
-            return;
-        else
-            fprintf('25 minutes elapsed. Processing available groups.\n');
-            waitStartTime = []; % Reset wait time
-        end
-    else
-        waitStartTime = []; % Reset wait time if we have a full group
-    end
+ 
 
     % Process each valid group and update the log file
     for i = 1:numel(validGroups)
