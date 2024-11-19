@@ -1,6 +1,6 @@
-function wdSources = findWhiteDwarfsM(RA, Dec, fieldCoords)
+function wdSources = findWhiteDwarfsL(RA, Dec, fieldCoords)
     PWD = pwd;
-    cd('~/marvin/catsHTM/WD/WDEDR3/')
+    cd('~/Downloads/WD/WDEDR3/')
     % FINDWHITEDWARFS Queries and finds white dwarf candidates in the field
     % Inputs:
     %   RA, Dec - Coordinates of the image field center
