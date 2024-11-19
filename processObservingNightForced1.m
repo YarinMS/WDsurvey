@@ -19,7 +19,7 @@ function processObservingNightForced1(mount, telescope, year, month, day, batchS
         day
         batchSize
         args.saveDir = '~/Documents/Temp/WD_survey/New';
-        args.runMeanFilterArgs = {'Threshold', 6.5, 'StdFun', 'OutWin'};
+        args.runMeanFilterArgs = {'Threshold', 5, 'StdFun', 'OutWin'};
 
     end
 

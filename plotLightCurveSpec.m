@@ -1,8 +1,9 @@
 function plotLightCurveSpec(results, Iwd, Ibatch, LC, Methods,flux, FluxMethods)
                 t = datetime(LC.JD, 'ConvertFrom', 'jd');
-                y = LC.lc;
-                c = LC.Ctrl.CtrlStar;
-                C = LC.Ctrl.medLc;
+                [t,sidx] = sort(t);
+                y = LC.lc(sidx);
+                c = LC.Ctrl.CtrlStar(sidx);
+                C = LC.Ctrl.medLc(sidx);
                 lm = LC.limMag;
                 lmt = datetime(LC.catJD, 'ConvertFrom', 'jd');
                 

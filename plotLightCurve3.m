@@ -1,0 +1,62 @@
+function plotLightCurve3(results, Iwd, Ibatch, LC, Methods,flux, FluxMethods,WD)
+    t = datetime(LC.JD, 'ConvertFrom', 'jd');
+    [t,sidx] = sort(t);
+    y = LC.lc(sidx);
+    c = LC.Ctrl.CtrlStar(sidx);
+    C = LC.Ctrl.medLc(sidx);
+   
+    [lmt,sidx] = sort(datetime(LC.catJD(sidx), 'ConvertFrom', 'jd'));
+     lm = LC.limMag(sidx);
+    
+    plot(t, y, 'O-','Color', [0.25, 0.25, 0.25], 'LineWidth', 2,'DisplayName', sprintf('$\\sigma =$ %.3f',std(y,'omitnan')));
+    hold on;
+    
+    WDtransits3.plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods, FluxMethods);
+    
+    plot(lmt, lm, 's-','Color', [0.6350, 0.0780, 0.1840],'LineWidth', 1.5,'DisplayName', 'Lim Mag');
+    
+    if ~isempty(c)
+       % plot(t, c, '-','Color',[0, 0.4470, 0.7410], 'LineWidth', 1.0,'DisplayName', 'Control Star');
+    end
+
+    plot(t, C, '-','Color',[0, 0.4470, 0.7410], 'LineWidth', 1,'DisplayName', 'Control LC');
+    
+    if ~isempty(LC.nanIndices)
+      %  plot(t(LC.nanIndices), y(LC.nanIndices), 'kx', 'MarkerSize', 15,'DisplayName', 'NaNs');
+    end
+    
+    WDtransits3.formatLightCurvePlot(LC, Methods, y,flux);
+    
+
+      % Compute event metrics using processDetectedEvents function
+    eventMetrics = processDetectedEvents3(results{Iwd}, LC);
+    
+    % Extract data from WD table
+    fieldID = LC.Table.FieldID;
+    CropID = LC.Table.Subframe; % CropID or Subframe
+    BpRp = LC.Table.BpRp;
+    Pwd = LC.Table.Pwd;
+    AbsMag = LC.Table.AbsMag;
+
+% Retrieve the existing title
+    currentTitle = get(get(gca, 'Title'), 'String');
+    
+    % Additional title rows with WD data and event metrics
+    newTitle = sprintf('Field ID: %s, CropID: %d, BpRp: %.3f, Pwd: %.4f, AbsMag: %.3f\n', ...
+                       fieldID, CropID, BpRp, Pwd, AbsMag);
+    newTitle = [newTitle, ...
+                sprintf('Out of Event - Std: %.3f, Median: %.3f, Detected Points: %d, Depth: %.3f, SDdiff: %.3f', ...
+                        eventMetrics.stdOutOfEvent, eventMetrics.medianOutOfEvent, ...
+                        eventMetrics.numDetectedPoints, eventMetrics.eventDepth, ...
+                        eventMetrics.SDdiff)];
+
+    % Combine the existing title with the new information
+    finalTitle = {currentTitle{:}, newTitle};
+
+    % Set the final title
+    title(finalTitle);
+
+    ylabel('Magnitude');
+
+
+end

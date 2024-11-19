@@ -505,10 +505,6 @@ end
                 lcData.Coords = [MSra,MSdec];
                 lcData.JD = mms.JD;
                 lcData.lc = mms.Data.MAG_PSF(:, ind);
-                if sum(isnan(lcData.lc)) > 0.70*length(lcData.lc) 
-                     lcData.Res = 'Source dont have enough detections';
-                     return;
-                end
                 lcData.lc_2 = mms.Data.MAG_APER_2(:, ind);
                 lcData.lc_3 = mms.Data.MAG_APER_3(:, ind);
                 lcData.lcErr = mms.Data.MAGERR_PSF(:, ind);
@@ -747,8 +743,8 @@ end
                     return;
             end
 
- % ORIGINAL :           if sum(lcData.nanIndices) < args.Ndet*args.Nvisits
-            if  1 > 0 
+            if sum(lcData.nanIndices) < args.Ndet*args.Nvisits
+
                 results.detection1 = WDtransits3.detectConsecutivePoints(lcData, args,false);
                 results.detection1flux = WDtransits3.detectConsecutivePoints(lcData, args,true);
                 results.detection2 = WDtransits3.runMeanFilter(lcData, args,false);
@@ -1595,9 +1591,8 @@ end
                 y = LC.lc(sidx);
                 c = LC.Ctrl.CtrlStar(sidx);
                 C = LC.Ctrl.medLc(sidx);
-               
+                [lm,sidx] = sort(LC.limMag(sidx));
                 [lmt,sidx] = sort(datetime(LC.catJD(sidx), 'ConvertFrom', 'jd'));
-                 lm = LC.limMag(sidx);
                 
                 plot(t, y, 'O-','Color', [0.25, 0.25, 0.25], 'LineWidth', 2,'DisplayName', sprintf('$\\sigma =$ %.3f',std(y,'omitnan')));
                 hold on;
@@ -1657,7 +1652,7 @@ end
                 title(sprintf('Detect in Method %s \n %s , %s', formatStr, LC.Tel, LC.Date));
                 
                 xlabel(sprintf('Coord : %.6f , %.6f ;\n Gmag = %.3f', LC.Table.RA, LC.Table.Dec, LC.Table.Gmag));
-                if flux ==9
+                if flux
                     legend('show', 'Location', 'southwest');
                 else
                     legend('show', 'Location', 'northwestoutside');

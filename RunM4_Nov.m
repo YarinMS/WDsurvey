@@ -1,7 +1,7 @@
 
  
  % Parameters
-folderPath = '/last04e/data1/archive/LAST.01.04.01/2024/11/01/proc';
+folderPath = '/home/yarinms/marvin/LAST.01.04.01/2024/10/22/proc';
 N = 2; % Minimum number of new directories required
 
 logFolderPath = '~/Documents/WD_survey/Temp1/';
