@@ -17,7 +17,9 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
     
     %% Default parameters
     set(0, 'DefaultFigureWindowStyle', 'docked');
-    
+    set(0, 'DefaultTextInterpreter', 'latex');
+    set(0, 'DefaultAxesTickLabelInterpreter', 'latex');
+    set(0, 'DefaultLegendInterpreter', 'latex');
     
     
 
@@ -48,7 +50,7 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
     fullPath = fullfile(basePath, dateFolder);
 
      
-    % Initialize the catalog analysis report
+
     if ~exist(args.saveDir, 'dir')
         mkdir(args.saveDir);
     end
@@ -76,6 +78,11 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
         for subframeIdx = 1:length(catFiles)
             % Get the current subframe file
             catFilePath = fullfile(catFiles(subframeIdx).folder, catFiles(subframeIdx).name);
+            % Make sure you take the correct CropID
+            pattern = '_\d{3}_\d{3}_(\d{3})_sci_proc';
+            tokens = regexp(catFiles(subframeIdx).name, pattern, 'tokens', 'once');
+            cropIDs = str2double(tokens{1});
+
             
             % Extract RA, Dec, and field coordinates for the current subframe
             [subframeRA, subframeDec, fieldCoordsSF] = getMScoordsFromCat(catFilePath);
@@ -86,14 +93,18 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
             % Check if the result is non-empty
             if ~isempty(wdSources)
                 % Add subframe (crop) ID and field ID columns
-                wdSources.CropID = repmat(subframeIdx, height(wdSources), 1);  % Add crop ID (subframe index)
+                wdSources.CropID = repmat(cropIDs, height(wdSources), 1);  % Add crop ID (subframe index)
                 wdSources.FieldID = repmat(string(uniqueFields(Ifield)), height(wdSources), 1);  % Add field ID as a string
-                wdSources.Detected = repmat(false,height(wdSources),1);
+                wdSources.catDetected = repmat(false,height(wdSources),1);
+                wdSources.forcedDetected = repmat(false,height(wdSources),1);
                 wdSources.Nvisits = repmat(totalVisits,height(wdSources),1);
                 wdSources.BatchSize = repmat(batchSize,height(wdSources),1);
                 wdSources.Nbatch = repmat(length(Batches),height(wdSources),1);
-                wdSources.BatchDetections = repmat(0,height(wdSources),1);
+                wdSources.catBatchDetections = repmat(0,height(wdSources),1);
+                wdSources.forcedBatchDetections = repmat(0,height(wdSources),1);
                 wdSources.Nevents = repmat(0,height(wdSources),1);
+                wdSources.NeventsF = repmat(0,height(wdSources),1);
+                wdSources.DB = zeros(height(wdSources),length(Batches)) ;
                 % Append to the combined table
                 combinedWdSources = [combinedWdSources; wdSources];
             end
@@ -101,11 +112,15 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
 
 
         % Find unique rows based on 'RA' and 'Dec' columns
-        [uniqueRows, uniqueIdx] = unique(combinedWdSources(:, {'RA', 'Dec'}), 'rows');
+       % [uniqueRows, uniqueIdx] = unique(combinedWdSources(:, {'RA', 'Dec'}), 'rows');
         
         % Use the unique indices to get the rows without duplicates
-        WDtable = combinedWdSources(uniqueIdx, :);
+        WDtable = combinedWdSources;
         WDtable.BatchData = cell(height(WDtable), 1); 
+        WDtable.BatchDataF = cell(height(WDtable), 1); 
+        
+        % Helper function to check if events are detected
+        isEventDetected = @(events) ~isempty(events);
 
         
         
@@ -152,11 +167,104 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                 %% analyaze WDs
 
                 for Iwd = 1:numel(cropWDs)
+                    fprintf('\nIwd = %i ; cropID =%i, batch = %i\n',Iwd,cropID,b)
                     WD = WDtable(cropWDs(Iwd), :);
                     WD = pmProp(WD, 'Date', obsData.catJD(1));
-                    batchData ={};
+                    WDtable = pmProp(WDtable, 'Date',obsData.catJD(1));
+                    
+                    
+                    batchData  = {};
+                    batchDataF = {};
 
-                    %% FP required
+                    %% FP if exist
+                    if ~isempty(imagesFP)
+                        
+                        % Get mask and PSF files.
+                        maskFP = cellfun(@(x) strrep(x, 'Image', 'Mask'), imagesFP, 'UniformOutput', false);
+                        psfFP  = cellfun(@(x) strrep(x, 'Image', 'PSF'), imagesFP, 'UniformOutput', false);
+
+
+                        AI = AstroImage(imagesFP,'Mask',maskFP,'PSF',psfFP);
+                        
+                        
+                        if b ==4
+                            tt = 1
+                        end
+              
+                        [FPms,FPresults,lcDataFP] = applyFPlast(AI,WDtable,Iwd,50);
+                        
+                        if isfield(lcDataFP,'lc')
+                            if sum(lcDataFP.limMag-lcDataFP.lc < 0) > 0.3*length(lcDataFP.lc)  
+
+                                batchDataF.ValidPoints = sum(lcDataFP.limMag-lcDataFP.lc > 0);
+                                batchDataF.Event   = false;
+                                batchDataF.Median  = mean(lcDataFP.lc);
+                                batchDataF.StdDev  = std(lcDataFP.lc);
+                                batchDataF.lcData  = lcDataFP;
+                                batchDataF.Results = FPresults;
+
+
+
+                            else
+                                % store results
+
+                                batchDataF.TelescopeID = args.Tel;
+                                batchDataF.Date   = args.Date;
+                                batchDataF.lcData = lcDataFP;
+                                batchDataF.Results = FPresults;
+                                batchDataF.ValidPoints = sum(lcDataFP.limMag-lcDataFP.lc > 0);
+                                eventMetricsF = processDetectedEvents3(FPresults, lcDataFP);
+                                batchDataF.eventMetrics = eventMetricsF;
+
+                                if batchDataF.ValidPoints > 0.15*length(lcDataFP.lc)
+                                    WD.forcedBatchDetections = WD.forcedBatchDetections +1;
+                                    WD.forcedDetected = true;
+                                end
+
+                                batchDataF.Detected = isEventDetected(FPresults.detection1.events) || isEventDetected(FPresults.detection2.events);
+                                batchDataF.FluxDetected = isEventDetected(FPresults.detection1flux.events) || isEventDetected(FPresults.detection2flux.events);
+
+                                % Methods and FluxMethods arrays indicating which detection types have events
+                                batchDataF.Methods = [isEventDetected(FPresults.detection1.events), isEventDetected(FPresults.detection2.events)];
+                                batchDataF.FluxMethods = [isEventDetected(FPresults.detection1flux.events), isEventDetected(FPresults.detection2flux.events)];
+
+
+
+                                % If detected sum N events
+                                    if any(batchDataF.Methods) || any(batchDataF.FluxMethods)
+
+
+                                        batchDataF.Event = true;
+                                        WD.NeventsF = WD.NeventsF + 1;
+
+                                        if args.PlotNSave
+
+
+
+
+                                            lcDataFP.Tel = args.Tel;
+                                            lcDataFP.Date = strcat(args.Date,' (FP)');
+                                            plotAndSaveSingleLightCurve(FPresults, lcDataFP, args.saveDir, WDtable, Iwd)
+                                        end
+
+                                    else
+                                        batchDataF.Event = false;
+
+                                    end
+
+
+
+
+
+                            end
+                            
+                        else
+                               
+                            batchDataF.lcData  = lcDataFP;
+                            batchDataF.Results = FPresults;
+            
+                         end
+                    end
 
                     %% Catalogs
 
@@ -173,14 +281,10 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                 
                         batchData.ValidPoints = length(nanIdx) - sum(nanIdx);
                         batchData.NumNaNs = sum(nanIdx);
-                        batchData.BadFlags = false;
-                        batchData.Event = false;
-                        batchData.Median = NaN;
-                        batchData.StdDev = NaN;
-                        batchData.RMS = NaN;
+                       
                     else
-                        %% Detection methods
-                        [lcData, results] = getCatLC2(mms, WD, args)
+                        % Detection methods
+                        [lcData, results] = getCatLC2(mms, WD, args);
                         % Calculate statistics when mms is non-empty
 
 
@@ -196,6 +300,9 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
 
 
                         else
+                            
+                                batchData.TelescopeID = args.Tel;
+                                batchData.Date   = args.Date;
                                 batchData.lcData = lcData;
                                 batchData.Results = results;
                                 batchData.ValidPoints = sum(~isnan(nanIdx));
@@ -203,15 +310,14 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                                 batchData.eventMetrics = eventMetrics;
         
                                 if batchData.ValidPoints > 0.85*length(lcData.lc)
-                                    WD.BatchDetections = WD.BatchDetections +1;
-                                    WD.Detected = true;
+                                    WD.catBatchDetections = WD.catBatchDetections +1;
+                                    WD.catDetected = true;
                                 end
                                     
         
                                
         
-                                % Helper function to check if events are detected
-                                isEventDetected = @(events) ~isempty(events);
+                                
         
         
                              
@@ -222,7 +328,7 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                                 batchData.Methods = [isEventDetected(results.detection1.events), isEventDetected(results.detection2.events)];
                                 batchData.FluxMethods = [isEventDetected(results.detection1flux.events), isEventDetected(results.detection2flux.events)];
                                 
-                                
+                            
 
 
                                 % If detected sum N events
@@ -251,6 +357,26 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                                     batchData.Event = false;
         
                                 end
+                                
+                                
+                                if isfield(batchDataF,'Methods')
+                                    fluxFlag = any(batchDataF.Methods) || any(batchDataF.FluxMethods);
+                                    catFlag  = any(batchData.Methods) || any(batchData.FluxMethods);
+                                    DetectionFlag = fluxFlag && catFlag;
+
+                                    if DetectionFlag 
+                                        wdSources.DB(cropWDs(Iwd),b) = 1;
+                                        results.res.Detected = batchData.Detected ;
+                                        results.res.Detected = batchData.FluxDetected ;
+
+
+                                        results.Methods =    batchData.Methods ;
+                                        results.FluxMethods = batchData.FluxMethods ;
+                                        lcData.Tel = args.Tel;
+                                        lcData.Date = args.Date;
+                                        plotAndSaveLightCurves1(FPresults, lcDataFP, results, {lcData}, args.saveDir, WDtable, Iwd);
+                                    end
+                                end
 
                         end
 
@@ -266,8 +392,13 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                         % Initialize as empty array if this is the first entry
                         WDtable.BatchData{cropWDs(Iwd)} = [];
                     end
+                    if isempty(WDtable.BatchDataF{cropWDs(Iwd)})
+                        % Initialize as empty array if this is the first entry
+                        WDtable.BatchDataF{cropWDs(Iwd)} = [];
+                    end
                     WDtable(cropWDs(Iwd),:) = WD;
                     WDtable.BatchData{cropWDs(Iwd)} = [ WDtable.BatchData{cropWDs(Iwd)} {batchData}];  % Append the batchData structure
+                    WDtable.BatchDataF{cropWDs(Iwd)} = [ WDtable.BatchDataF{cropWDs(Iwd)} {batchDataF}];
                     
                 end
 

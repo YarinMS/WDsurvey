@@ -696,7 +696,7 @@ end
 
             else
                 args.Ndet =0;
-                lcData =  transitSearch.getControl(mms,ind,args);
+                lc =  transitSearch.getControl(mms,ind,args);
             end
         end
 

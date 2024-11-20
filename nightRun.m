@@ -1,4 +1,4 @@
-function Res = nightRun(mount,tel,year,month,day,Args)
+function Res = nightRun(mount,tel,year,month,day,batchSize,Args)
 
 
 arguments
@@ -19,11 +19,15 @@ arguments
     
 end % Arguments
 
+  if ~exist(Args.SaveDir, 'dir')
+        mkdir(Args.SaveDir);
+  end
 
 
-    tab = WDmain(m, tel, year,month,day, batchSize);
 
-    stackedWDtable = vertcat(tab{:});
+    tab = WDmainLAST(mount, tel, year,month,day, batchSize,'PlotNSave',true);
+
+    save(strcat(Args.SaveDir,sprintf('Results_table_%s_%s.mat',Args.Tel,Args.Date)),'tab');
     
     
     

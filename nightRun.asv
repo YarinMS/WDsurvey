@@ -1,4 +1,4 @@
-function Res = nightRun(mount,tel,year,month,day,Args)
+function Res = nightRun(mount,tel,year,month,day,batchSize,Args)
 
 
 arguments
@@ -8,6 +8,7 @@ arguments
     year double
     month double
     day  double
+    batchSize double
     
     
     Args.Date    =  sprintf('%04d-%02d-%02d',year,month,day);
@@ -18,10 +19,18 @@ arguments
     
 end % Arguments
 
+  if ~exist(Args.SaveDir, 'dir')
+        mkdir(Args.SaveDir);
+  end
 
 
 
+    tab = WDmainLAST1(mount, tel, year,month,day, batchSize,'PlotNSave',false);
 
+    save(strcat(Args.SaveDir,sprintf('Results_table_%s_%s.mat',Args.Tel,Args.Date)),'tab');
+    
+    
+    
 
 
 
