@@ -162,7 +162,11 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                 List.FileName = {MSfiles.name};
                 List.Folder   = {MSfiles.folder};
                 List.CropID   = cropID;
-                MS = MatchedSources.readList(List);
+                if ~isempty(List.FileName)
+                    MS = MatchedSources.readList(List);
+                else
+                    MS =[]
+                end
 
                 %% analyaze WDs
 
@@ -267,8 +271,17 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                     end
 
                     %% Catalogs
+                    nodata = false;
+                    if ~isempty(MS)
+                        
 
-                    [mms, nanIdx] = searchNclean(MS, WD, args);
+                        [mms, nanIdx] = searchNclean(MS, WD, args);
+                        
+                    else
+                        mms = []
+                        nodata =   true;
+                        
+                    end
                     
                     % Create a structure to hold batch-specific data for this WD
                     
@@ -281,6 +294,9 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                 
                         batchData.ValidPoints = length(nanIdx) - sum(nanIdx);
                         batchData.NumNaNs = sum(nanIdx);
+                        if nodata
+                            BatchData.Data = 'Data dont exist';
+                        end
                        
                     else
                         % Detection methods

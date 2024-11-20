@@ -8,19 +8,30 @@ function [FP,results,lcData] = applyFPlast(AI,wdTable,Iwd,momentMaxIter)
         'STD_ANNULUS', 'FLUX_APER', 'FLAG_POS', 'FLAGS'},...
         'MomentMaxIter',momentMaxIter,'UseMomCoo',true,'HeaderZP',true,'ReconstructPSF',false,'constructPSFArgs' , {'RepopulatePSF' true 'ThresholdPSF' 20 'RangeSN' [50,1000] 'RadiusPSF' 6} );
         
-    limMag = arrayfun(@(x) x.Key.LIMMAG, AI)';
-    airmass = arrayfun(@(x) x.Key.AIRMASS, AI)';
-    JD = arrayfun(@(x) x.Key.JD, AI)';
-    FWHM = arrayfun(@(x) x.Key.FWHM, AI)';
+   
+    
+    %limMag = arrayfun(@(x) x.Key.LIMMAG, AI)';
+    %airmass = arrayfun(@(x) x.Key.AIRMASS, AI)';
+    %JD = arrayfun(@(x) x.Key.JD, AI)';
+    %FWHM = arrayfun(@(x) x.Key.FWHM, AI)';
+    
+    obsData      = extractObservationData(AI);
 
+                
+    
+     limMag  = obsData.LimMag;
+     airmass = obsData.airmass;
+     JD      = obsData.catJD;
+     FWHM    = obsData.FWHM;
+   
     mms = FP.setBadPhotToNan('BadFlags', {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'}, 'MagField', 'MAG_PSF', 'CreateNewObj', true);
     
-    if all(all(FP.Data.MAG_PSF == 25))
+    if all(all(FP.Data.MAG_PSF(~isnan(FP.Data.MAG_PSF(:,:))) == 25))
         lcData= 'FailedFP';
         results = 'Failed FP';
         return
     end
-    if all(FP.Data.MAG_PSF(:,1) == 25)
+    if all(FP.Data.MAG_PSF(~isnan(FP.Data.MAG_PSF(:,1)),1) == 25)
         lcData= 'FailedFP';
         results = 'Failed FP';
         return
@@ -36,6 +47,9 @@ function [FP,results,lcData] = applyFPlast(AI,wdTable,Iwd,momentMaxIter)
     FP = ms;
     lcData.lc = ms.Data.MAG_PSF(:,1);
     lcData.JD = ms.JD;
+    
+
+    
     
     lcData.limMag = limMag;
     lcData.catJD = JD;
