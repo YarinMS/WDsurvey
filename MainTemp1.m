@@ -5,7 +5,7 @@ import mlreportgen.dom.*
 year = 2024;
 month = 10;
 day =  31;
-Args.save = '~/Documents/test4/WD_Results';
+Args.save = '~/Projects/NightRun/';
 Args.Date = sprintf('%04d-%02d-%02d',year,month,day);
 Args.ReportName = sprintf('%04d-%02d-%02d_WD_Observation_Report.pdf',year,month,day);
 reportFile = fullfile(Args.save, Args.ReportName);
@@ -75,7 +75,7 @@ for m = [4,8,6,10]
             detFile = fullfile(Args.save, sprintf('%s_%s_DetectionEfficiency.png',Date, telescopeID));
             saveas(gcf, detFile);
             close;
-           img = Image(detFile);
+            img = Image(detFile);
             img.Width = '8in';
             img.Height = '6in';
             add(chapter, img);

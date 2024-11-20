@@ -188,6 +188,8 @@ function stackedWDtable = WDmain(mount, telescope, year, month, day, batchSize,a
 
 
                         else
+                                batchData.TelescopeID = args.Tel;
+                                batchData.Date   = args.Date;
                                 batchData.lcData = lcData;
                                 batchData.Results = results;
                                 batchData.ValidPoints = sum(~isnan(nanIdx));
