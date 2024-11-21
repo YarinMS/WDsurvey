@@ -74,7 +74,7 @@ function plotBatchLightCurves(WD, saveDir,args)
              catalogBatch.Results.Methods =    catalogBatch.Methods ;
              catalogBatch.Results.FluxMethods = catalogBatch.FluxMethods ;
              catalogBatch.lcData.Tel = 'Test'
-             catalogBatch.lcData.Date = 'tester'
+             catalogBatch.lcData = 'tester'
 
             
             plotAndSaveLightCurves1(forcedBatch.Results, forcedBatch.lcData,...

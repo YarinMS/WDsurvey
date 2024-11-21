@@ -95,6 +95,9 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                 % Add subframe (crop) ID and field ID columns
                 wdSources.CropID = repmat(cropIDs, height(wdSources), 1);  % Add crop ID (subframe index)
                 wdSources.FieldID = repmat(string(uniqueFields(Ifield)), height(wdSources), 1);  % Add field ID as a string
+                wdSources.TelID = repmat(cropIDs, height(wdSources), 1);
+                wdSources.ObsDate = repmat(cropIDs, height(wdSources), 1);
+                
                 wdSources.catDetected = repmat(false,height(wdSources),1);
                 wdSources.forcedDetected = repmat(false,height(wdSources),1);
                 wdSources.Nvisits = repmat(totalVisits,height(wdSources),1);
