@@ -1,4 +1,4 @@
-function Res = nightRun(mount,tel,year,month,day,batchSize,Args)
+function tab = nightRun(mount,tel,year,month,day,batchSize,Args)
 
 
 arguments
