@@ -393,7 +393,9 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                                         results.FluxMethods = batchData.FluxMethods ;
                                         lcData.Tel = args.Tel;
                                         lcData.Date = args.Date;
-                                        plotAndSaveLightCurves1(FPresults, lcDataFP, results, {lcData}, args.saveDir, WDtable, Iwd);
+                                        if args.PlotNSave 
+                                            plotAndSaveLightCurves1(FPresults, lcDataFP, results, {lcData}, args.saveDir, WDtable, Iwd);
+                                        end
                                     end
                                 end
 
