@@ -171,7 +171,7 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                 %% analyaze WDs
 
                 for Iwd = 1:numel(cropWDs)
-                    fprintf('\nIwd = %i ; cropID =%i, batch = %i\n',Iwd,cropID,b)
+                    fprintf('\nIwd = %i / %i (%i total) ; cropID =%i, batch = %i / %i \n',Iwd, numel(cropWDs),height(WDtable),cropID,b,length(batches))
                     WD = WDtable(cropWDs(Iwd), :);
                     WD = pmProp(WD, 'Date', obsData.catJD(1));
                     WDtable = pmProp(WDtable, 'Date',obsData.catJD(1));
