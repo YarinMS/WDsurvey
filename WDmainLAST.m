@@ -104,7 +104,7 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                 wdSources.forcedBatchDetections = repmat(0,height(wdSources),1);
                 wdSources.Nevents = repmat(0,height(wdSources),1);
                 wdSources.NeventsF = repmat(0,height(wdSources),1);
-                wdSources.DB = {zeros(height(wdSources),length(Batches)) };
+                wdSources.DB = repmat(0,height(wdSources),length(Batches)) ;
                 % Append to the combined table
                 combinedWdSources = [combinedWdSources; wdSources];
             end
