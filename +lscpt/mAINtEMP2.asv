@@ -56,9 +56,10 @@ for iDate = 1:length(datesDir)
         tab = Tab.tab;
         if ~isempty(tab)
             % Extract telescope and field information from filename
-            tokens = regexp(telescopeFiles(iFile).name, 'Results_table_LAST\.01\.(\d+)\.(\d+)_\d{4}-\d{2}-\d{2}', 'tokens');
+            tokens = regexp(telescopeFiles(iFile).name, 'Results_table_LAST\.01\.(\d+)\.(\d+)_\d{4}-\d{2}-\d{2}', 'tokens','once');
             mountID = tokens{1}{1};
             telescopeID = tokens{1}{2};
+            args.Tel =  telescopeID;
             
             % Create directory to store images
             saveDir = fullfile('~/Documents/MainTest/Reports', datesDir(iDate).name, ['Mount_', mountID, '_Telescope_', telescopeID]);
@@ -72,23 +73,20 @@ for iDate = 1:length(datesDir)
                 % Generate statistics and visualizations
                 numWDs = height(currentTable);
                  % Handle catalog and forced detections
-                if isfield(currentTable, 'catBatchDetections') && isfield(currentTable, 'forcedBatchDetections')
+                 % Handle catalog and forced detections
+                NcatDetected = 0;
+                NforcedDetected = 0;
+                if any(strcmp(currentTable.Properties.VariableNames, 'catDetected'))
                     NcatDetected = sum(currentTable.catDetected);
+                end
+                if any(strcmp(currentTable.Properties.VariableNames, 'forcedDetected'))
                     NforcedDetected = sum(currentTable.forcedDetected);
-                elseif isfield(currentTable, 'catBatchDetections')
-                    NcatDetected = sum(currentTable.catDetected);
-                    NforcedDetected = 0;
-                elseif isfield(currentTable, 'forcedBatchDetections')
-                    NcatDetected = 0;
-                    NforcedDetected = sum(currentTable.forcedDetected);
-                else
-                    NcatDetected = 0;
-                    NforcedDetected = 0;
                 end
                 
                 % Total events
                 totalEvents = {NcatDetected, NforcedDetected, NcatDetected + NforcedDetected};
                 
+                  
                 % Save summary information
                 summaryFile = fullfile(saveDir, ['Summary_Field_', num2str(iField), '.txt']);
                 fid = fopen(summaryFile, 'w');
@@ -109,11 +107,11 @@ for iDate = 1:length(datesDir)
             end
             
             % Loop over WDs within the table to plot light curves
-            for Itgt = 1:height(tab)
-                WD = tab(Itgt,:);
-                if isfield(WD,'batchData')
+            for Itgt = 1:height(currentTable)
+                WD = currentTable(Itgt,:);
+                if any(strcmp(WD.Properties.VariableNames, 'BatchData'))
                     %plotBatchLightCurves(tab(Itgt, :), saveDir);
-                    plotBatchLightCurves(WD, saveDir,args)
+                    plotBatchLightCurves1(WD, saveDir)
                 elseif  isfield(WD,'batchDataF')
                     %
                 end

@@ -26,8 +26,18 @@ function plotBatchLightCurves(WD, saveDir,args)
     end
 
     % Extract BatchData and BatchDataF
-    batchDataArray = WD.BatchData{1};
-    batchDataFArray = WD.BatchDataF{1};
+   if ismember('BatchData', WD.Properties.VariableNames)
+        batchDataArray = WD.BatchData{1};
+    else
+        batchDataArray = []; % Assign a default value
+    end
+    
+    if ismember('BatchDataF', WD.Properties.VariableNames)
+        batchDataFArray = WD.BatchDataF{1};
+    else
+        batchDataFArray = []; % Assign a default value
+    end
+    
 
     % Initialize arrays for catalog and forced photometry
 
@@ -86,7 +96,7 @@ function plotBatchLightCurves(WD, saveDir,args)
                % catalog only (Strange)
                c = 1
 
-           else
+           elseif forcedBatch.Event
                % Forced only (Weak?)
                f=1
                plotAndSaveSingleLightCurve(forcedBatch.Results, forcedBatch.lcData, saveDir, WD,1);

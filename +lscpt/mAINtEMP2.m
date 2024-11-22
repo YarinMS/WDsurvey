@@ -56,10 +56,10 @@ for iDate = 1:length(datesDir)
         tab = Tab.tab;
         if ~isempty(tab)
             % Extract telescope and field information from filename
-            tokens = regexp(telescopeFiles(iFile).name, 'Results_table_LAST\.01\.(\d+)\.(\d+)_\d{4}-\d{2}-\d{2}', 'tokens');
+            tokens = regexp(telescopeFiles(iFile).name, 'Results_table_LAST\.01\.(\d+)\.(\d+)_\d{4}-\d{2}-\d{2}', 'tokens','once');
             mountID = tokens{1}{1};
             telescopeID = tokens{1}{2};
-            args.Tel =  telescopeID;
+            args.Tel =  sprintf('LAST.01.%s.%s',mountID,telescopeID);
             
             % Create directory to store images
             saveDir = fullfile('~/Documents/MainTest/Reports', datesDir(iDate).name, ['Mount_', mountID, '_Telescope_', telescopeID]);
@@ -94,6 +94,9 @@ for iDate = 1:length(datesDir)
                 fprintf(fid, 'Number detected at least once: %d\n', numDetected);
                 fprintf(fid, 'Total events: Catalog Detections: %d, Forced Detections: %d, Both Detections: %d\n', totalEvents{:});
                 fclose(fid);
+
+                if any(totalEvents)
+                    
                 
                 %% ### TODO Plot Detection Probability
                 % detectionProbPlot(currentTable, saveDir, iField);
@@ -111,7 +114,7 @@ for iDate = 1:length(datesDir)
                 WD = currentTable(Itgt,:);
                 if any(strcmp(WD.Properties.VariableNames, 'BatchData'))
                     %plotBatchLightCurves(tab(Itgt, :), saveDir);
-                    plotBatchLightCurves(WD, saveDir)
+                    plotBatchLightCurves1(WD, saveDir)
                 elseif  isfield(WD,'batchDataF')
                     %
                 end

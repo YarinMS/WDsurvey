@@ -6,7 +6,8 @@ function plotAndSaveSingleLightCurve(results, lcData, saveDir, wdSources, Iwd)
     
     % Plot the light curve
     plotLightCurve3({results}, 1, 1, lcData, results.res.Methods, lcData.relFlux, results.res.FluxMethods,wdSources(Iwd,:));
-    axis tight;
+    %axis tight;
+    
     % Retrieve RA and Dec for naming purposes
     RA = wdSources.RA(Iwd);
     Dec = wdSources.Dec(Iwd);
