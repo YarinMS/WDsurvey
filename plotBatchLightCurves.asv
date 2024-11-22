@@ -71,14 +71,26 @@ function plotBatchLightCurves(WD, saveDir,args)
 
         if catFlag && forcedFlag
 
+           if catalogBatch.Event && forcedBatch.Event
+
              catalogBatch.Results.Methods =    catalogBatch.Methods ;
              catalogBatch.Results.FluxMethods = catalogBatch.FluxMethods ;
-             catalogBatch.lcData.Tel = 'Test'
-             catalogBatch.lcData = 'tester'
+             catalogBatch.lcData.Tel = forcedBatch.lcData.Tel;
+             catalogBatch.lcData.Date = forcedBatch.lcData.Date;
 
             
             plotAndSaveLightCurves1(forcedBatch.Results, forcedBatch.lcData,...
                 catalogBatch.Results, {catalogBatch.lcData}, saveDir, WD, 1);
+
+           elseif catalogBatch.Event && ~forcedBatch.Event
+               % catalog only (Strange)
+               c = 1
+
+           else
+               % Forced only (Weak?)
+               f=1
+               plotAndSaveSingleLightCurve(forcedBatch.Results, forcedBatch.lcData, saveDir, WD,1);
+
 
 
         end

@@ -84,7 +84,7 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
             cropIDs = str2double(tokens{1});
 
             
-            % Extract RA, Dec, and field coordinates for the current subframe
+            % Extract RA, Dec, and field coordinateswdSources.TelID for the current subframe
             [subframeRA, subframeDec, fieldCoordsSF] = getMScoordsFromCat(catFilePath);
             
             % Find white dwarfs within this subframe's coordinates
@@ -243,7 +243,7 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
 
                                         batchDataF.Event = true;
                                         WD.NeventsF = WD.NeventsF + 1;
-
+                                        batchDataF.RMS=getRMS2(FPms);
                                         if args.PlotNSave
 
 
@@ -355,7 +355,8 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
 
                                     eventMetrics = processDetectedEvents3(results, lcData);
                                     batchData.eventMetrics = eventMetrics;
-                                    
+                                    batchData.RMS=getRMS2(mms);
+                                        
                                     batchData.Event = true;
                                     WD.Nevents = WD.Nevents + 1;
         

@@ -11,7 +11,9 @@ function plotAndSaveLightCurves1(results, lcData, resCat, lcDataCat, saveDir, wd
     % Plot the catalog light curve
     plotLightCurveSpec({resCat}, 1, 1, lcDataCat{1}, resCat.Methods, lcDataCat{1}.relFlux, resCat.FluxMethods);
     hold off;
-    axis tight;
+    %axis tight;
+    % Tighten the x-axis only
+    xlim([min(lcData.catJD), max(lcData.catJD)]);
     % Retrieve RA and Dec for naming purposes
     RA = wdSources.RA(Iwd);
     Dec = wdSources.Dec(Iwd);
