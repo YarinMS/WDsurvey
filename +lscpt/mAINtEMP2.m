@@ -95,8 +95,8 @@ for iDate = 1:length(datesDir)
                 fprintf(fid, 'Total events: Catalog Detections: %d, Forced Detections: %d, Both Detections: %d\n', totalEvents{:});
                 fclose(fid);
 
-                if any(totalEvents)
-                    
+               
+
                 
                 %% ### TODO Plot Detection Probability
                 % detectionProbPlot(currentTable, saveDir, iField);
