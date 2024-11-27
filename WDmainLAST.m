@@ -168,16 +168,17 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                 if ~isempty(List.FileName)
                     MS = MatchedSources.readList(List);
                 else
-                    MS =[]
+                    MS =[];
                 end
 
                 %% analyaze WDs
+                WDtable = pmProp(WDtable, 'Date',obsData.catJD(1));
 
                 for Iwd = 1:numel(cropWDs)
                     fprintf('\nIwd = %i / %i (%i total) ; cropID =%i, batch = %i / %i \n',Iwd, numel(cropWDs),height(WDtable),cropID,b,length(Batches))
                     WD = WDtable(cropWDs(Iwd), :);
                     WD = pmProp(WD, 'Date', obsData.catJD(1));
-                    WDtable = pmProp(WDtable, 'Date',obsData.catJD(1));
+                    
                     
                     
                     batchData  = {};
@@ -193,12 +194,8 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
 
                         AI = AstroImage(imagesFP,'Mask',maskFP,'PSF',psfFP);
                         
-                        
-                        if b ==4
-                            tt = 1
-                        end
-              
-                        [FPms,FPresults,lcDataFP] = applyFPlast(AI,WDtable,Iwd,50);
+     
+                        [FPms,FPresults,lcDataFP] = applyFPlast(AI,WD,1,50);
                         
                         if isfield(lcDataFP,'lc')
                             if sum(lcDataFP.limMag-lcDataFP.lc < 0) > 0.3*length(lcDataFP.lc)  

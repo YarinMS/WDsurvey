@@ -15,25 +15,23 @@ function [FP,results,lcData] = applyFPlast(AI,wdTable,Iwd,momentMaxIter)
     %JD = arrayfun(@(x) x.Key.JD, AI)';
     %FWHM = arrayfun(@(x) x.Key.FWHM, AI)';
     
-    obsData      = extractObservationData(AH);
-                args.LimMag  = 
-                args.catJD   = 
+    obsData      = extractObservationData(AI);
 
                 
     
-     limMag: obsData.LimMag;
-     airmass: obsData.airmass ;
-     JD = obsData.catJD;
-      FWHM= obsData.FWHM;
+     limMag  = obsData.LimMag;
+     airmass = obsData.airmass;
+     JD      = obsData.catJD;
+     FWHM    = obsData.FWHM;
    
     mms = FP.setBadPhotToNan('BadFlags', {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'}, 'MagField', 'MAG_PSF', 'CreateNewObj', true);
     
-    if all(all(FP.Data.MAG_PSF == 25))
+    if all(all(FP.Data.MAG_PSF(~isnan(FP.Data.MAG_PSF(:,:))) == 25))
         lcData= 'FailedFP';
         results = 'Failed FP';
         return
     end
-    if all(FP.Data.MAG_PSF(:,1) == 25)
+    if all(FP.Data.MAG_PSF(~isnan(FP.Data.MAG_PSF(:,1)),1) == 25)
         lcData= 'FailedFP';
         results = 'Failed FP';
         return
