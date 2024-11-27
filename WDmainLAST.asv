@@ -9,7 +9,7 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
         month
         day
         batchSize
-        args.saveDir = '~/Documents/test3/WD_LC';
+        args.saveDir = '~/Documents/WD_survey/Nov';
         args.runMeanFilterArgs = {'Threshold', 5, 'StdFun', 'OutWin'};
         args.BadFlags = {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'};
         args.PlotNSave = true;
@@ -243,7 +243,8 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
 
                                         batchDataF.Event = true;
                                         WD.NeventsF = WD.NeventsF + 1;
-
+                                        
+                                        batchDataF.RMS=getRMS2(FPms,'MagField','MAG_PSF');
                                         if args.PlotNSave
 
 
@@ -355,7 +356,9 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
 
                                     eventMetrics = processDetectedEvents3(results, lcData);
                                     batchData.eventMetrics = eventMetrics;
-                                    
+                                    mms.bestMag;
+                                    batchData.RMS=getRMS2(mms);
+                                        
                                     batchData.Event = true;
                                     WD.Nevents = WD.Nevents + 1;
         

@@ -9,7 +9,7 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
         month
         day
         batchSize
-        args.saveDir = '~/Documents/test3/WD_LC';
+        args.saveDir = '~/Documents/WD_survey/Nov';
         args.runMeanFilterArgs = {'Threshold', 5, 'StdFun', 'OutWin'};
         args.BadFlags = {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'};
         args.PlotNSave = true;
@@ -174,7 +174,7 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                 %% analyaze WDs
 
                 for Iwd = 1:numel(cropWDs)
-                    fprintf('\nIwd = %i / %i (%i total) ; cropID =%i, batch = %i / %i \n',Iwd, numel(cropWDs),height(WDtable),cropID,b,length(batches))
+                    fprintf('\nIwd = %i / %i (%i total) ; cropID =%i, batch = %i / %i \n',Iwd, numel(cropWDs),height(WDtable),cropID,b,length(Batches))
                     WD = WDtable(cropWDs(Iwd), :);
                     WD = pmProp(WD, 'Date', obsData.catJD(1));
                     WDtable = pmProp(WDtable, 'Date',obsData.catJD(1));
