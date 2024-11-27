@@ -39,9 +39,15 @@ function [batches,Fields] = organizeBatchesWfields(fullPath, batchSize)
             
           % get Field ID
           FN     =  dir(fullfile(checkVisDirs(Iv).folder,checkVisDirs(Iv).name,'*001_001_001_sci_proc_Cat_1.fits'));
-          fullFN = fullfile(FN.folder,FN.name) ;
-          AH = AstroHeader(fullFN,3);
-          visitFields  = [visitFields; {AH.Key.FIELDID}]
+          try
+            fullFN = fullfile(FN.folder,FN.name) ;
+            AH = AstroHeader(fullFN,3);
+            visitFields  = [visitFields; {AH.Key.FIELDID}]
+          catch
+              visitFields = [visitFields];
+              continue;
+          end
+          
         end
 
         [Ufields,Uidx,NewIdx] = unique(visitFields,'rows');

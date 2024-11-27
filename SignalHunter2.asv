@@ -14,6 +14,7 @@ function [MetaTable] = SignalHunter2(MetaTable,mount, telescope, year, month, da
         args.runMeanFilterArgs = {'Threshold', 5, 'StdFun', 'OutWin'};
         args.BadFlags = {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'};
         args.PlotNSave = true;
+        args.ID = '';
 
     end
 
@@ -47,7 +48,7 @@ function [MetaTable] = SignalHunter2(MetaTable,mount, telescope, year, month, da
     % Group visits for different fields. 
     %% Load Visit Directories, Sort consecutively and create batch Visits for Processing
      [batches,Fields] = organizeBatchesWfields(fullPath, batchSize);
-   
+    
     allFieldIDs = vertcat(Fields{:});
     [uniqueFields,~,NewIdx]  = unique(allFieldIDs);
     Nfields = length(uniqueFields);
@@ -55,7 +56,7 @@ function [MetaTable] = SignalHunter2(MetaTable,mount, telescope, year, month, da
 
     % For each field, get WDs in field.
     for Ifield = 1: Nfields
-        fprintf('%s %i/%i fields',uniqueFields{Ifield},Ifield,Nfields)
+        fprintf('%s %i/%i fields\n',uniqueFields{Ifield},Ifield,Nfields)
 
        Batches =  batches(NewIdx == Ifield);
        totalVisits = sum(cellfun(@numel, Batches));
@@ -66,39 +67,39 @@ function [MetaTable] = SignalHunter2(MetaTable,mount, telescope, year, month, da
         combinedWdSources = table();
         
         % Iterate over each subframe (1 to 24)
-        for subframeIdx = 1:length(catFiles)
+        %for subframeIdx = 1:length(catFiles)
             % Get the current subframe file
-            catFilePath = fullfile(catFiles(subframeIdx).folder, catFiles(subframeIdx).name);
+            %catFilePath = fullfile(catFiles(subframeIdx).folder, catFiles(subframeIdx).name);
             
             % Extract RA, Dec, and field coordinates for the current subframe
-            [subframeRA, subframeDec, fieldCoordsSF] = getMScoordsFromCat(catFilePath);
+            %[subframeRA, subframeDec, fieldCoordsSF] = getMScoordsFromCat(catFilePath);
             
             % Find white dwarfs within this subframe's coordinates
-            wdSources = findWhiteDwarfsM(subframeRA, subframeDec, fieldCoordsSF);
+           % wdSources = findWhiteDwarfsM(subframeRA, subframeDec, fieldCoordsSF);
             
             % Check if the result is non-empty
-            if ~isempty(wdSources)
+           % if ~isempty(wdSources)
                 % Add subframe (crop) ID and field ID columns
-                wdSources.CropID = repmat(subframeIdx, height(wdSources), 1);  % Add crop ID (subframe index)
-                wdSources.FieldID = repmat(string(uniqueFields(Ifield)), height(wdSources), 1);  % Add field ID as a string
-                wdSources.Detected = repmat(false,height(wdSources),1);
-                wdSources.Nvisits = repmat(totalVisits,height(wdSources),1);
-                wdSources.BatchSize = repmat(batchSize,height(wdSources),1);
-                wdSources.Nbatch = repmat(length(Batches),height(wdSources),1);
-                wdSources.BatchDetections = repmat(0,height(wdSources),1);
-                wdSources.Nevents = repmat(0,height(wdSources),1);
+            %    wdSources.CropID = repmat(subframeIdx, height(wdSources), 1);  % Add crop ID (subframe index)
+             %   wdSources.FieldID = repmat(string(uniqueFields(Ifield)), height(wdSources), 1);  % Add field ID as a string
+              %  wdSources.Detected = repmat(false,height(wdSources),1);
+               % wdSources.Nvisits = repmat(totalVisits,height(wdSources),1);
+                %wdSources.BatchSize = repmat(batchSize,height(wdSources),1);
+                %wdSources.Nbatch = repmat(length(Batches),height(wdSources),1);
+                %wdSources.BatchDetections = repmat(0,height(wdSources),1);
+                %wdSources.Nevents = repmat(0,height(wdSources),1);
                 % Append to the combined table
-                combinedWdSources = [combinedWdSources; wdSources];
-            end
-        end
+                %combinedWdSources = [combinedWdSources; wdSources];
+           % end
+        %end
 
 
         % Find unique rows based on 'RA' and 'Dec' columns
-        [uniqueRows, uniqueIdx] = unique(combinedWdSources(:, {'RA', 'Dec'}), 'rows');
+        %[uniqueRows, uniqueIdx] = unique(combinedWdSources(:, {'RA', 'Dec'}), 'rows');
         
         % Use the unique indices to get the rows without duplicates
-        WDtable = combinedWdSources(uniqueIdx, :);
-        WDtable.BatchData = cell(height(WDtable), 1); 
+        %WDtable = combinedWdSources(uniqueIdx, :);
+        %WDtable.BatchData = cell(height(WDtable), 1); 
 
         
         
@@ -109,18 +110,18 @@ function [MetaTable] = SignalHunter2(MetaTable,mount, telescope, year, month, da
         %% Iterate over batches of the same field.
 
         for b = 1 : length(Batches)
-            fprintf('%s : Batch # %i / %i',uniqueFields{Ifield},b,length(Batches))
+            fprintf('%s : Batch # %i / %i \n',uniqueFields{Ifield},b,length(Batches))
 
        
             Batch = Batches{b};
             % Analyze every frame of WDs.
             for cropID = 1:24
 
-                cropWDs = find(WDtable.CropID == cropID);
+                %cropWDs = find(WDtable.CropID == cropID);
                 
-                if isempty(cropWDs) 
-                    continue;
-                end
+                %if isempty(cropWDs) 
+                 %   continue;
+                %end
 
 
                 %% Extract subframe products for the entire batch: 
@@ -141,20 +142,27 @@ function [MetaTable] = SignalHunter2(MetaTable,mount, telescope, year, month, da
                 List.FileName = {MSfiles.name};
                 List.Folder   = {MSfiles.folder};
                 List.CropID   = cropID;
-                MS = MatchedSources.readList(List);
-                ms = mergeByCoo(MS, MS(randi(length(MS))));
-                ms.bestMag;
-                MMS = calibMS(ms);
-                MMS.FileName = {MS.FileName};
-                MMS.UserData.CropID = cropID;
+                if ~isempty(List.FileName)
+                    MS = MatchedSources.readList(List);
+                    ms = mergeByCoo(MS, MS(randi(length(MS))));
+                    ms.bestMag;
+                    MMS = calibMS(ms);
+                    MMS.FileName = {MS.FileName};
+                    MMS.UserData.CropID = cropID;
                 
-                [Cand, WDcand, catWDtable, CandidateTable] = findVariableCandidatesTable(MMS, 'Plot',false);
+                    [Cand, WDcand, catWDtable, CandidateTable] = findVariableCandidatesTable(MMS, 'Plot',false);
                 
-                if ~isempty(Cand) 
-                    MetaTable = appendCandidates(Cand, MetaTable, year, month, day, args.Tel, uniqueFields(Ifield), batchSize, Batches,totalVisits);
+                    if ~isempty(Cand) 
+                        MetaTable = appendCandidates(Cand, MetaTable, year, month, day, args.Tel, uniqueFields(Ifield), batchSize, Batches,totalVisits);
+                    
+                        % temp tables
+                        
+                    end
+
                 end
 
             end
         end
     end
+    save(sprintf('/media/yarinms/Data2/Projects/MarvinRuns/%s/Temp_Results_Table_%s_%s_%04d.%02d.%02d.mat',args.ID,args.Date,args.Tel,year,month,day),'MetaTable','-v7.3')
 end

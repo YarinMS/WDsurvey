@@ -12,7 +12,7 @@ end
 
 %% loop over obs night
 
-Mounts = [2:6,8,10,1];
+Mounts = [6,8,10];
 h = waitbar(0)
 Counter = 0 ;
 for Imount = Mounts

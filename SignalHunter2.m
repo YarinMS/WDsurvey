@@ -48,7 +48,7 @@ function [MetaTable] = SignalHunter2(MetaTable,mount, telescope, year, month, da
     % Group visits for different fields. 
     %% Load Visit Directories, Sort consecutively and create batch Visits for Processing
      [batches,Fields] = organizeBatchesWfields(fullPath, batchSize);
-   
+    
     allFieldIDs = vertcat(Fields{:});
     [uniqueFields,~,NewIdx]  = unique(allFieldIDs);
     Nfields = length(uniqueFields);

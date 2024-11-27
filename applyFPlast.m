@@ -73,7 +73,10 @@ function [FP,results,lcData] = applyFPlast(AI,wdTable,Iwd,momentMaxIter)
     lcData.Tel = part{1};
     lcData.Date = part{2};
     lcData.Ctrl = WDtransits3.getCloseControl(ms, 1, {}, ra, dec);
-    enssembeleLC = lcData.Ctrl.medLc;
+    if isfield(lcData.Ctrl,'medLC')
+        enssembeleLC = lcData.Ctrl.medLc;
+    else
+        enssembeleLC = nan(size(lcData.lc));
     deltaMag = lcData.lc - enssembeleLC;
     relFlux = 10.^(-0.4 * deltaMag);
     lcData.relFlux = relFlux / median(relFlux, 'omitnan');
