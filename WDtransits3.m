@@ -1617,11 +1617,12 @@ end
                 end
                 
                 WDtransits3.formatLightCurvePlot(LC, Methods, y,flux);
+                xlim([min(t), max(t)]);
             end
             
             function plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods,FluxMethods)
 
-                markerSize = 6;
+                markerSize = 8;
                 if Methods(1)
                     MarkedEvents = results{Iwd,Ibatch}.detection1.events;
                     plot(t(MarkedEvents), y(MarkedEvents), 'Or', 'MarkerSize', markerSize,'DisplayName','Events');

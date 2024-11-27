@@ -15,11 +15,7 @@ function plotBatchLightCurves1(WD, saveDir, args)
         args.plotOnlyEvents = false;
         args.save = false;
         args.display = true;
-        args.ReportChapter = [];
     end
-
-    import mlreportgen.report.*
-    import mlreportgen.dom.*
 
     % Ensure the save directory exists if saving is enabled
     if ~exist(saveDir, 'dir')
@@ -107,20 +103,17 @@ function plotBatchLightCurves1(WD, saveDir, args)
                     catalogBatch.Results, {catalogBatch.lcData}, saveDir, WD, 1);
             elseif isfield(catalogBatch,'Event') && ~isfield(forcedBatch,'Event')
                 % Catalog only (Strange)
-                catalogBatch.Results.res.Methods = catalogBatch.Methods;
-                catalogBatch.Results.res.FluxMethods = catalogBatch.FluxMethods;
+                catalogBatch.Results.Methods = catalogBatch.Methods;
+                catalogBatch.Results.FluxMethods = catalogBatch.FluxMethods;
                 catalogBatch.lcData.Tel = WD.FieldID;
-                catalogBatch.lcData.Date = WD.ObsDate;
+                catalogBatch.lcData.Date = WD.Date;
                 disp('Catalog only event detected');
-                plotAndSaveSingleLightCurve(catalogBatch.Results, catalogBatch.lcData, saveDir, WD, 1);
+                plotAndSaveSingleLightCurve(catlaogBatch.Results, catalogBatch.lcData, saveDir, WD, 1);
             elseif ~isfield(catalogBatch,'Event') && isfield(forcedBatch,'Event')
                 % Forced only (Weak?)
                 % you need to mention  it is a forced photmetry result
                 plotAndSaveSingleLightCurve(forcedBatch.Results, forcedBatch.lcData, saveDir, WD, 1);
             end
-
-
-        
         
 
 

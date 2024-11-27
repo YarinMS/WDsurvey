@@ -1,0 +1,177 @@
+%% 
+function [MetaTable,mmm,ML] = MSHunter2(ML,MetaTable,mount, telescope, year, month, day, batchSize,args)
+
+% Create path
+ arguments
+        MetaTable
+        mount
+        telescope
+        year
+        month
+        day
+        batchSize
+        args.saveDir = '~/Documents/test3/WD_LC';
+        args.runMeanFilterArgs = {'Threshold', 5, 'StdFun', 'OutWin'};
+        args.BadFlags = {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'};
+        args.PlotNSave = true;
+
+    end
+
+    %% Setup Paths
+
+    if telescope < 3 
+      computer = sprintf('last%02de',mount);
+    else
+      computer = sprintf('last%02dw',mount);
+    end
+
+    
+    
+   basePath  = sprintf('~/marvin/LAST.01.%02d.%02d/', mount,telescope);
+
+   args.Tel  = sprintf('LAST.01.%02d.%02d',mount,telescope);
+   args.Date = sprintf('%i - %i - %i',year,month,day);
+        
+
+    
+    dateFolder = sprintf('%04d/%02d/%02d/proc/', year, month, day);
+    fullPath = fullfile(basePath, dateFolder);
+
+     
+    % Initialize the catalog analysis report
+    if ~exist(args.saveDir, 'dir')
+        mkdir(args.saveDir);
+    end
+
+
+    % Group visits for different fields. 
+    %% Load Visit Directories, Sort consecutively and create batch Visits for Processing
+     [batches,Fields] = organizeBatchesWfields(fullPath, batchSize);
+   
+    allFieldIDs = vertcat(Fields{:});
+    [uniqueFields,~,NewIdx]  = unique(allFieldIDs);
+    Nfields = length(uniqueFields);
+    mainTable = {};
+
+   
+
+    % For each field, get WDs in field.
+    for Ifield = 1: Nfields
+        fprintf('%s %i/%i fields\n',uniqueFields{Ifield},Ifield,Nfields)
+
+        if ~strcmp(uniqueFields{Ifield}, 'MasterOT')
+
+            continue
+        end
+
+       Batches =  batches(NewIdx == Ifield);
+       totalVisits = sum(cellfun(@numel, Batches));
+       B = Batches{1};
+       catFiles = dir(fullfile(B(1).folder,B(1).name,'*001_001_*_sci_proc_Cat_1.fits'));
+       % Intilize WD table
+        % Initialize an empty table to store combined results
+        combinedWdSources = table();
+        
+        % Iterate over each subframe (1 to 24)
+        %for subframeIdx = 1:length(catFiles)
+            % Get the current subframe file
+            %catFilePath = fullfile(catFiles(subframeIdx).folder, catFiles(subframeIdx).name);
+            
+            % Extract RA, Dec, and field coordinates for the current subframe
+            %[subframeRA, subframeDec, fieldCoordsSF] = getMScoordsFromCat(catFilePath);
+            
+            % Find white dwarfs within this subframe's coordinates
+           % wdSources = findWhiteDwarfsM(subframeRA, subframeDec, fieldCoordsSF);
+            
+            % Check if the result is non-empty
+           % if ~isempty(wdSources)
+                % Add subframe (crop) ID and field ID columns
+            %    wdSources.CropID = repmat(subframeIdx, height(wdSources), 1);  % Add crop ID (subframe index)
+             %   wdSources.FieldID = repmat(string(uniqueFields(Ifield)), height(wdSources), 1);  % Add field ID as a string
+              %  wdSources.Detected = repmat(false,height(wdSources),1);
+               % wdSources.Nvisits = repmat(totalVisits,height(wdSources),1);
+                %wdSources.BatchSize = repmat(batchSize,height(wdSources),1);
+                %wdSources.Nbatch = repmat(length(Batches),height(wdSources),1);
+                %wdSources.BatchDetections = repmat(0,height(wdSources),1);
+                %wdSources.Nevents = repmat(0,height(wdSources),1);
+                % Append to the combined table
+                %combinedWdSources = [combinedWdSources; wdSources];
+           % end
+        %end
+
+
+        % Find unique rows based on 'RA' and 'Dec' columns
+        %[uniqueRows, uniqueIdx] = unique(combinedWdSources(:, {'RA', 'Dec'}), 'rows');
+        
+        % Use the unique indices to get the rows without duplicates
+        %WDtable = combinedWdSources(uniqueIdx, :);
+        %WDtable.BatchData = cell(height(WDtable), 1); 
+
+        
+        
+
+
+ 
+
+        %% Iterate over batches of the same field.
+
+        for b = 1 : length(Batches)
+            fprintf('%s : Batch # %i / %i \n',uniqueFields{Ifield},b,length(Batches))
+
+       
+            Batch = Batches{b};
+            % Analyze every frame of WDs.
+            for cropID = 1:24
+
+                %cropWDs = find(WDtable.CropID == cropID);
+                
+                %if isempty(cropWDs) 
+                 %   continue;
+                %end
+
+
+                %% Extract subframe products for the entire batch: 
+                [catFP_all, MS_FP_all, imageFP_all] = arrayfun(@(dirInfo) extractPipelineProducts(dirInfo, cropID), Batch, 'UniformOutput', false);
+                catFP = vertcat(catFP_all{:});
+                MSfiles = vertcat(MS_FP_all{:});
+                imagesFP = vertcat(imageFP_all{:});
+
+                %% get observation data
+                % Initialize AH and observation data structure
+                AH           = AstroHeader(catFP,3); 
+                obsData      = extractObservationData(AH);
+                args.LimMag  = obsData.LimMag;
+                args.catJD   = obsData.catJD;
+                args.Nvisits = batchSize;
+
+                %% Create MS obj
+                List.FileName = {MSfiles.name};
+                List.Folder   = {MSfiles.folder};
+                List.CropID   = cropID;
+                if ~isempty(List.FileName)
+                    MS = MatchedSources.readList(List);
+                    ms = mergeByCoo(MS, MS(randi(length(MS))));
+                    ms.bestMag;
+                    MMS = calibMS(ms);
+                    MMS.FileName = {MS.FileName};
+                    MMS.UserData.CropID = cropID;
+                
+
+                    Ind = MMS.coneSearch(60.2176,34.0772)
+                    if isempty(Ind.Ind)
+                        continue;
+                    end
+                    mmm =MS;
+
+                    [Cand, WDcand, catWDtable, CandidateTable] = findVariableCandidatesTable(MMS, 'Plot',false);
+                
+                    if ~isempty(Cand) 
+                        MetaTable = appendCandidates(Cand, MetaTable, year, month, day, args.Tel, uniqueFields(Ifield), batchSize, Batches,totalVisits);
+                    end
+
+                end
+
+            end
+        end
+    end
+end

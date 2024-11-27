@@ -8,7 +8,7 @@ function plotLightCurve3(results, Iwd, Ibatch, LC, Methods,flux, FluxMethods,WD)
     [lmt,sidx] = sort(datetime(LC.catJD(sidx), 'ConvertFrom', 'jd'));
      lm = LC.limMag(sidx);
     
-    plot(t, y, 'O-','Color', [0.25, 0.25, 0.25], 'LineWidth', 2,'DisplayName', sprintf('$\\sigma =$ %.3f',std(y,'omitnan')));
+    plot(t, y, 'O-','Color', [0.25, 0.25, 0.25], 'LineWidth', 1.5,'DisplayName', sprintf('$\\sigma =$ %.3f',std(y,'omitnan')));
     hold on;
     
     WDtransits3.plotDetectedEvents(results, Iwd, Ibatch, t, y, Methods, FluxMethods);
@@ -42,10 +42,10 @@ function plotLightCurve3(results, Iwd, Ibatch, LC, Methods,flux, FluxMethods,WD)
     currentTitle = get(get(gca, 'Title'), 'String');
     
     % Additional title rows with WD data and event metrics
-    newTitle = sprintf('Field ID: %s, CropID: %d, BpRp: %.3f, Pwd: %.4f, AbsMag: %.3f\n', ...
+    newTitle = sprintf('Field ID: %s, CropID: %d, $B_p - R_p$: %.3f, Pwd: %.4f, AbsMag: %.3f\n', ...
                        fieldID, CropID, BpRp, Pwd, AbsMag);
     newTitle = [newTitle, ...
-                sprintf('Out of Event - Std: %.3f, Median: %.3f, Detected Points: %d, Depth: %.3f, SDdiff: %.3f', ...
+                sprintf('Out of Event - SD: %.3f, Median: %.3f, Detected Points: %d, Depth: %.3f, SDdiff: %.3f', ...
                         eventMetrics.stdOutOfEvent, eventMetrics.medianOutOfEvent, ...
                         eventMetrics.numDetectedPoints, eventMetrics.eventDepth, ...
                         eventMetrics.SDdiff)];
@@ -54,7 +54,7 @@ function plotLightCurve3(results, Iwd, Ibatch, LC, Methods,flux, FluxMethods,WD)
     finalTitle = {currentTitle{:}, newTitle};
 
     % Set the final title
-    title(finalTitle);
+    title(newTitle);
 
     ylabel('Magnitude');
     xlim([min(t), max(t)]);

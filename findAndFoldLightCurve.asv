@@ -1,0 +1,93 @@
+function findAndFoldLightCurve(JD, magnitude, epoch)
+    % Finds the best period using Lomb-Scargle periodogram and folds the light curve.
+    %
+    % Inputs:
+    %   JD        - Julian Date vector (time)
+    %   magnitude - Magnitude vector corresponding to JD
+    %   epoch     - Reference time (e.g., transit time)
+
+    % Step 1: Normalize magnitudes to correct for nightly shifts
+    uniqueNights = floor(JD); % Assuming JD is in days
+    nights = unique(uniqueNights); % Identify unique nights
+    normalizedMag = magnitude;
+
+    for i = 1:numel(nights)
+        % Find indices of the current night
+        idx = (uniqueNights == nights(i));
+        % Calculate and remove median magnitude shift for the night
+        nightShift = median(magnitude(idx));
+        normalizedMag(idx) = magnitude(idx) - nightShift;
+    end
+
+    % Step 2: Estimate the period using Lomb-Scargle periodogram
+    minPeriod = 0.01;  % Minimum period to search (days)
+    maxPeriod = 0.1;   % Maximum period to search (days)
+    nPeriods = 1000;  % Number of periods to sample in the range
+
+    % Generate the period grid
+    periods = linspace(minPeriod, maxPeriod, nPeriods);
+
+    % Compute Lomb-Scargle power
+    omega = 2 * pi ./ periods; % Angular frequency
+    power = lombscargle(JD, normalizedMag, omega);
+
+    % Find the period with the highest power
+    [~, maxIdx] = max(power);
+    bestPeriod = periods(maxIdx);
+
+    % Display the best period
+    fprintf('Best Period Found: %.6f days\n', bestPeriod);
+
+    % Step 3: Fold the light curve
+    foldLightCurve(JD, magnitude, 0.0604, epoch);
+end
+
+function power = lombscargle(time, mag, omega)
+    % Compute Lomb-Scargle power for a given set of angular frequencies.
+    % Inputs:
+    %   time  - Time vector (e.g., JD)
+    %   mag   - Magnitude vector
+    %   omega - Angular frequency vector
+    % Output:
+    %   power - Lomb-Scargle power for each frequency
+
+    % Pre-allocate power array
+    power = zeros(size(omega));
+
+    % Center data
+    magMean = mean(mag);
+    mag = mag - magMean;
+
+    % Iterate over frequencies
+    for i = 1:numel(omega)
+        w = omega(i);
+        tau = atan2(sum(sin(2 * w * time)), sum(cos(2 * w * time))) / (2 * w);
+        arg = w * (time - tau);
+        c = cos(arg);
+        s = sin(arg);
+
+        power(i) = (sum(mag .* c)^2 / sum(c.^2)) + (sum(mag .* s)^2 / sum(s.^2));
+    end
+end
+
+function foldLightCurve(time, magnitude, period, epoch)
+    % Folds a light curve by a given periodicity and plots it.
+    phase = mod(time - epoch, period) / period;
+    phase(phase < 0) = phase(phase < 0) + 1;
+
+    [sortedPhase, sortIdx] = sort(phase);
+    sortedMag = magnitude(sortIdx);
+
+    figure;
+    scatter(sortedPhase, sortedMag, 10, 'b', 'filled');
+    hold on;
+    scatter(sortedPhase + 1, sortedMag, 10, 'b', 'filled');
+    hold off;
+
+    xlabel('Phase');
+    ylabel('Magnitude');
+    title(['Folded Light Curve (Period = ', num2str(period), ' days)']);
+    set(gca, 'XLim', [0, 2]);
+    set(gca, 'YDir', 'reverse');
+    grid on;
+end

@@ -47,7 +47,7 @@ function Fig=plotRMS2(Obj, IndSrc, Args)
                 'Color',[0.8, 0.33, 0.0] , 'LineWidth', 1.25);  % Navy blue, thicker dashed line
             
             % Plot the data point for IndSrc in dark red
-            plot(ResRMS.MeanMag(IndSrc), ResRMS.StdPar(IndSrc), 'o', 'MarkerFaceColor',  [255, 160, 122]./255, 'MarkerSize', 10);  % Dark red marker
+            plot(ResRMS.MeanMag(IndSrc), ResRMS.StdPar(IndSrc), '.', 'Color',  [255, 160, 122]./255, 'MarkerSize', 14);  % Dark red marker
             axis tight;
             % Adjust axis labels
             H = xlabel('Magnitude');
@@ -61,8 +61,19 @@ function Fig=plotRMS2(Obj, IndSrc, Args)
             % Add a legend with 'RMS' for the grey points
             legend({'RMS', 'Interp Mean Std', 'Predicted Std', 'Source'}, 'FontSize', 8, 'Interpreter', 'latex', 'Location', 'best');
             
-            if max(ResRMS.MeanMag) > 20
-                xlim([10,20])
-            end
+            % Add secondary axis
+            ax1 = gca; % Current axes (log-scale)
+            ax2 = axes('Position', ax1.Position, 'XAxisLocation', 'bottom', 'YAxisLocation', 'right', ...
+                'Color', 'none', 'YScale', 'linear', 'XColor', 'none'); % Secondary axis overlay
+            
+            % Match y-ticks from the primary axis
+            yticksLog = ax1.YTick; % Get primary y-axis log ticks
+            %yticksDec = 10.^yticksLog; % Convert log ticks to decimal values
+            ax2.YScale = 'log';
+            ax2.YTick = yticksLog; % Set the same ticks as the primary axis
+            
+            ax2.YTickLabel = arrayfun(@(x) sprintf('%.2f', x), ax1.YTick, 'UniformOutput', false); % Convert to decimal labels
+
+
             hold off;
         end

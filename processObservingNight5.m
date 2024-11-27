@@ -91,7 +91,7 @@ function processObservingNight5(mount, telescope, year, month, day, batchSize,ar
         uniqueCropIdsHdf5 = unique(cropIdsHdf5);
         
         % Process each CropID individually
-        for c = 1:length(uniqueCropIds)
+        for c = 10:length(uniqueCropIds)
             wbCounter = wbCounter +1;
             cropId = uniqueCropIds{c};
             args.CropID = cropId; % Set the CropID for this iteration

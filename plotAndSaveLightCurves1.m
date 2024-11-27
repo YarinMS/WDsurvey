@@ -13,7 +13,7 @@ function plotAndSaveLightCurves1(results, lcData, resCat, lcDataCat, saveDir, wd
     hold off;
     %axis tight;
     % Tighten the x-axis only
-    xlim([min(lcData.catJD), max(lcData.catJD)]);
+    
     % Retrieve RA and Dec for naming purposes
     RA = wdSources.RA(Iwd);
     Dec = wdSources.Dec(Iwd);

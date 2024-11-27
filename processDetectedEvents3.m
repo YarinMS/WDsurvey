@@ -22,7 +22,7 @@ function eventMetrics = processDetectedEvents3(results, LC)
 
     % Check if we found any events
     if isempty(eventIndices)
-        disp('No events detected in specified fields.');
+        %disp('No events detected in specified fields.');
         return;
     end
 

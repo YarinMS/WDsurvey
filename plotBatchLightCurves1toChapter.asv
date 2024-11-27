@@ -1,4 +1,4 @@
-function plotBatchLightCurves1(WD, saveDir, args)
+function plotBatchLightCurves1toChapter(WD, saveDir, args)
     % PLOTLIGHTCURVES Visualizes light curves from BatchData and BatchDataF
     %
     % Inputs:
@@ -97,14 +97,33 @@ function plotBatchLightCurves1(WD, saveDir, args)
 
         % Plotting logic for catalog and forced photometry data
         if catFlag || forcedFlag
-            if isfield(catalogBatch,'Event') && isfield(forcedBatch,'Event')
+
+            if isfield(catalogBatch,'RMS')
+                    catRMS = catalogBatch.RMS;
+                else
+                    catRMS = [];
+                end
+
+                if isfield(forcedBatch,'RMS')
+                    forcedRMS  = forcedBatch.RMS;
+                else
+                    forcedRMS = [];
+                end
+
+
+            if catFlag && forcedFlag && isfield(catalogBatch,'Event') && isfield(forcedBatch,'Event')
                 catalogBatch.Results.Methods = catalogBatch.Methods;
                 catalogBatch.Results.FluxMethods = catalogBatch.FluxMethods;
                 catalogBatch.lcData.Tel = forcedBatch.lcData.Tel;
                 catalogBatch.lcData.Date = forcedBatch.lcData.Date;
 
-                plotAndSaveLightCurves1(forcedBatch.Results, forcedBatch.lcData, ...
-                    catalogBatch.Results, {catalogBatch.lcData}, saveDir, WD, 1);
+                lcParagraph = Paragraph();
+                lcParagraph.Style = {FontSize('10pt')}; 
+                append(lcParagraph, Text('Detection in both Catalog and Forced Data:'));
+                
+
+                plotAndSaveLightCurves2Chapter(forcedBatch.Results, forcedBatch.lcData, ...
+                    catalogBatch.Results, {catalogBatch.lcData}, saveDir, WD, 1,args.ReportChapter,'catRMS',catRMS,'forcedRMS',forcedRMS);
             elseif isfield(catalogBatch,'Event') && ~isfield(forcedBatch,'Event')
                 % Catalog only (Strange)
                 catalogBatch.Results.res.Methods = catalogBatch.Methods;
@@ -112,11 +131,11 @@ function plotBatchLightCurves1(WD, saveDir, args)
                 catalogBatch.lcData.Tel = WD.FieldID;
                 catalogBatch.lcData.Date = WD.ObsDate;
                 disp('Catalog only event detected');
-                plotAndSaveSingleLightCurve(catalogBatch.Results, catalogBatch.lcData, saveDir, WD, 1);
+                plotAndSaveSingleLightCurve2Chapter(catalogBatch.Results, catalogBatch.lcData, saveDir, WD, 1,args.ReportChapter,'catRMS',catRMS,'forcedRMS',forcedRMS);
             elseif ~isfield(catalogBatch,'Event') && isfield(forcedBatch,'Event')
                 % Forced only (Weak?)
                 % you need to mention  it is a forced photmetry result
-                plotAndSaveSingleLightCurve(forcedBatch.Results, forcedBatch.lcData, saveDir, WD, 1);
+                plotAndSaveSingleLightCurve2Chapter(forcedBatch.Results, forcedBatch.lcData, saveDir, WD, 1,args.ReportChapter,'catRMS',catRMS,'forcedRMS',forcedRMS);
             end
 
 

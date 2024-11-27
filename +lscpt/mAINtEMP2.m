@@ -9,8 +9,8 @@
 % in the report, while we also store data to a summary report.
 
 % Example:
-Tab = load('~/Documents/MainTest/2024-11-07/Results_table_LAST.01.04.01_2024-11-07.mat');
-tab = Tab.tab; % tab is a 1 x 2 table (two fields)
+%Tab = load('~/Documents/MainTest/2024-11-08/Results_table_LAST.01.04.01_2024-11-07.mat');
+%tab = Tab.tab; % tab is a 1 x 2 table (two fields)
 
 %% Iterate over WD tables from different telescopes
 % As part of the summary, besides the statistics, we would like to
@@ -45,7 +45,7 @@ tab = Tab.tab; % tab is a 1 x 2 table (two fields)
 datesDir = dir('~/Documents/MainTest/');
 datesDir = datesDir([datesDir.isdir] & ~ismember({datesDir.name}, {'.', '..'}));
 
-for iDate = 1:length(datesDir)
+for iDate = 30% 1:length(datesDir)
     datePath = fullfile(datesDir(iDate).folder, datesDir(iDate).name);
     telescopeFiles = dir(fullfile(datePath, 'Results_table_LAST.01.*.*_*.mat'));
     
@@ -56,7 +56,7 @@ for iDate = 1:length(datesDir)
         tab = Tab.tab;
         if ~isempty(tab)
             % Extract telescope and field information from filename
-            tokens = regexp(telescopeFiles(iFile).name, 'Results_table_LAST\.01\.(\d+)\.(\d+)_\d{4}-\d{2}-\d{2}', 'tokens','once');
+            tokens = regexp(telescopeFiles(iFile).name, 'Results_table_LAST\.01\.(\d+)\.(\d+)_\d{4}-\d{2}-\d{2}', 'tokens');
             mountID = tokens{1}{1};
             telescopeID = tokens{1}{2};
             args.Tel =  sprintf('LAST.01.%s.%s',mountID,telescopeID);
@@ -91,7 +91,7 @@ for iDate = 1:length(datesDir)
                 summaryFile = fullfile(saveDir, ['Summary_Field_', num2str(iField), '.txt']);
                 fid = fopen(summaryFile, 'w');
                 fprintf(fid, 'Number of WDs in the field: %d\n', numWDs);
-                fprintf(fid, 'Number detected at least once: %d\n', numDetected);
+%                fprintf(fid, 'Number detected at least once: %d\n', numDetected);
                 fprintf(fid, 'Total events: Catalog Detections: %d, Forced Detections: %d, Both Detections: %d\n', totalEvents{:});
                 fclose(fid);
 
@@ -99,7 +99,7 @@ for iDate = 1:length(datesDir)
 
                 
                 %% ### TODO Plot Detection Probability
-                % detectionProbPlot(currentTable, saveDir, iField);
+                 detectionProbPlot(currentTable, saveDir, iField);
                 
                 %% ### TODO  Plot HR Diagram (assuming a function is available)
                 %hrDiagramPlot(currentTable, saveDir, iField);
@@ -131,11 +131,14 @@ end
 %% Helper function: detectionProbPlot
 function detectionProbPlot(currentTable, saveDir, fieldID)
     % Assuming DetectionProbability is a column in currentTable
-    figure;
-    histogram(currentTable.DetectionProbability);
-    title(['Detection Probability - Field ', num2str(fieldID)]);
-    xlabel('Probability');
-    ylabel('Count');
+    tabArgs.Date = 'test'
+    tabArgs.Tel = 'test'
+    tabArgs.Nwds = sum(currentTable.catDetected | currentTable.forcedDetected);
+  
+    plotCatForcedDetectionEfficiency(currentTable, tabArgs)
+    %title(['Detection Probability - Field ', num2str(fieldID)]);
+
+ 
     saveas(gcf, fullfile(saveDir, ['DetectionProbability_Field_', num2str(fieldID), '.png']));
     close;
 end

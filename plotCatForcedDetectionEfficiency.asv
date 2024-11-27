@@ -1,0 +1,160 @@
+function plotCatForcedDetectionEfficiency(stackedWDtable, args)
+    % Plot Detection Efficiency as bars for every WD, with rotated text inside bars
+    %
+    % Inputs:
+    %   stackedWDtable - Combined table with all WDs across fields
+    %   args - Arguments structure containing Date and Telescope information
+
+    % Check which columns exist
+    hasCatBatch = ismember('catBatchDetections', stackedWDtable.Properties.VariableNames);
+    hasForcedBatch = ismember('forcedBatchDetections', stackedWDtable.Properties.VariableNames);
+
+    % Initialize variables for plotting
+    catDetectionEfficiency = [];
+    forcedDetectionEfficiency = [];
+    magnitudes = [];
+    legendEntries = {};
+
+    % Calculate detection efficiency for catBatchDetections
+    if hasCatBatch
+        catDetectionEfficiency = (stackedWDtable.catBatchDetections ./ stackedWDtable.Nbatch) * 100;
+        legendEntries{end + 1} = 'Catalog Detection Efficiency';
+    end
+
+    % Calculate detection efficiency for forcedBatchDetections
+    if hasForcedBatch
+        forcedDetectionEfficiency = (stackedWDtable.forcedBatchDetections ./ stackedWDtable.Nbatch) * 100;
+        legendEntries{end + 1} = 'Forced Detection Efficiency';
+    end
+
+    % Filter out zero or negative efficiencies and get magnitudes
+    realData = (catDetectionEfficiency > 0 | forcedDetectionEfficiency > 0);
+    if hasCatBatch
+        catDetectionEfficiency = catDetectionEfficiency(realData);
+        CatDetections = stackedWDtable.catBatchDetections(realData);
+        CatNbatch     = stackedWDtable.Nbatch(realData);
+        CatCrop     = stackedWDtable.CropID(realData);
+    end
+    if hasForcedBatch
+        forcedDetectionEfficiency = forcedDetectionEfficiency(realData);
+        ForcedDetections = stackedWDtable.forcedBatchDetections(realData);
+        ForcedNbatch     = stackedWDtable.Nbatch(realData);
+        ForcedCrop     = stackedWDtable.CropID(realData);
+    end
+    magnitudes = stackedWDtable.Gmag(realData);
+
+    % Sort data by magnitude for better visualization
+    [sortedMagnitudes, sortIdx] = sort(magnitudes);
+    if hasCatBatch
+        catDetectionEfficiency = catDetectionEfficiency(sortIdx);
+        sortedCatDetections = CatDetections(sortIdx);
+        sortedCatNbatch     = CatNbatch(sortIdx);
+        sortedCatCrop = CatCrop(sortIdx);
+    end
+    if hasForcedBatch
+        forcedDetectionEfficiency = forcedDetectionEfficiency(sortIdx);
+        sortedForcedDetections =ForcedDetections(sortIdx);
+        sortedForcedNbatch     = ForcedNbatch(sortIdx);
+        sortedForcedCrop = ForcedCrop(sortIdx);
+    end
+
+    % Create distinct x values for each WD to prevent overlapping bars
+    xValues = 1:length(sortedMagnitudes);
+
+    % Plot bar chart
+    figure;
+    hold on;
+    
+
+    % Add rotated text inside the bars
+    for i = 1:length(xValues)
+        
+     if catDetectionEfficiency(i) > 0 && forcedDetectionEfficiency(i) > 0
+
+        if hasCatBatch
+            bar(xValues(i) - 0.1, catDetectionEfficiency(i), 'FaceColor', [0.2, 0.6, 0.8], 'BarWidth', 0.4);
+        end
+        if hasForcedBatch
+            bar(xValues(i) + 0.1, forcedDetectionEfficiency(i), 'FaceColor', [0.8, 0.2, 0.2], 'BarWidth', 0.4);
+        end
+           text(xValues(i) - 0.1, catDetectionEfficiency(i) - 3, ... 
+                 sprintf('%d / %d',sortedCatDetections(i), sortedCatNbatch(i)), ...
+                 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
+                 'Rotation', 90, 'FontSize', 10, 'Color', 'k', 'FontWeight', 'bold');
+
+            text(xValues(i) - 0.1, catDetectionEfficiency(i) + 0.5 , ... 
+                 sprintf('%d',sortedCatCrop(i)), ...
+                 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
+                 'Rotation', 0, 'FontSize', 10, 'Color', 'k', 'FontWeight', 'bold');
+        
+
+                text(xValues(i) + 0.01, forcedDetectionEfficiency(i) - 3, ... 
+                 sprintf('%d / %d',sortedForcedDetections(i), sortedForcedNbatch(i)), ...
+                 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
+                 'Rotation', 90, 'FontSize', 10, 'Color', 'k', 'FontWeight', 'bold');
+
+                text(xValues(i) + 0.05, forcedDetectionEfficiency(i) + 0.5, ... 
+                 sprintf('%d',sortedForcedCrop(i)), ...
+                 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
+                 'Rotation', 0, 'FontSize', 10, 'Color', 'k', 'FontWeight', 'bold');
+     else
+         if hasCatBatch
+            bar(xValues(i) - 0.02, catDetectionEfficiency(i), 'FaceColor', [0.2, 0.6, 0.8], 'BarWidth', 0.4);
+        end
+        if hasForcedBatch
+            bar(xValues(i) + 0.05, forcedDetectionEfficiency(i), 'FaceColor', [0.8, 0.2, 0.2], 'BarWidth', 0.4);
+        end
+        if hasCatBatch
+            if catDetectionEfficiency(i) > 0
+            text(xValues(i) - 0.02, catDetectionEfficiency(i) - 3, ... 
+                 sprintf('%d / %d',sortedCatDetections(i), sortedCatNbatch(i)), ...
+                 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
+                 'Rotation', 90, 'FontSize', 10, 'Color', 'k', 'FontWeight', 'bold');
+
+            text(xValues(i) - 0.02, catDetectionEfficiency(i) + 0.5 , ... 
+                 sprintf('%d',sortedCatCrop(i)), ...
+                 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
+                 'Rotation', 0, 'FontSize', 10, 'Color', 'k', 'FontWeight', 'bold');
+            else
+                text(xValues(i) - 0.02, catDetectionEfficiency(i) - 7, ... 
+                 sprintf('NO Cat Data'), ...
+                 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
+                 'Rotation', 0, 'FontSize', 10, 'Color', 'k', 'FontWeight', 'bold');
+
+            end
+        end
+        if hasForcedBatch
+            if forcedDetectionEfficiency(i) > 0 
+            text(xValues(i) + 0.05, forcedDetectionEfficiency(i) - 3, ... 
+                 sprintf('%d / %d',sortedForcedDetections(i), sortedForcedNbatch(i)), ...
+                 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
+                 'Rotation', 90, 'FontSize', 10, 'Color', 'k', 'FontWeight', 'bold');
+
+            text(xValues(i) + 0.05, forcedDetectionEfficiency(i) + 0.5, ... 
+                 sprintf('%d',sortedForcedCrop(i)), ...
+                 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
+                 'Rotation', 0, 'FontSize', 10, 'Color', 'k', 'FontWeight', 'bold');
+            else
+                text(xValues(i) + 0.05, forcedDetectionEfficiency(i) - 7, ... 
+                 sprintf('NO FP Data'), ...
+                 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
+                 'Rotation', 0, 'FontSize', 8, 'Color', 'k', 'FontWeight', 'bold');
+            end
+        end
+     end 
+    end
+    hold off;
+
+    % Configure x-axis
+    xticks(xValues);
+    xticklabels(arrayfun(@(m) sprintf('%.2f', m), sortedMagnitudes, 'UniformOutput', false));
+    xtickangle(45); % Rotate x-tick labels for better readability
+
+    % Label axes
+    xlabel('Magnitude (Gmag)');
+    ylabel('Detection Efficiency (%)');
+    title(sprintf('Detection Efficiency vs. Magnitude for %i WDs \n%s - %s', ...
+                  args.Nwds, args.Date, args.Tel));
+    legend(legendEntries, 'Location', 'best');
+    grid on;
+end

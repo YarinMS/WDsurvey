@@ -61,8 +61,9 @@ function processObservingNightForced1(mount, telescope, year, month, day, batchS
 
     
     %% Load Visit Directories, Sort consecutively and create batch Visits for Processing
-     batches = organizeBatches(fullPath, batchSize);
-
+     %batches = organizeBatches(fullPath, batchSize);
+     [batches,fields] = organizeBatchesWfields(fullPath,2);
+    
 
 
      r = 0;
@@ -75,7 +76,7 @@ function processObservingNightForced1(mount, telescope, year, month, day, batchS
      WDcounter = 0;
      FieldsID = [];
 
-     for b = 1:length(batches)
+     for b = 10:length(batches)
         batch = batches{b};
         
         % Data extraction for FITS and HDF5 files (from Step 2)

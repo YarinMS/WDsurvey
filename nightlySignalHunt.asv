@@ -1,0 +1,34 @@
+function nightlySignalHunt(MetaTable,year,month,day,Args)
+
+arguments
+    MetaTable 
+    year 
+    month 
+    day 
+    Args.test = []; 
+end
+
+
+%% loop over obs night
+
+Mounts = [2:6,8,10,1];
+h = waitbar(0)
+Counter = 0 ;
+for Imount = Mounts
+    for Itel = [1:4]
+        Counter = Counter+1;
+        checkDir = sprintf('~/marvin/LAST.01.%02d.%02d/%04d/%02d/%02d/proc',Imount,Itel,year,month,day);
+
+        if isdir(checkDir)
+            waitbar(Counter/Imount*Itel)
+            MetaTable = SignalHunter2(MetaTable,Imount, Itel, year, month, day, 20,'PlotNSave',false)
+            
+        end
+
+
+
+    end
+end
+
+save(sprintf('~/media/yarinms/Data2/Results_Table_LAST.01.%02d.%02d_%04d.%02d.%02d.mat',Imount,Itel,year,month,day),'metaT','-v7.3');
+end
