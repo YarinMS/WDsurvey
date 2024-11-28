@@ -67,6 +67,8 @@ function [Flag, FlagInfo, Summary]=findVariableMS2(Obj, Args)
             catch
                 Flag.RMS = false(size(Flag.PS));
                 Flag.Poly = false(size(Flag.PS));
+                ResPolyHP = false(size(Flag.PS));
+                ResRMS    = false(size(Flag.PS));
             end
 
             % std filter

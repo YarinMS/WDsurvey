@@ -241,7 +241,11 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                                         batchDataF.Event = true;
                                         WD.NeventsF = WD.NeventsF + 1;
                                         
-                                        batchDataF.RMS=getRMS2(FPms,'MagField','MAG_PSF');
+                                        try
+                                            batchDataF.RMS=getRMS2(FPms,'MagField','MAG_PSF');
+                                        catch
+                                            batchDataF.RMS = [];
+                                        end
                                         if args.PlotNSave
 
 

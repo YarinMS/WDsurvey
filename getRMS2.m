@@ -12,7 +12,7 @@ function ResRMS=getRMS2(Obj,Args)
                 Args.MagField              = 'MAG_BEST';
                 
                 Args.NsigmaPredRMS         = 5;
-                Args.MinDetRMS             = 15;
+                Args.MinDetRMS             = 1;
             end
 
             if isempty(Args.ResRMS)

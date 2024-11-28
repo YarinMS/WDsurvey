@@ -179,13 +179,17 @@ sortedByMaxRMS = sortrows(dataTable, 'RMSNsigma', 'descend');
 
 % Create a subtable where RMF and RMS are both true
 rmfRmsSubTable = dataTable(dataTable.RMF & dataTable.RMS & dataTable.PS, :);
-sortedByMaxRMS = sortrows(dataTable, 'RMSNsigma', 'descend')
+sortedT = sortrows(rmfRmsSubTable, 'MaxPS', 'descend')
 
 % Subtable for white dwarfs (Pwd > 0)
 wdTable = dataTable(dataTable.Pwd > 0, :);
 
 % Subtables for white dwarfs: RMF and RMS both true
-wdRmfRmsSubTable = wdTable(wdTable.RMF & wdTable.RMS, :);
+% wdRmfRmsSubTable = wdTable(wdTable.RMF | wdTable.RMS | wdTable.PS, :);
+wdRmfRmsSubTable = wdTable(wdTable.RMF & wdTable.RMS & wdTable.PS, :);
+
+
+
 
 % Display the sorted tables and subtables
 disp('Top Rows Sorted by Max RMF:');
@@ -203,11 +207,29 @@ disp(rmfRmsSubTable);
 disp('Subtable for White Dwarfs where RMF and RMS are true:');
 disp(wdRmfRmsSubTable);
 
-for i = 51 :100
+for i = 1 :height(wdRmfRmsSubTable)
 
     figure()
-    t = datetime(rmfRmsSubTable.JD{i},'convertfrom','jd')
+    t = datetime(wdRmfRmsSubTable.JD{i},'convertfrom','jd');
+    plot(t,wdRmfRmsSubTable.MAG_PSF{i},'k-o')
+
+    title(sprintf('(%.4f,%.4f) $P_{wd} - $ %.2f',wdRmfRmsSubTable.RA(i),wdRmfRmsSubTable.Dec(i), wdRmfRmsSubTable.Pwd(i)))
+    
+    set(gca,'YDir','reverse')
+end
+
+
+
+%%
+
+for i = 1 :100
+
+    figure()
+    t = datetime(rmfRmsSubTable.JD{i},'convertfrom','jd');
     plot(t,rmfRmsSubTable.MAG_PSF{i},'k-o')
+
+    title(sprintf('(%.4f,%.4f) $P_{wd} - $ %.3f',rmfRmsSubTable.RA(i),rmfRmsSubTable.Dec(i), rmfRmsSubTable.Pwd(i)))
+    
     set(gca,'YDir','reverse')
 end
 
@@ -221,6 +243,21 @@ end
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%
 
 
 %%
