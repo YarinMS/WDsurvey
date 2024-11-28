@@ -389,8 +389,8 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
 
                                     if DetectionFlag 
                                         
-                                        batchData.ResRMS=getRMS2(mms);
-                                        batchDataF.ResRMS=getRMS2(FPms);
+                                        %batchData.ResRMS=getRMS2(mms);
+                                        %batchDataF.ResRMS=getRMS2(FPms);
                                         wdSources.DB(cropWDs(Iwd),b) = 1;
                                         results.res.Detected = batchData.Detected ;
                                         results.res.Detected = batchData.FluxDetected ;

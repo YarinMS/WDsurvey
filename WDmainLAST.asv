@@ -195,7 +195,7 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                         AI = AstroImage(imagesFP,'Mask',maskFP,'PSF',psfFP);
                         
      
-                        [FPms,FPresults,lcDataFP] = applyFPlast(AI,WDtable,Iwd,50);
+                        [FPms,FPresults,lcDataFP] = applyFPlast(AI,WD,1,50);
                         
                         if isfield(lcDataFP,'lc')
                             if sum(lcDataFP.limMag-lcDataFP.lc < 0) > 0.3*length(lcDataFP.lc)  
@@ -241,7 +241,11 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                                         batchDataF.Event = true;
                                         WD.NeventsF = WD.NeventsF + 1;
                                         
-                                        batchDataF.RMS=getRMS2(FPms,'MagField','MAG_PSF');
+                                        try
+                                            batchDataF.RMS=getRMS2(FPms,'MagField','MAG_PSF');
+                                        catch
+                                            batchDataF.RMS = [];
+                                        end
                                         if args.PlotNSave
 
 
@@ -385,8 +389,8 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
 
                                     if DetectionFlag 
                                         
-                                        batchData.ResRMS=getRMS2(mms);
-                                        batchDataF.ResRMS=getRMS2(FPms);
+                                        %batchData.ResRMS=getRMS2(mms);
+                                        %batchDataF.ResRMS=getRMS2(FPms);
                                         wdSources.DB(cropWDs(Iwd),b) = 1;
                                         results.res.Detected = batchData.Detected ;
                                         results.res.Detected = batchData.FluxDetected ;

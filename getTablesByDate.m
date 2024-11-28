@@ -254,9 +254,36 @@ end
 
 
 
+%%
+% Extract Max RMF values
+wdsources = dataTable.Pwd > 0 ;
+maxRMF = dataTable.maxRMF(wdsources);
+maxPS = dataTable.MaxPS(wdsources);
+maxRMS = dataTable.RMSNsigma(wdsources);
 
 
+% Plot histogram for Max RMF
+figure;
+histogram(maxRMF, 'BinWidth', 0.5, 'FaceColor', [0.2, 0.6, 1], 'EdgeColor', [0, 0.3, 0.8]);
+xlabel('Max RMF');
+ylabel('Frequency');
+title('Distribution of Max RMF for detected WDs');
 
+
+% Plot histogram for Max RMF
+figure;
+histogram(maxPS, 'BinWidth', 0.5, 'FaceColor', [0.2, 0.6, 1], 'EdgeColor', [0, 0.3, 0.8]);
+xlabel('Max PS');
+ylabel('Frequency');
+title('Distribution of Max PS for detected WDs');
+
+figure;
+histogram(maxRMS, 'BinWidth', 0.5, 'FaceColor', [0.2, 0.6, 1], 'EdgeColor', [0, 0.3, 0.8]);
+xlabel('Max RMS');
+ylabel('Frequency');
+title('Distribution of Max Sigma RMS for detected WDs');
+
+%%
 
 
 

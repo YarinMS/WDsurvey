@@ -185,8 +185,8 @@ sortedT = sortrows(rmfRmsSubTable, 'MaxPS', 'descend')
 wdTable = dataTable(dataTable.Pwd > 0, :);
 
 % Subtables for white dwarfs: RMF and RMS both true
-% wdRmfRmsSubTable = wdTable(wdTable.RMF | wdTable.RMS | wdTable.PS, :);
-wdRmfRmsSubTable = wdTable(wdTable.RMF & wdTable.RMS & wdTable.PS, :);
+wdRmfRmsSubTable = wdTable(wdTable.RMF | wdTable.RMS | wdTable.PS, :);
+% wdRmfRmsSubTable = wdTable(wdTable.RMF & wdTable.RMS & wdTable.PS, :);
 
 
 
@@ -234,12 +234,56 @@ for i = 1 :100
 end
 
 
+%%
+Sps = sortrows(dataTable, 'MaxPS', 'descend');
+Srmf = sortrows(dataTable(~isnan(dataTable.maxRMF),:), 'maxRMF', 'descend');
+Srms = sortrows(dataTable, 'RMSNsigma', 'descend');
+
+tTable = Srmf;
+for i = 1 :50
+
+    figure()
+    t = datetime(tTable.JD{i},'convertfrom','jd');
+    plot(t,tTable.MAG_PSF{i},'k-o')
+
+    title(sprintf('(%.4f,%.4f) $P_{wd} - $ %.3f',tTable.RA(i),tTable.Dec(i), tTable.Pwd(i)))
+    
+    set(gca,'YDir','reverse')
+end
 
 
 
 
+%%
+% Extract Max RMF values
+wdsources = dataTable.Pwd > 0 ;
+maxRMF = dataTable.maxRMF(wdsources);
+maxPS = dataTable.MaxPS(wdsources);
+maxRMS = dataTable.RMSNsigma(wdsources);
 
 
+% Plot histogram for Max RMF
+figure;
+histogram(maxRMF, 'BinWidth', 0.5, 'FaceColor', [0.2, 0.6, 1], 'EdgeColor', [0, 0.3, 0.8]);
+xlabel('Max RMF');
+ylabel('Frequency');
+title('Distribution of Max RMF for detected WDs');
+
+
+% Plot histogram for Max RMF
+figure;
+histogram(maxPS, 'BinWidth', 0.5, 'FaceColor', [0.2, 0.6, 1], 'EdgeColor', [0, 0.3, 0.8]);
+xlabel('Max PS');
+ylabel('Frequency');
+title('Distribution of Max PS for detected WDs');
+
+figure;
+histogram(maxRMS, 'BinWidth', 0.5, 'FaceColor', [0.2, 0.6, 1], 'EdgeColor', [0, 0.3, 0.8]);
+xlabel('Max RMS');
+ylabel('Frequency');
+title('Distribution of Max Sigma RMS for detected WDs');
+
+%%
 
 
 
