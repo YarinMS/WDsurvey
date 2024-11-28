@@ -162,7 +162,7 @@ function Cand = createCandidateStruct(IndSrc, Ncand,Flag,summary, RA, Dec, AbsMa
     Cand.MAG_APER_3 = ms.Data.MAG_APER_3(:,IndSrc);
     %Cand.MAGERR_APER_3 = ms.Data.MAGERR_APER_3(:,IndSrc);
     Cand.FreqVec = summary.FreqVec;
-    Cand.PS = summary.PS(:,IndSrc);
+    Cand.PSfull = summary.PS(:,IndSrc);
 
    
     

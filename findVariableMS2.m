@@ -38,7 +38,7 @@ function [Flag, FlagInfo, Summary]=findVariableMS2(Obj, Args)
                 Args.NsigmaPredRMS         = 10  ;
                 Args.NsigmaStdRMS          = 7   ;
                 Args.MinDetRMS             = 10  ; 
-                Args.MinNptRMS             = 8 ;
+                Args.MinNptRMS             = 4 ;
                 Args.MinRMS4poly           = 8   ;
                 Args.thresholdRMF          = 6   ;
                 Args.winSizeRMF            = 2   ;
@@ -55,9 +55,19 @@ function [Flag, FlagInfo, Summary]=findVariableMS2(Obj, Args)
             [FreqVec, PS, Flag.PS] = period(Obj.MS, FreqVec, 'MagField', Args.MagField, 'ThresholdPS',Args.ThresholdPS);
                     
             % rms
-            ResRMS   = Obj.MS.rmsMag('MagField',Args.MagField, 'MinDetRmsVar',Args.MinDetRMS, 'NsigmaPred',Args.NsigmaPredRMS, 'NsigmaStd',Args.NsigmaStdRMS, 'MinNpt',Args.MinNptRMS);
-            Flag.RMS = ResRMS.FlagVarPred;
+            try
 
+                ResRMS   = Obj.MS.rmsMag('MagField',Args.MagField, 'MinDetRmsVar',Args.MinDetRMS, 'NsigmaPred',Args.NsigmaPredRMS, 'NsigmaStd',Args.NsigmaStdRMS, 'MinNpt',Args.MinNptRMS);
+            
+                Flag.RMS = ResRMS.FlagVarPred;
+                % poly std
+            [ResPolyHP, Flag.Poly] = fitPolyHyp(Obj.MS, 'PolyDeg',{0, (0:1), (0:1:2)}, 'ThresholdChi2',[Inf, chi2inv(normcdf([5 6 7],0,1),2)]);
+            Flag.Poly = Flag.Poly(:);
+            Flag.Poly(ResRMS.NsigmaStd<Args.MinRMS4poly & Flag.Poly) = false;       
+            catch
+                Flag.RMS = false(size(Flag.PS));
+                Flag.Poly = false(size(Flag.PS));
+            end
 
             % std filter
             % FilterBox = true(5,1);
@@ -68,10 +78,7 @@ function [Flag, FlagInfo, Summary]=findVariableMS2(Obj, Args)
             % StdVec  = std(Obj.MS.Data.MAG_BEST,[],1, 'omitnan');
 
             % poly std
-            [ResPolyHP, Flag.Poly] = fitPolyHyp(Obj.MS, 'PolyDeg',{0, (0:1), (0:1:2)}, 'ThresholdChi2',[Inf, chi2inv(normcdf([5 6 7],0,1),2)]);
-            Flag.Poly = Flag.Poly(:);
-            Flag.Poly(ResRMS.NsigmaStd<Args.MinRMS4poly & Flag.Poly) = false;
-
+        
             % running mean filter
             Flag.RunMeanFilt = false(size(Flag.FlagGood));
             for winSize = 6:-1:2

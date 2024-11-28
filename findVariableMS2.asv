@@ -38,7 +38,7 @@ function [Flag, FlagInfo, Summary]=findVariableMS2(Obj, Args)
                 Args.NsigmaPredRMS         = 10  ;
                 Args.NsigmaStdRMS          = 7   ;
                 Args.MinDetRMS             = 10  ; 
-                Args.MinNptRMS             = 10  ;
+                Args.MinNptRMS             = 4 ;
                 Args.MinRMS4poly           = 8   ;
                 Args.thresholdRMF          = 6   ;
                 Args.winSizeRMF            = 2   ;
@@ -55,9 +55,14 @@ function [Flag, FlagInfo, Summary]=findVariableMS2(Obj, Args)
             [FreqVec, PS, Flag.PS] = period(Obj.MS, FreqVec, 'MagField', Args.MagField, 'ThresholdPS',Args.ThresholdPS);
                     
             % rms
-            ResRMS   = Obj.MS.rmsMag('MagField',Args.MagField, 'MinDetRmsVar',Args.MinDetRMS, 'NsigmaPred',Args.NsigmaPredRMS, 'NsigmaStd',Args.NsigmaStdRMS, 'MinNpt',Args.MinNptRMS);
-            Flag.RMS = ResRMS.FlagVarPred;
+            try
 
+                ResRMS   = Obj.MS.rmsMag('MagField',Args.MagField, 'MinDetRmsVar',Args.MinDetRMS, 'NsigmaPred',Args.NsigmaPredRMS, 'NsigmaStd',Args.NsigmaStdRMS, 'MinNpt',Args.MinNptRMS);
+            
+                Flag.RMS = ResRMS.FlagVarPred;
+            catch
+                Flag.RMS = false();
+            end
 
             % std filter
             % FilterBox = true(5,1);

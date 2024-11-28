@@ -12,13 +12,13 @@ end
 
 %% loop over obs night
 
-Mounts = [6,8,10];
+Mounts = [6,8,10,5,4,3,2,1];
 h = waitbar(0)
 Counter = 0 ;
 for Imount = Mounts
     for Itel = [1:4]
-        if Imount ==2
-            if Itel <= 2
+        if Imount == 4 || Imount == 5
+            if Itel ~= 2 
                 continue
             end
         end
