@@ -27,7 +27,7 @@ end % Arguments
 
     tab = WDmainLAST(mount, tel, year,month,day, batchSize,'PlotNSave',false);
 
-    save(strcat(Args.SaveDir,sprintf('Results_table_%s_%s.mat',Args.Tel,Args.Date)),'tab');
+    save(strcat(Args.SaveDir,sprintf('Results_table_%s_%s_%i_vis.mat',Args.Tel,Args.Date,batchSize)),'tab');
     
     
     

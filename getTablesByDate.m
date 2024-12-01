@@ -9,7 +9,7 @@ fileList = dir(fullfile(folderPath, strcat(datePat,'*.mat')));
 % Sort the files by size in descending order
 [~, sortIdx] = sort([fileList.bytes], 'descend'); % Sort by file size
 sortedFiles = fileList(sortIdx);
-largestFile = sortedFiles(5);
+largestFile = sortedFiles(1);
 
 largestFilePath = fullfile(largestFile.folder, largestFile.name);
 data = load(largestFilePath)
@@ -235,19 +235,20 @@ end
 
 
 %%
-Sps = sortrows(dataTable, 'MaxPS', 'descend');
-Srmf = sortrows(dataTable(~isnan(dataTable.maxRMF),:), 'maxRMF', 'descend');
-Srms = sortrows(dataTable, 'RMSNsigma', 'descend');
+Sps = sortrows(rmfRmsSubTable, 'MaxPS', 'descend');
+Srmf = sortrows(rmfRmsSubTable, 'maxRMF', 'descend');
+Srms = sortrows(rmfRmsSubTable, 'RMSNsigma', 'descend');
 
-tTable = Srmf;
-for i = 1 :50
+tTable = Srmf
+for i = 1 :98
+
 
     figure()
     t = datetime(tTable.JD{i},'convertfrom','jd');
     plot(t,tTable.MAG_PSF{i},'k-o')
 
     title(sprintf('(%.4f,%.4f) $P_{wd} - $ %.3f',tTable.RA(i),tTable.Dec(i), tTable.Pwd(i)))
-    
+    ylabel('MAG PSF')
     set(gca,'YDir','reverse')
 end
 

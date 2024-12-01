@@ -2,14 +2,14 @@
 folderPath = '/media/yarinms/Data2/Projects/MarvinRuns/20Vis'; % Adjust the path as needed
 
 % Define a date patern 
-datePat = '*2024.10.26'
+datePat = '*2024.10.31'
 % List all .mat files in the folder
 fileList = dir(fullfile(folderPath, strcat(datePat,'*.mat')));
 %%
 % Sort the files by size in descending order
 [~, sortIdx] = sort([fileList.bytes], 'descend'); % Sort by file size
 sortedFiles = fileList(sortIdx);
-largestFile = sortedFiles(5);
+largestFile = sortedFiles(1);
 
 largestFilePath = fullfile(largestFile.folder, largestFile.name);
 data = load(largestFilePath)
@@ -240,14 +240,14 @@ Srmf = sortrows(dataTable(~isnan(dataTable.maxRMF),:), 'maxRMF', 'descend');
 Srms = sortrows(dataTable, 'RMSNsigma', 'descend');
 
 tTable = Srmf;
-for i = 1 :50
+for i = 100 :100
 
     figure()
     t = datetime(tTable.JD{i},'convertfrom','jd');
     plot(t,tTable.MAG_PSF{i},'k-o')
 
     title(sprintf('(%.4f,%.4f) $P_{wd} - $ %.3f',tTable.RA(i),tTable.Dec(i), tTable.Pwd(i)))
-    
+    ylabel('MAG PSF')
     set(gca,'YDir','reverse')
 end
 

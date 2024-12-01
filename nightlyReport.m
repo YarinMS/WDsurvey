@@ -5,7 +5,7 @@ arguments
     month
     day
     Args.mainPath = sprintf('~/Documents/MainTest/%04d-%02d-%02d',year,month,day);
-    Args.ReportName = sprintf('%04d-%02d-%02d_WD_Observation_Report.pdf',year,month,day);
+    Args.ReportName = sprintf('%04d-%02d-%02d_WD_Observation_Report_2.pdf',year,month,day);
     Args.ReportPath = '~/Documents/MainTest/Reports';
 
 
