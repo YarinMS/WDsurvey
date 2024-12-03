@@ -358,7 +358,11 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                                     eventMetrics = processDetectedEvents3(results, lcData);
                                     batchData.eventMetrics = eventMetrics;
                                     mms.bestMag;
-                                    batchData.RMS=getRMS2(mms);
+                                    try
+                                        batchData.RMS=getRMS2(mms);
+                                    catch
+                                        batchData.RMS = [];
+                                    end
                                         
                                     batchData.Event = true;
                                     WD.Nevents = WD.Nevents + 1;

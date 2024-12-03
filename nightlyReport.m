@@ -79,7 +79,7 @@ tab = Tab.tab;
 
 if ~isempty(tab)
 % All the magic happens
-pattern = 'Results_table_(.*?)_(\d{4}-\d{2}-\d{2})\.mat';
+pattern = 'Results_table_(.*?)_(\d{4}-\d{2}-\d{2})\_(.*?).mat';
 
 % Extract TelescopeID and Date
 tokens = regexp(tableFileName.name, pattern, 'tokens');

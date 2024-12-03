@@ -2,7 +2,7 @@
 folderPath = '/media/yarinms/Data2/Projects/MarvinRuns/20Vis'; % Adjust the path as needed
 
 % Define a date patern 
-datePat = '*2024.10.26'
+datePat = '*2024.11.30'
 % List all .mat files in the folder
 fileList = dir(fullfile(folderPath, strcat(datePat,'*.mat')));
 %%
@@ -207,13 +207,13 @@ disp(rmfRmsSubTable);
 disp('Subtable for White Dwarfs where RMF and RMS are true:');
 disp(wdRmfRmsSubTable);
 
-for i = 1 :height(wdRmfRmsSubTable)
+for i = 1 :height(wdTable)
 
     figure()
-    t = datetime(wdRmfRmsSubTable.JD{i},'convertfrom','jd');
-    plot(t,wdRmfRmsSubTable.MAG_PSF{i},'k-o')
+    t = datetime(wdTable.JD{i},'convertfrom','jd');
+    plot(t,wdTable.MAG_PSF{i},'k-o')
 
-    title(sprintf('(%.4f,%.4f) $P_{wd} - $ %.2f',wdRmfRmsSubTable.RA(i),wdRmfRmsSubTable.Dec(i), wdRmfRmsSubTable.Pwd(i)))
+    title(sprintf('(%.4f,%.4f) $P_{wd} - $ %.2f',wdTable.RA(i),wdTable.Dec(i), wdTable.Pwd(i)))
     
     set(gca,'YDir','reverse')
 end
