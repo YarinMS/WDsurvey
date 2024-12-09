@@ -32,8 +32,8 @@ fprintf('WD with faintest AbsMag (max value): %.2f\n', max(wdTable.AbsMag));
 
 %% if not empty get WDs rows.
 fprintf('Nwds = %i',height(mainWDtab))
-%wdTable = sortrows(mainWDtab, 'MaxPS', 'descend')
-for i = 1300 :1373%height(wdTable)
+wdTable = sortrows(mainWDtab, 'maxRMF', 'descend')
+for i = 124 %height(wdTable)
 
     figure()
     t = datetime(wdTable.JD{i},'convertfrom','jd');

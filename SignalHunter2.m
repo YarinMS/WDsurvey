@@ -132,10 +132,16 @@ function [MetaTable] = SignalHunter2(MetaTable,mount, telescope, year, month, da
 
                 %% get observation data
                 % Initialize AH and observation data structure
-                AH           = AstroHeader(catFP,3); 
-                obsData      = extractObservationData(AH);
-                args.LimMag  = obsData.LimMag;
-                args.catJD   = obsData.catJD;
+                if ~isempty(catFP)
+                    AH           = AstroHeader(catFP,3); 
+                    obsData      = extractObservationData(AH);
+                    args.LimMag  = obsData.LimMag;
+                    args.catJD   = obsData.catJD;
+                else
+                    args.LimMag  = nan;
+                    args.catJD   = nan;
+                end
+
                 args.Nvisits = batchSize;
 
                 %% Create MS obj
@@ -159,7 +165,7 @@ function [MetaTable] = SignalHunter2(MetaTable,mount, telescope, year, month, da
                         continue
                     end
                 
-                    [Cand, WDcand, catWDtable, CandidateTable] = findVariableCandidatesTable(MMS, 'Plot',false);
+                    [Cand, WDcand, catWDtable] = findVariableCandidatesTable(MMS, 'Plot',false,'ObsData',obsData);
                 
                     if ~isempty(Cand) 
                         MetaTable = appendCandidates(Cand, MetaTable, year, month, day, args.Tel, uniqueFields(Ifield), batchSize, Batches,totalVisits);
@@ -173,5 +179,5 @@ function [MetaTable] = SignalHunter2(MetaTable,mount, telescope, year, month, da
             end
         end
     end
-    save(sprintf('/media/yarinms/Data2/Projects/NightlyRun/%s/Temp_Results_Table_%s_%s_%04d.%02d.%02d.mat',args.ID,args.Date,args.Tel,year,month,day),'MetaTable','-v7.3')
+    save(sprintf('/media/yarinms/Data2/Projects/NightlyRun1/%s/Temp_Results_Table_%s_%s_%04d.%02d.%02d.mat',args.ID,args.Date,args.Tel,year,month,day),'MetaTable','-v7.3')
 end

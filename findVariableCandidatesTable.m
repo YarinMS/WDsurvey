@@ -1,4 +1,4 @@
-function [Cand, WDcand, WDtable, CandidateTable] = findVariableCandidatesTable(ms, Args)
+function [Cand, WDcand, WDtable] = findVariableCandidatesTable(ms, Args)
     % Function to find variable candidates and store results in a table
     % Arguments:
     %   ms - Main data object containing MS and other information
@@ -22,6 +22,7 @@ function [Cand, WDcand, WDtable, CandidateTable] = findVariableCandidatesTable(m
         Args.MagField (1,:) char = 'Mag';
         Args.Plot (1,1) logical = false;
         Args.thresholdRMF (1,1) double = 5.5;
+        Args.ObsData = [];
     end
 
     Obj = pipeline.last.SearchMatchedSources;
@@ -55,9 +56,9 @@ function [Cand, WDcand, WDtable, CandidateTable] = findVariableCandidatesTable(m
     if any(FlagComb)
         IndCand = find(FlagComb);
         for IndSrc = IndCand'
-            %[FlagGood, ResPhotAstCorr] = flagCorr(Obj, IndSrc,'PosProbThresh',0.999);
-            FlagGood = true;
-            if FlagGood
+            [FlagGood, ResPhotAstCorr] = flagCorr(Obj, IndSrc,'PosProbThresh',0.999);
+            FlagGood1 = true;
+            if FlagGood1
                 RA = median(Obj.MS.Data.(Args.RAField)(:, IndSrc), 1, 'omitnan');
                 Dec = median(Obj.MS.Data.(Args.DecField)(:, IndSrc), 1, 'omitnan');
 
@@ -76,12 +77,8 @@ function [Cand, WDcand, WDtable, CandidateTable] = findVariableCandidatesTable(m
                     Pwd = 0;
                 end
 
-                AbsMag = nan;
-                Color = nan;
-                %Color = calcColor(Obj, RA, Dec);
-
-                % Store in table
-                CandidateTable = [CandidateTable; {RA, Dec, AbsMag, Color, IsWD, Pwd}];
+                
+             
                 
                 % Plot light curve, RMS, and power spectrum for the candidate
                 if Args.Plot
@@ -99,11 +96,17 @@ function [Cand, WDcand, WDtable, CandidateTable] = findVariableCandidatesTable(m
                 % Store in structures for further processing if needed
                 if IsWD
                     [AbsMag,Color] = calcAbsMagNColor(Obj, RA, Dec);
-                    WDcand{end + 1} = createCandidateStruct(IndSrc, numel(IndCand),Flag, summary, RA, Dec, AbsMag, Color, Pwd,ms);
-                    WDtable = [WDtable;WD.Table];
-                    Cand{end + 1} = createCandidateStruct(IndSrc, numel(IndCand),Flag, summary, RA, Dec, AbsMag, Color, Pwd,ms);
+                    %WDcand{end + 1} = createCandidateStruct(IndSrc, numel(IndCand),Flag, summary, RA, Dec, AbsMag, Color, Pwd,ms,FlagGood, ResPhotAstCorr);
+                    %WDtable = [WDtable;WD.Table];
+                    Cand{end + 1} = createCandidateStruct(IndSrc, numel(IndCand),Flag, summary, RA, Dec, AbsMag, Color, Pwd,ms,FlagGood, ResPhotAstCorr,Args.ObsData);
                 else
-                    Cand{end + 1} = createCandidateStruct(IndSrc, numel(IndCand),Flag, summary, RA, Dec, AbsMag, Color, Pwd,ms);
+                    try
+                        [AbsMag,Color] = calcAbsMagNColor(Obj, RA, Dec);
+                    catch
+                        AbsMag = nan;
+                        Color = nan;
+                    end
+                    Cand{end + 1} = createCandidateStruct(IndSrc, numel(IndCand),Flag, summary, RA, Dec, AbsMag, Color, Pwd,ms,FlagGood, ResPhotAstCorr,Args.ObsData);
                 end
             end
         end
@@ -135,7 +138,7 @@ function [AbsMag,Color] = calcAbsMagNColor(Obj, RA, Dec)
     cd(PWD)
 end
 
-function Cand = createCandidateStruct(IndSrc, Ncand,Flag,summary, RA, Dec, AbsMag, Color, Pwd,ms)
+function Cand = createCandidateStruct(IndSrc, Ncand,Flag,summary, RA, Dec, AbsMag, Color, Pwd,ms,FlagGood, ResPhotAstCorr,ObsData)
     Cand.RA = RA;
     Cand.Dec = Dec;
     Cand.CropID = ms.UserData.CropID;
@@ -161,10 +164,26 @@ function Cand = createCandidateStruct(IndSrc, Ncand,Flag,summary, RA, Dec, AbsMa
     %Cand.MAGERR_PSF = ms.Data.MAGERR_PSF(:,IndSrc);
     Cand.MAG_APER_3 = ms.Data.MAG_APER_3(:,IndSrc);
     %Cand.MAGERR_APER_3 = ms.Data.MAGERR_APER_3(:,IndSrc);
-    Cand.FreqVec = summary.FreqVec;
-    Cand.PSfull = summary.PS(:,IndSrc);
-
-   
-    
+    %Cand.FreqVec = summary.FreqVec;
+    %Cand.PSfull = summary.PS(:,IndSrc);
+    Cand.FlagGood = FlagGood;
+    Cand.CorrRes  = ResPhotAstCorr;
+    Cand.C_RA = ResPhotAstCorr.C_RA;
+    Cand.Pc_RA = ResPhotAstCorr.Pc_RA;
+    Cand.C_Dec = ResPhotAstCorr.C_Dec;
+    Cand.Pc_Dec = ResPhotAstCorr.Pc_Dec;
+    Cand.C_Chi2 = ResPhotAstCorr.C_Chi2;
+    Cand.C_Back = ResPhotAstCorr.C_Back;
+    Cand.Pc_Back = ResPhotAstCorr.Pc_Back;
+    Cand.Pc_Chi2 = ResPhotAstCorr.Pc_Chi2;
+    if length(ms.Data.MAG_PSF(:,IndSrc)) == length(ObsData.FWHM)
+        [Cand.C_LimMag, Cand.Pc_LimMag]    = tools.math.stat.corrsim(ms.Data.MAG_PSF(:,IndSrc), ObsData.LimMag);
+        [Cand.C_FWHM, Cand.Pc_FWHM]    = tools.math.stat.corrsim(ms.Data.MAG_PSF(:,IndSrc), ObsData.FWHM);
+        [Cand.C_Airmass, Cand.Pc_Airmass]    = tools.math.stat.corrsim(ms.Data.MAG_PSF(:,IndSrc), ObsData.airmass);
+    else
+        Cand.C_LimMag=nan; Cand.Pc_LimMag = nan;
+        Cand.C_FWHM=nan; Cand.Pc_FWHM =nan ;
+        Cand.C_Airmass=nan; Cand.Pc_Airmass=nan;
+    end
     
 end

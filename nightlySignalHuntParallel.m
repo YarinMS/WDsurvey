@@ -21,7 +21,7 @@ MetaTables = cell(numTasks, 1); % Each worker outputs one table
 pool = gcp();
 addAttachedFiles(pool, {'/home/yarinms/Documents/WDsurvey/nightlySignalHuntParallel.m'})%, ...
                         %'/home/yarinms/Documents/WDsurvey/SignalHunter2.m'}); % Attach dependencies
-
+pool.IdleTimeout = 660;
 %% Parallel Loop
 parfor taskIdx = 1:numTasks
     Imount = MountsGrid(taskIdx);

@@ -36,5 +36,5 @@ for Imount = Mounts
     end
 end
 
-save(sprintf('/media/yarinms/Data2/Projects/MarvinRuns/%s/Results_Table_LAST.01.%02d.%02d_%04d.%02d.%02d_%s.mat',Args.ID,Imount,Itel,year,month,day),'MetaTable','-v7.3');
+save(sprintf('/media/yarinms/Data2/Projects/NightlyRun1/%s/nshoutput/Results_Table_LAST.01.%02d.%02d_%04d.%02d.%02d_%s.mat',Args.ID,Imount,Itel,year,month,day),'MetaTable','-v7.3');
 end

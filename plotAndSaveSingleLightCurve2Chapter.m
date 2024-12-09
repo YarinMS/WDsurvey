@@ -41,38 +41,41 @@ function plotAndSaveSingleLightCurve2Chapter(results, lcData, saveDir, wdSources
         add(chapter, wdParagraph);
         wdParagraph = Paragraph();
         wdParagraph.Style = {FontSize('11pt')};
-        append(wdParagraph, Text(sprintf('RA: %.3f, Dec: %.3f', RA, Dec)));
+        append(wdParagraph, Text(sprintf('RA: %.6f, Dec: %.6f', RA, Dec)));
         append(wdParagraph, LineBreak());
         %
         add(chapter, wdParagraph);
         wdParagraph = Paragraph();
         wdParagraph.Style = {FontSize('11pt')};
+        append(wdParagraph, Text('Pwd: '));
+        append(wdParagraph, Text(sprintf('%.3f ', wdSources.Pwd(Iwd))));
         append(wdParagraph, Text('G: '));
-        append(wdParagraph, Text(sprintf('%.2f', wdSources.Gmag(Iwd))));
+        append(wdParagraph, Text(sprintf('%.2f ', wdSources.Gmag(Iwd))));
         append(wdParagraph, LineBreak());
         append(wdParagraph, Text('B_p: '));
-        append(wdParagraph, Text(sprintf('%.2f',  wdSources.BPmag(Iwd))));
+        append(wdParagraph, Text(sprintf('%.2f ',  wdSources.BPmag(Iwd))));
         append(wdParagraph, Text(', R_p: '));
-        append(wdParagraph, Text(sprintf('%.2f', wdSources.RPmag(Iwd))));
+        append(wdParagraph, Text(sprintf('%.2f ', wdSources.RPmag(Iwd))));
         append(wdParagraph, LineBreak());
         append(wdParagraph, Text(' Color: '));
-        append(wdParagraph, Text(sprintf('%.2f',   wdSources.BPmag(Iwd)-wdSources.RPmag(Iwd))));
+        append(wdParagraph, Text(sprintf('%.2f ',   wdSources.BPmag(Iwd)-wdSources.RPmag(Iwd))));
         append(wdParagraph, LineBreak());
         add(chapter, wdParagraph);
         wdParagraph = Paragraph();
         wdParagraph.Style = {FontSize('11pt')};
 
-        append(wdParagraph, Text(sprintf('Plx: %.2f mas, Abs G: %.2f', wdSources.Plx(Iwd), lcData.Table.AbsMag(Iwd))));
+        append(wdParagraph, Text(sprintf('Plx: %.2f mas, Abs G: %.2f ', wdSources.Plx(Iwd), lcData.Table.AbsMag(Iwd))));
         append(wdParagraph, LineBreak());
         add(chapter, wdParagraph);
         wdParagraph = Paragraph();
         wdParagraph.Style = {FontSize('11pt')};
-        append(wdParagraph, Text(sprintf('Field ID: %s',  wdSources.FieldID(Iwd))));
+        append(wdParagraph, Text(sprintf('Field ID: %s ',  wdSources.FieldID(Iwd))));
         append(wdParagraph, LineBreak());
-        append(wdParagraph, Text(sprintf('Telescope ID: %s', lcData.Tel)));
+        append(wdParagraph, Text(sprintf('Telescope ID: %s ', lcData.Tel)));
         append(wdParagraph, LineBreak());
-        append(wdParagraph, Text(sprintf('Visit ID: %s',lcData.Date)));
-
+        append(wdParagraph, Text(sprintf('Visit ID: %s ',lcData.Date)));
+        append(wdParagraph, LineBreak());
+        append(wdParagraph, Text(sprintf('Crop ID: %i',lcData.Table.Subframe)));
     
         % Append the paragraph to the chapter
         add(chapter, wdParagraph);

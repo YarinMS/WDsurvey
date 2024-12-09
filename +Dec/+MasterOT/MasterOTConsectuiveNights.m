@@ -1,0 +1,289 @@
+%% Normalizing CV 
+% load('/media/yarinms/Data2/230MasterOTvis.mat')
+MS = matchedSourcesArray;
+MS(1)
+for I =1 : numel(MS)
+FNtest = MS(I).FileName;
+% Use a regular expression to extract the date part (year, month, day)
+datePattern = 'LAST\.\d{2}\.\d{2}\.\d{2}/(\d{4})/(\d{2})/(\d{2})/';
+tokens = regexp(FNtest, datePattern, 'tokens');
+
+if ~isempty(tokens)
+    % Extracting the year, month, and day from the tokens
+    year = tokens{1}{1};
+    month = tokens{1}{2};
+    day = tokens{1}{3};
+    
+    % Combine into a date string if needed
+    extractedDate = [year '-' month '-' day];
+    disp(['Extracted date: ' extractedDate]);
+else
+    disp('No matching date found in the filename.');
+end
+
+end
+
+%%
+%% Normalizing CV 
+% Load the data
+% load('/media/yarinms/Data2/230MasterOTvis.mat')
+MS = matchedSourcesArray;
+
+% Initialize a map to group matched sources by date
+dateGroups = containers.Map;
+
+% Loop through all matched sources
+for I = 1:numel(MS)
+    FNtest = MS(I).FileName;
+    
+    % Use a regular expression to extract the date part (year, month, day)
+    datePattern = 'LAST\.\d{2}\.\d{2}\.\d{2}/(\d{4})/(\d{2})/(\d{2})/';
+    tokens = regexp(FNtest, datePattern, 'tokens');
+
+    if ~isempty(tokens)
+        % Extracting the year, month, and day from the tokens
+        year = tokens{1}{1};
+        month = tokens{1}{2};
+        day = tokens{1}{3};
+        
+        % Create a standardized date string for grouping
+        extractedDate = [year '-' month '-' day];
+        
+        % Add the matched source to the corresponding date group
+        if isKey(dateGroups, extractedDate)
+            % Append to the existing list
+            dateGroups(extractedDate) = [dateGroups(extractedDate), MS(I)];
+        else
+            % Create a new list for this date
+            dateGroups(extractedDate) = MS(I);
+        end
+    else
+        disp('No matching date found in the filename.');
+    end
+end
+
+% Display the grouped results
+allDates = keys(dateGroups);
+for i = 1:length(allDates)
+    currentDate = allDates{i};
+    matchedSourcesForDate = dateGroups(currentDate);
+    
+    disp(['Date: ', currentDate, ' -> Number of matched sources: ', num2str(length(matchedSourcesForDate))]);
+end
+
+
+
+
+%% Normalizing CV 
+
+
+% Initialize a map to group matched sources by date
+dateGroups = containers.Map;
+
+% Loop through all matched sources
+for I = 1:numel(MS)
+    FNtest = MS(I).FileName;
+    
+    % Use a regular expression to extract the date part (year, month, day)
+    datePattern = 'LAST\.\d{2}\.\d{2}\.\d{2}/(\d{4})/(\d{2})/(\d{2})/';
+    tokens = regexp(FNtest, datePattern, 'tokens');
+
+    if ~isempty(tokens)
+        % Extracting the year, month, and day from the tokens
+        year = tokens{1}{1};
+        month = tokens{1}{2};
+        day = tokens{1}{3};
+        
+        % Create a standardized date string for grouping
+        extractedDate = [year '-' month '-' day];
+        
+        % Add the matched source to the corresponding date group
+        if isKey(dateGroups, extractedDate)
+            % Append to the existing list
+            dateGroups(extractedDate) = [dateGroups(extractedDate), MS(I)];
+        else
+            % Create a new list for this date
+            dateGroups(extractedDate) = MS(I);
+        end
+    else
+        disp('No matching date found in the filename.');
+    end
+end
+
+% Display the grouped results
+allDates = keys(dateGroups);
+for i = 2:length(allDates)
+    currentDate = allDates{i};
+    matchedSourcesForDate = dateGroups(currentDate);
+    
+    disp(['Date: ', currentDate, ' -> Number of matched sources: ', num2str(length(matchedSourcesForDate))]);
+end
+
+
+Fluxi  ={};
+Fluxes ={};
+timei = {};
+%%
+% Define a date you want to access in the 'yyyy-mm-dd' format
+targetDate = '2024-10-28';  % Replace this with the desired date
+
+% Check if the date exists in the group
+if isKey(dateGroups, targetDate)
+    % Access the matched sources for that date
+    matchedSourcesForTargetDate = dateGroups(targetDate);
+    
+    % Display information or further process the matched sources
+    disp(['Matched sources for date ', targetDate, ':']);
+    for i = 1:length(matchedSourcesForTargetDate)
+        disp(['Visit ', num2str(i), ': ', matchedSourcesForTargetDate(i).FileName]);
+    end
+%%
+    matchedSourcesForTargetDate(1).coneSearch(60.2175,34.0771)
+    mms = mergeByCoo(matchedSourcesForTargetDate,matchedSourcesForTargetDate(1));
+    mms.coneSearch(60.2175,34.0771)
+    % Setting bad Photometry to NaN.
+    args.BadFlags = {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'}; % Change to NaN all data points associated with these flags.
+    mms = mms.setBadPhotToNan('BadFlags', args.BadFlags, 'MagField', 'MAG_PSF', 'CreateNewObj', true);
+
+    % Consider all sources with all nans sources with NdetPts > args.Ndet. 
+    NdetGood = sum(~isnan(mms.Data.MAG_PSF), 1);
+    Fndet = NdetGood > (mms.Nepoch-0.85*mms.Nepoch); % Allow for 15% no detections per source.
+    mms = mms.selectBySrcIndex(Fndet, 'CreateNewObj', false);
+    % use bestMag to get the best photometry for a source ( aper 3 / psf)
+    mms.bestMag
+
+
+    % Apply zero point correction to mag fields
+    r = lcUtil.zp_meddiff(mms, 'MagField', {'MAG_PSF'}, 'MagErrField', {'MAGERR_PSF'});
+    [mms, ~] = applyZP(mms, r.FitZP, 'ApplyToMagField', 'MAG_BEST');
+    WDsInd = mms.coneSearch(60.2175,34.0771).Ind;
+    RefInd = mms.coneSearch(59.69680,34.07714).Ind;
+    % Replace these with your actual magnitude data
+    magnitudeA = mms.Data.MAG_PSF(:,WDsInd);  % Magnitudes of Star A
+    magnitudeB = mms.Data.MAG_PSF(:,RefInd);  % Magnitudes of Star B
+    
+    % Reference magnitude (optional: choose an average or a fixed reference)
+    m0 =mean([magnitudeA, magnitudeB],'omitnan'); 
+    
+    % Convert magnitudes to flux
+    fluxA = 10.^(-(magnitudeA - m0) / 2.5);
+    fluxA = fluxA/mean(fluxA,'omitnan')
+    fluxB = 10.^(-(magnitudeB - m0) / 2.5);
+    fluxB = fluxB/mean(fluxB,'omitnan')
+    % Calculate the differential flux
+    % Normalized difference flux (e.g., ratio or relative difference)
+    normalizedFlux = (fluxA - fluxB) ./ (fluxA + fluxB);
+    Fluxi{end+1} = fluxA;
+    Fluxes{end+1} = normalizedFlux;
+    timei{end+1} = mms.JD;
+    % Plot the normalized flux light curve for differential photometry
+    time = datetime(mms.JD,'ConvertFrom','jd'); % Replace with actual time data if available
+    figure;
+    plot(time, normalizedFlux, '-o');
+    xlabel('Time');
+    ylabel('Normalized Flux');
+    title('Differential Photometry - Normalized Flux');
+    title(targetDate)
+    grid on;
+
+
+
+
+
+else
+    disp(['No matched sources found for date ', targetDate, '.']);
+end
+
+
+%%
+%% Combine Fluxi and timei into single arrays
+% Concatenate all flux data into one vector
+allFluxes = vertcat(Fluxi{:});
+
+% Concatenate all time data into one vector
+allTimes = vertcat(timei{:});
+
+% Convert the combined Julian Dates into datetime format
+% combinedTime = datetime(allTimes, 'ConvertFrom', 'juliandate');
+combinedTime = datetime(mms.JD, 'ConvertFrom', 'juliandate');
+
+%% Plot the combined light curve
+figure;
+plot(combinedTime, mms.Data.MAG_PSF(:,WDsInd), 'k-.',MarkerSize=8);
+hold on 
+plot(combinedTime, mms.Data.MAG_PSF(:,484), '.');
+xlabel('Time');
+ylabel('Normalized Flux');
+title('Combined Differential Photometry - Normalized Flux');
+grid on;
+set(gca,'YDir','reverse')
+legend('MasterOT','Control Star')
+
+
+%%
+
+ ms = [dateGroups( '2024-10-22'),dateGroups( '2024-10-23'),dateGroups( '2024-10-24'),dateGroups( '2024-10-26'),dateGroups( '2024-10-28'),dateGroups( '2024-10-29')];
+
+ mms = mergeByCoo(ms,ms(1));
+    mms.coneSearch(60.2175,34.0771)
+    % Setting bad Photometry to NaN.
+    args.BadFlags = {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'}; % Change to NaN all data points associated with these flags.
+    mms = mms.setBadPhotToNan('BadFlags', args.BadFlags, 'MagField', 'MAG_PSF', 'CreateNewObj', true);
+
+    % Consider all sources with all nans sources with NdetPts > args.Ndet. 
+    NdetGood = sum(~isnan(mms.Data.MAG_PSF), 1);
+    Fndet = NdetGood > (mms.Nepoch-0.85*mms.Nepoch); % Allow for 15% no detections per source.
+    mms = mms.selectBySrcIndex(Fndet, 'CreateNewObj', false);
+    % use bestMag to get the best photometry for a source ( aper 3 / psf)
+    mms.bestMag
+
+
+    % Apply zero point correction to mag fields
+    r = lcUtil.zp_meddiff(mms, 'MagField', {'MAG_PSF'}, 'MagErrField', {'MAGERR_PSF'});
+    [mms, ~] = applyZP(mms, r.FitZP, 'ApplyToMagField', 'MAG_BEST');
+    WDsInd = mms.coneSearch(60.2175,34.0771).Ind;
+    RefInd = mms.coneSearch(59.69680,34.07714).Ind;
+ 
+ [Cand, WDcand, catWDtable, CandidateTable] = findVariableCandidatesTable(mms, 'Plot',true);
+                
+
+
+ %%
+% Compute the Lomb-Scargle periodogram
+jult = juliandate(combinedTime)
+[pxx, f] = plomb(y, t);
+
+% Plot the power spectrum
+figure;
+plot(f, pxx);
+xlabel('Frequency (Hz)');
+ylabel('Power/Frequency (dB/Hz)');
+title('Lomb-Scargle Periodogram');
+grid on;
+
+
+%%
+% Identify the dominant frequency
+for pmin =    86.788069829
+[~, idx] = max(pxx);
+dominantFrequency = 16.6578;%f(1000);
+
+% Fold the data over the period corresponding to the dominant frequency
+period = 1 / dominantFrequency;
+
+period = pmin/(24*60)
+phases = mod(t, period) / period;
+
+% Sort data by phase for plotting
+[phasesSorted, sortIdx] = sort(phases);
+xSorted = y(sortIdx);
+
+% Plot the folded data
+figure;
+plot(phasesSorted, xSorted, 'k.');
+xlabel('Phase');
+ylabel('Normlized Flux');
+title(sprintf('Data Folded at $P_{orb}$ = %.3f min',pmin));
+grid on;
+set(gca,'Ydir','reverse')
+end
