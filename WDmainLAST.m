@@ -195,8 +195,10 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                         AI = AstroImage(imagesFP,'Mask',maskFP,'PSF',psfFP);
                         
      
-                        [FPms,FPresults,lcDataFP] = applyFPlast(AI,WD,1,50);
-                        
+                        % [FPms,FPresults,lcDataFP] = applyFPlast(AI,WD,1,50);
+                        % 
+                        [FPms,FPresults,lcDataFP] = applyFPlastNOPSF(AI,WD,1,50);
+                      
                         if isfield(lcDataFP,'lc')
                             if sum(lcDataFP.limMag-lcDataFP.lc < 0) > 0.3*length(lcDataFP.lc)  
 
