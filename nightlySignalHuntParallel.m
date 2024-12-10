@@ -5,7 +5,7 @@ arguments
     year
     month
     day
-    Args.Nvisits = 2;
+    Args.Nvisits = 20;
     Args.ID = '20Vis';
 end
 
@@ -21,7 +21,7 @@ MetaTables = cell(numTasks, 1); % Each worker outputs one table
 pool = gcp();
 addAttachedFiles(pool, {'/home/yarinms/Documents/WDsurvey/nightlySignalHuntParallel.m'})%, ...
                         %'/home/yarinms/Documents/WDsurvey/SignalHunter2.m'}); % Attach dependencies
-pool.IdleTimeout = 660;
+pool.IdleTimeout = 666660;
 %% Parallel Loop
 parfor taskIdx = 1:numTasks
     Imount = MountsGrid(taskIdx);
@@ -57,6 +57,6 @@ end
 MetaTable = vertcat(MetaTables{:});
 
 %% Save Results
-save(sprintf('/media/yarinms/Data2/Projects/MarvinRuns/%s/Results_Table_LAST.%04d.%02d.%02d_%s.mat', ...
+save(sprintf('/media/yarinms/Data2/Projects/NightlyRun1/%s/Results_Table_LAST.%04d.%02d.%02d_%s.mat', ...
     Args.ID, year, month, day, Args.ID), 'MetaTable', '-v7.3');
 end

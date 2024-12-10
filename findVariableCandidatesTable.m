@@ -77,6 +77,10 @@ function [Cand, WDcand, WDtable] = findVariableCandidatesTable(ms, Args)
                     Pwd = 0;
                 end
 
+                if numel(Pwd) > 1
+                    Pwd = Pwd(1);
+                end
+
                 
              
                 

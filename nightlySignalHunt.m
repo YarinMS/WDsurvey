@@ -17,18 +17,39 @@ h = waitbar(0)
 Counter = 0 ;
 for Imount = Mounts
     for Itel = [1:4]
-        if Imount == 4 || Imount == 5
-            if Itel ~= 2 
+        if Imount == 4 %|| Imount == 5 not for Nov.
+            if Itel ~= 1 
                 continue
             end
         end
+
+        if month <= 10
+            if Imount == 5
+                if Itel ~= 1
+                    continue
+                end
+            end
+        end
+
+        if month == 11
+            if Imount == 6
+                continue
+            elseif Imount == 8
+                if Itel <=2
+                    continue
+                end
+            end
+        end
+
+
         Counter = Counter+1;
         checkDir = sprintf('~/marvin/LAST.01.%02d.%02d/%04d/%02d/%02d/proc',Imount,Itel,year,month,day);
 
         if isdir(checkDir)
             waitbar(Counter/(Imount*Itel),h,sprintf('Mount %i; Tel %i ',Imount,Itel))
-            MetaTable = SignalHunter2(MetaTable,Imount, Itel, year, month, day, Args.Nvisits,'PlotNSave',false,'ID',Args.ID)
-            
+            MetaTable = SignalHunter2(table(),Imount, Itel, year, month, day, Args.Nvisits,'PlotNSave',false,'ID',Args.ID)
+            save(sprintf('/media/yarinms/Data2/Projects/NightlyRun1/%s/Results_Table_LAST.01.%02d.%02d_%04d.%02d.%02d.mat',Args.ID,Imount,Itel,year,month,day),'MetaTable','-v7.3');
+            MetaTable = 1;
         end
 
 
@@ -36,5 +57,5 @@ for Imount = Mounts
     end
 end
 
-save(sprintf('/media/yarinms/Data2/Projects/NightlyRun1/%s/nshoutput/Results_Table_LAST.01.%02d.%02d_%04d.%02d.%02d_%s.mat',Args.ID,Imount,Itel,year,month,day),'MetaTable','-v7.3');
+
 end

@@ -1,5 +1,5 @@
 % Define the folder containing the .mat files
-folderPath = '/media/yarinms/Data2/Projects/MarvinRuns/20Vis'; % Adjust the path as needed
+folderPath = '/media/yarinms/Data2/Projects/NightlyRuns1/10Vis'; % Adjust the path as needed
 
 % Define a date patern 
 datePat = '*2024.11.30'

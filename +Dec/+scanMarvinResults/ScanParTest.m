@@ -1,7 +1,9 @@
 %% load all tables.
-resultTables = dir('/media/yarinms/Data2/Projects/MarvinRuns/3Vis/Results_Table*');
+resultTables = dir('/media/yarinms/Data2/Projects/NightlyRun1/10Vis/*Results_Table*');
 NET = 0;
 mainWDtab = table();
+consolidatedTable =table();
+%mainT = table();
 for Itab = 1 : length(resultTables)
 
     tab = load(fullfile(resultTables(Itab).folder,resultTables(Itab).name));
@@ -10,7 +12,24 @@ for Itab = 1 : length(resultTables)
          NET = NET +1 ;
          Tab = tab.MetaTable;
          WDtab = Tab(Tab.Pwd> 0 ,:);
-         mainWDtab = vertcat(mainWDtab,WDtab);
+         mainT = vertcat(mainT,Tab);
+         % Create a new table with only the columns to filter by
+         % Exclude specific columns
+columnsToExclude = {'FileNames', 'JD', 'MAG_PSF', 'MAG_APER_3', 'CorrRes'};
+columnsToInclude = setdiff(Tab.Properties.VariableNames, columnsToExclude);
+         T_filterSubset = mainT(:, columnsToInclude);
+
+        % Find the unique rows based on the filtered subset
+        [~, uniqueIdx] = unique(T_filterSubset, 'rows');
+
+        % Apply the index to the original table to retain all columns
+        mainT = mainT(uniqueIdx, :);
+        
+
+        % mainWDtab = vertcat(mainWDtab,WDtab);
+         %mainWDtable = unique(mainWDtab, 'rows');
+         %combinedTable = vertcat(mainWDtab,Tab);
+        % consolidatedTable = unique(combinedTable, 'rows');
     end
 
 
@@ -18,6 +37,22 @@ end
 
 %%
 
+
+
+
+% Create a new table with only the columns to include
+T_filtered = T(:, columnsToInclude);
+
+% Filter unique rows based on the included columns
+T_unique = unique(T_filtered, 'rows');
+
+% Display the unique table
+disp(T_unique);
+
+
+
+
+%%
 % Basic statistics for key columns
 disp('Basic Statistics:');
 fprintf('Total rows (detections): %d\n', height(wdTable));
@@ -33,7 +68,7 @@ fprintf('WD with faintest AbsMag (max value): %.2f\n', max(wdTable.AbsMag));
 %% if not empty get WDs rows.
 fprintf('Nwds = %i',height(mainWDtab))
 wdTable = sortrows(mainWDtab, 'maxRMF', 'descend')
-for i = 124 %height(wdTable)
+for i = 1:124 %height(wdTable)
 
     figure()
     t = datetime(wdTable.JD{i},'convertfrom','jd');
