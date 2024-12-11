@@ -7,6 +7,8 @@ function AI = loadFilesForPhotometry(baseDir, cropID)
     visitDirs = dir(procDir);  % List all files/folders in procDir
     visitDirs = visitDirs([visitDirs.isdir]);  % Keep only directories
     visitDirs = visitDirs(~ismember({visitDirs.name}, {'.', '..'}));
+    visitDirs.folder
+    visitDirs.name
     
     % Find all relevant files
     filePattern = sprintf('*%03d_sci_proc_Image_1.fits', cropID);  % Assuming .hdf format
