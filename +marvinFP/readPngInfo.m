@@ -1,7 +1,7 @@
 function Res = readPngInfo(directory)
     % Get list of all .png files matching 'Mag*.png'
     pngFiles = dir(fullfile(directory, '*.png'));
-    Res ={};
+    Res =zeros(numel(pngFiles),1);
     for i = 1:length(pngFiles)
         pngFilePath = fullfile(directory, pngFiles(i).name);
 
@@ -9,23 +9,30 @@ function Res = readPngInfo(directory)
         img = imread(pngFilePath);
         ocrResults = ocr(img);
         extractedText = ocrResults.Text;
+
+        tabIDPattern = 'ID \# (\d+)'; % should be changed to tabID
+        tabID = regexp(extractedText, tabIDPattern, 'tokens', 'once');
+        tabID = tabID{1};
+        Res(i) = str2double(tabID);
         
+
+        % #### Future modificaitons
         % Step 2: Parse the Extracted Text
-        eventInfo = parseTextFromOCR(extractedText);
+           % eventInfo = parseTextFromOCR(extractedText);
         
-        % Step 3: Build Path and Time Window Based on Event Info
-        remotePath = buildRemotePath(eventInfo);
-        timeWindow = calculateTimeWindow(eventInfo.dateStr);
+        % #### Step 3: Build Path and Time Window Based on Event Info
+        % remotePath = buildRemotePath(eventInfo);
+        % timeWindow = calculateTimeWindow(eventInfo.dateStr);
 
         % Display the results
-        fprintf('Processing Image: %s\n', pngFiles(i).name);
-        fprintf('Remote Path: %s\n', remotePath);
-        fprintf('Time Window: %s to %s\n', timeWindow.startTime, timeWindow.endTime);
-    
+        % fprintf('Processing Image: %s\n', pngFiles(i).name);
+        % fprintf('Remote Path: %s\n', remotePath);
+        % fprintf('Time Window: %s to %s\n', timeWindow.startTime, timeWindow.endTime);
+        % 
         % Store results
-        Res(i).eventInfo  = eventInfo;
-        Res(i).remotePath = remotePath;
-        Res(i).timeWindow = timeWindow;
+        % Res(i).eventInfo  = eventInfo;
+        % Res(i).remotePath = remotePath;
+        % Res(i).timeWindow = timeWindow;
     
     end
 end

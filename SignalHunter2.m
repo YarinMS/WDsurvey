@@ -133,10 +133,18 @@ function [MetaTable] = SignalHunter2(MetaTable,mount, telescope, year, month, da
                 %% get observation data
                 % Initialize AH and observation data structure
                 if ~isempty(catFP)
+                    try
                     AH           = AstroHeader(catFP,3); 
                     obsData      = extractObservationData(AH);
                     args.LimMag  = obsData.LimMag;
                     args.catJD   = obsData.catJD;
+                    catch
+                        args.LimMag  = nan;
+                        args.catJD   = nan;
+                        
+                    end
+
+
                 else
                     args.LimMag  = nan;
                     args.catJD   = nan;

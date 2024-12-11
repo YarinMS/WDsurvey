@@ -1,4 +1,6 @@
 function runRemotePipelineScript(telescopeNumber, year, month, day)
+    % A script that is running the pipeline over images in newY directory
+    
     % Initialize the DemonLAST pipeline object
     D = pipeline.DemonLAST;
     
@@ -20,7 +22,8 @@ function runRemotePipelineScript(telescopeNumber, year, month, day)
     D.BasePath = strcat(D.BasePath, '_re');
     D.DefCalibPath = CalibPath;
     D.DefNewPath = NewYPath;
-    
+    fprintf('\n%s\n',D.CalibPath)
+    D
     % Load the calibration data for the specified date (year, month, day)
     D.loadCalib('FlatNearJD', [year, month, day]);
     D.prepMasterDark;

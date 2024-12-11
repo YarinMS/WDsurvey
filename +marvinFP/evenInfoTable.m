@@ -1,0 +1,26 @@
+function eventInfo = evenInfoTable(Tab,tabID)
+% ID : Gets relvant info for funpack raw images on LAST computer from table
+
+
+eventRow = Tab(tabID,:);
+% Get event info :
+eventInfo.ra = eventRow.RA;
+eventInfo.dec = eventRow.Dec;
+eventInfo.cropID = eventRow.CropID;
+eventInfo.fieldID = eventRow.FieldID;
+% get telscope id path
+eventInfo.telescope = eventRow.TelescopeID;
+eventInfo.tabID = tabID;
+
+eventInfo.year = eventRow.Year;
+eventInfo.month = eventRow.Month;
+eventInfo.day = eventRow.Day;
+% get time interval. 
+eventInfo.minTime = min(eventRow.JD{:}) - 0.0114; 
+eventInfo.maxTime = max(eventRow.JD{:}) + 0.0114;
+% get filenames
+eventInfo.FileNames = eventRow.FileNames;
+
+
+
+end

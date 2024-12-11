@@ -1,4 +1,6 @@
 function runRemotePipelineScript(telescopeNumber, year, month, day)
+    % A script that is running the pipeline over images in newY directory
+    
     % Initialize the DemonLAST pipeline object
     D = pipeline.DemonLAST;
     

@@ -15,7 +15,7 @@ for Itab = 1 : numel(resultTables)
     tab = load(fullfile(resultTables(Itab).folder,resultTables(Itab).name));
     if ~isempty(tab)
      tab = tab.MetaTable;
-     gtab = vertcat(gtab,tab(tab.Pwd > 0 ,:)); %  onlyWDs
+     gtab = vertcat(gtab,tab);
     end
 end
 
@@ -26,4 +26,4 @@ end
 disp(sprintf('%i WD events',sum(gtab.Pwd>0)))
 
 %% plot maxRMF correlation with background 
-plts.plotNTabStat(gtab,'gaiaData',gaiaData,'Xfield','C_LimMag','Yfield','MaxPS')
+plts.plotNTabStat(gtab,'gaiaData',gaiaData,'Xfield','C_Chi2','Yfield','RMSNsigma')

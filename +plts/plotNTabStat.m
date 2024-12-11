@@ -60,7 +60,7 @@ for k = 1:length(selected_indices)
     plot(t, y{1}, 'k-o');
 
     % Title and labels
-    title(sprintf('(%.4f, %.4f)  $P_{wd}$ - %.2f; ID \\# %i', Tab.RA(i), Tab.Dec(i), Tab.Pwd(i), i));
+    title(sprintf('(%.4f, %.4f)  $P_{wd}$ - %.2f; tabID \\# %i', Tab.RA(i), Tab.Dec(i), Tab.Pwd(i), i));
     xlabel(sprintf('Abs  $G$ = %.2f; $B_p-R_p$ = %.3f\n %s %04d-%02d-%02d %s', ...
         Tab.AbsMag(i), Tab.BpRp(i), Tab.TelescopeID(i,:), Tab.Year(i), Tab.Month(i), Tab.Day(i), Tab.FieldID{i}));
     set(gca, 'YDir', 'reverse');

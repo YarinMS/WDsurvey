@@ -1,58 +1,28 @@
 function ForcedPhotometryRemote(cropID, ra, dec)
     addpath('~/Documents/WDsurvey/');
-    rePath = '/last05e/data2/archive/LAST.01.05.02_re/2023/06/20/proc/';
-    matFilePath = '~/Documents/Temp/273.856543_6.727045_LAST.01.05.02_20230621.002555.535_22_2734_WD N56386.mat';
-    pngFilePath = '~/Documents/Temp/273.856543_6.727045_LAST.01.05.02_20230621.002555.535_22_2734_WD N56386.png';
-    removePath = '/last05e/data2/archive/LAST.01.05.02_re/2023/06/20/';
+    rePath = '/last01w/data1/archive/LAST.01.01.03_re/2024/10/22/proc/';
+    matFilePath = '~/Documents/WD_survey/TempMarvinRun/26.116749_37.981503_LAST.01.01.03_2024-10-22_10_1403.mat';
+    removePath = '/last01w/data1/archive/LAST.01.01.03_re/2024/10/22/';
     AI = loadFilesForPhotometry(rePath, cropID);
     FP = imProc.sources.forcedPhot(AI, 'Coo', [ra, dec], ...
-'ColNames', {'RA', 'Dec', 'X', 'Y', 'Xstart', 'Ystart', 'Chi2dof', 'FLUX_PSF', 'FLUXERR_PSF', 'MAG_PSF', 'MAGERR_PSF', 'BACK_ANNULUS', 'STD_ANNULUS', 'FLUX_APER', 'FLAG_POS', 'FLAGS'});
-    limMag = arrayfun(@(x) x.Key.LIMMAG, AI)';
-    airmass = arrayfun(@(x) x.Key.AIRMASS, AI)';
-    JD = arrayfun(@(x) x.Key.JD, AI)';
-    FWHM = arrayfun(@(x) x.Key.FWHM, AI)';
-    mms = FP.setBadPhotToNan('BadFlags', {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'}, 'MagField', 'MAG_PSF', 'CreateNewObj', true);
-    r = lcUtil.zp_meddiff(mms, 'MagField', {'MAG_PSF'}, 'MagErrField', {'MAGERR_PSF'});
+        'ColNames', {'RA', 'Dec', 'X', 'Y', 'Xstart', 'Ystart', 'Chi2dof', ...
+        'FLUX_PSF', 'FLUXERR_PSF', 'MAG_PSF', 'MAGERR_PSF', 'BACK_ANNULUS', ...
+        'STD_ANNULUS', 'FLUX_APER', 'FLAG_POS', 'FLAGS'}, ...
+        'MomentMaxIter', 10, 'UseMomCoo', true, 'HeaderZP', true, 'ReconstructPSF', false, ...
+        'constructPSFArgs', {'RepopulatePSF', true, 'ThresholdPSF', 20, ...
+        'RangeSN', [50, 1000], 'RadiusPSF', 6});
+
+    mms = FP.setBadPhotToNan('BadFlags', {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'}, ...
+        'MagField', 'MAG_PSF', 'CreateNewObj', true);
+
+    r = lcUtil.zp_meddiff(mms, 'MagField', {'MAG_PSF'}, 'MagErrField', {'MAGERR_PSF'}, 'MinNsrc', 1);
     [ms, ~] = applyZP(mms, r.FitZP, 'ApplyToMagField', {'MAG_PSF'});
+
+    % Filter detections
     NdetGood = sum(~isnan(ms.Data.MAG_PSF), 1);
     Fndet = NdetGood > ms.Nepoch - 4;
     Fndet(1) = 1;
     ms = ms.selectBySrcIndex(Fndet, 'CreateNewObj', false);
-    lcData.lc = ms.Data.MAG_PSF(:,1);
-    lcData.JD = ms.JD;
-    lcData.limMag = limMag;
-    lcData.catJD = JD;
-    lcData.Table.RA = ra;
-    lcData.Table.Dec = dec;
-    lcData.Table.Gmag = 0;
-    [~, fname, ~] = fileparts(AI(1).Key.FILENAME);
-    part = strsplit(fname, '_');
-    lcData.Tel = part{1};
-    lcData.Date = part{2};
-    lcData.Ctrl = WDtransits3.getCloseControl(ms, 1, {}, ra, dec);
-    enssembeleLC = lcData.Ctrl.medLc;
-    deltaMag = lcData.lc - enssembeleLC;
-    relFlux = 10.^(-0.4 * deltaMag);
-    lcData.relFlux = relFlux / median(relFlux, 'omitnan');
-    lcData.typicalSD = std(lcData.lc, 'omitnan');
-    lcData.typScatter = std(lcData.relFlux, 'omitnan');
-    lcData.nanIndices = isnan(lcData.lc);
-    args.Ndet = sum(~isnan(lcData.lc));
-    args.Nvisits = 100000;
-    args.runMeanFilterArgs = {'Threshold', 5, 'StdFun', 'OutWin'};
-    results = WDtransits3.detectTransits(lcData, args);
-    results = {results};
-    Iwd = 1; Ibatch = 1;
-    Detected = ~isempty(results{Iwd, Ibatch}.detection1.events) || ~isempty(results{Iwd, Ibatch}.detection2.events);
-    FluxDetected = ~isempty(results{Iwd, Ibatch}.detection1flux.events) || ~isempty(results{Iwd, Ibatch}.detection2flux.events);
-    Methods = [~isempty(results{Iwd, Ibatch}.detection1.events), ~isempty(results{Iwd, Ibatch}.detection2.events)];
-    FluxMethods = [~isempty(results{Iwd, Ibatch}.detection1flux.events), ~isempty(results{Iwd, Ibatch}.detection2flux.events)];
-    figure('Visible', 'off');
-    WDtransits3.plotLightCurve(results, Iwd, Ibatch, lcData, Methods, lcData.relFlux, FluxMethods);
-    set(gcf, 'PaperPositionMode', 'auto');
-    set(gcf, 'PaperUnits', 'inches');
-    set(gcf, 'PaperPosition', [0 0 12 8]);
-    print(gcf, '~/Documents/Temp/273.856543_6.727045_LAST.01.05.02_20230621.002555.535_22_2734_WD N56386.png', '-dpng', '-r300');
-    save(matFilePath, 'lcData');
-    rmdir(removePath, 's');
+
+    save(matFilePath, 'ms');
 end

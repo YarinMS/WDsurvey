@@ -30,8 +30,21 @@
 %% Draft workspace
 imgsDir = '~/Projects/NightRunRes/';
 Res = marvinFP.readPngInfo(imgsDir)
+%%
+Res(1) = 117092; % CV new?
+Res(2) =19281 % transit MS?
+rowInd = 2 % Some loop over Res.
+eventInfo = marvinFP.evenInfoTable(gtab,Res(rowInd))
+eventInfo.rowID = Res(rowInd)
+%% funpack localy and run pipeline
+Data = marvinFP.SSHunpackFitsFilesMarv(eventInfo)
+
+%%
 
 
+%
+  
+% funpack
 
 
 
@@ -45,6 +58,12 @@ Res = marvinFP.readPngInfo(imgsDir)
 
 
 %% Main workspace
+
+
+
+%% Get event rows in table obce you have images:
+imgsDir = '~/Projects/NightRunRes/';
+Res = marvinFP.readPngInfo(imgsDir);
 
 
 

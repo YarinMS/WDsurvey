@@ -30,7 +30,7 @@ function AI = loadFilesForPhotometry(baseDir, cropID)
     
     % Display results
     if isempty(fileList)
-        fprintf('No files found for Crop ID %s.\n', cropID);
+        fprintf('No files found for Crop ID %s.\n Path: %s \n', cropID,baseDir);
     else
         fprintf('Found %d files for Crop ID %s.\n', numel(fileList), cropID);
     end
