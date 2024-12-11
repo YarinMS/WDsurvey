@@ -22,9 +22,11 @@ function AI = loadFilesForPhotometry(baseDir, cropID)
         visitDirPath = fullfile(procDir, visitDirs(i).name);  % Full path to the visit directory
         % Search for files matching the Crop ID pattern inside the visit directory
         cd(visitDirPath )
+        pwd
         fn    = FileNames.generateFromFileName(fullfile(visitDirPath, filePattern));
-        
+        fn
         AI = [AI  AstroImage.readFileNamesObj(fn)];
+        AI
         % Add each found file to the fileList
 
     end
