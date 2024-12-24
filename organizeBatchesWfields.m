@@ -44,8 +44,11 @@ function [batches,Fields] = organizeBatchesWfields(fullPath, batchSize)
             AH = AstroHeader(fullFN,3);
             visitFields  = [visitFields; {AH.Key.FIELDID}]
           catch
-              visitFields = [visitFields];
-              continue;
+              
+              visitFields = [visitFields; {'VisFieldErr'}];
+
+
+              
           end
           
         end

@@ -1,4 +1,4 @@
-function plotHRDiagramWithSource(gaiaData, sourceMg, sourceBpRp)
+function plotHRDiagramWithSource(gaiaData, sourceMg,sourceBpRp)
     % Inputs:
     %   gaiaData - Struct containing Gaia 100 pc HR diagram data (fields: bp_rp, mg)
     %   sourceMg - Absolute magnitude (Mg) of the additional source

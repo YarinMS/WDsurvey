@@ -16,11 +16,10 @@ function generateForcedPhotometryScriptMarv(rePath, cropID, ra, dec, matFilePath
     fprintf(fid, '        ''ColNames'', {''RA'', ''Dec'', ''X'', ''Y'', ''Xstart'', ''Ystart'', ''Chi2dof'', ...\n');
     fprintf(fid, '        ''FLUX_PSF'', ''FLUXERR_PSF'', ''MAG_PSF'', ''MAGERR_PSF'', ''BACK_ANNULUS'', ...\n');
     fprintf(fid, '        ''STD_ANNULUS'', ''FLUX_APER'', ''FLAG_POS'', ''FLAGS''}, ...\n');
-    fprintf(fid, '        ''MomentMaxIter'', 10, ''UseMomCoo'', true, ''HeaderZP'', true, ''ReconstructPSF'', false, ...\n');
-    fprintf(fid, '        ''constructPSFArgs'', {''RepopulatePSF'', true, ''ThresholdPSF'', 20, ...\n');
-    fprintf(fid, '        ''RangeSN'', [50, 1000], ''RadiusPSF'', 6});\n\n');
+    fprintf(fid, '        ''MomentMaxIter'', 10, ''UseMomCoo'', true, ''HeaderZP'', true, ''ReconstructPSF'', false);\n');
     fprintf(fid, '    mms = FP.setBadPhotToNan(''BadFlags'', {''Saturated'', ''Negative'', ''NaN'', ''Spike'', ''Hole'', ''NearEdge''}, ...\n');
     fprintf(fid, '        ''MagField'', ''MAG_PSF'', ''CreateNewObj'', true);\n\n');
+    fprintf(fid, '    FP\n');
     fprintf(fid, '    r = lcUtil.zp_meddiff(mms, ''MagField'', {''MAG_PSF''}, ''MagErrField'', {''MAGERR_PSF''}, ''MinNsrc'', 1);\n');
     fprintf(fid, '    [ms, ~] = applyZP(mms, r.FitZP, ''ApplyToMagField'', {''MAG_PSF''});\n\n');
     fprintf(fid, '    %% Filter detections\n');
@@ -30,8 +29,9 @@ function generateForcedPhotometryScriptMarv(rePath, cropID, ra, dec, matFilePath
     fprintf(fid, '    ms = ms.selectBySrcIndex(Fndet, ''CreateNewObj'', false);\n\n');
     % Save lcData (light curve data) as a MAT file
     fprintf(fid, '    save(matFilePath, ''ms'');\n');
+    fprintf(fid, '    fprintf(''Complete'')\n');
     % Clean up the processed directory
-    %fprintf(fid, '    rmdir(removePath, ''s'');\n');
+    fprintf(fid, '    rmdir(removePath, ''s'');\n');
     fprintf(fid, 'end\n');
     
     % Close the file

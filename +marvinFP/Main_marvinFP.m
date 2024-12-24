@@ -48,8 +48,25 @@ Data = marvinFP.SSHunpackFitsFilesMarv(eventInfo)
 
 
 
+%% try
 
 
+Res(3) =141407 % transit MS?
+rowInd = 3 % Some loop over Res.
+eventInfo = marvinFP.evenInfoTable(gtab,Res(rowInd))
+eventInfo.rowID = Res(rowInd)
+eventRow = gtab(Res(rowInd),:);
+% funpack localy and run pipeline
+Data = marvinFP.SSHunpackFitsFilesMarv(eventInfo)
+% FP
+[fn] = marvinFP.automateRemoteProcessingMarv(Data);
+ms = dir(sprintf('~/Projects/MarvinRunRes/*Row%i.mat',eventInfo.tabID))
+ms= load(fullfile(ms.folder,ms.name));
+ms = ms.ms;
+figure()
+plot(ms.JD,ms.Data.MAG_PSF(:,1))
+hold on
+plot(eventRow.JD{:},eventRow.MAG_PSF{:})
 
 
 

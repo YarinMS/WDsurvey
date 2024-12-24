@@ -1,0 +1,40 @@
+%% Load gaia data;
+gaiaData = load('~/Documents/WDsurvey/gaia_bp_rp_mg.mat');
+
+%%
+gtab = load('/media/yarinms/Data2/Projects/Tables/WDtable_dec_15.mat')
+figNums = load('/media/yarinms/Data2/Projects/Tables/WDtable_dec_15_FigNumbers.mat')
+%%
+Tab = gtab.gtab(figNums.figNumbers,:);
+
+for i = 1: height(Tab)
+    figure()
+t = Tab.JD(i);
+t = datetime(t{1},'convertfrom','jd');
+y = Tab.MAG_PSF(i);
+plot(t,y{1},'k-o')
+
+title(sprintf('(%.4f,%.4f)  $P_{wd}$ -  %.2f; ID \\# %i',Tab.RA(i),Tab.Dec(i), Tab.Pwd(i),i))
+xlabel(sprintf('Abs  $G$ = %.2f; $B_p-R_p$ = %.3f\n %s %04d-%02d-%02d %s CropID %i',Tab.AbsMag(i),Tab.BpRp(i),Tab.TelescopeID(i,:),Tab.Year(i),Tab.Month(i),Tab.Day(i),Tab.FieldID{i},Tab.CropID(i)))
+set(gca,'YDir','reverse')
+
+wd = isWD([],Tab.RA(i),Tab.Dec(i));
+wd = wd.Table;
+wd.RA = wd.RA*180/pi;
+wd.Dec = wd.Dec*180/pi;
+wd.CropID = Tab.CropID(i);
+wd.FieldID = Tab.FieldID{i};
+wd.Detected = Tab.RMF(i);
+wd.Nvisits = Tab.totalVisits(i);
+wd.BatchSize = Tab.BatchSize(i);
+wd.Nbatch = Tab.Nbatch(i);
+wd.BatchDetections = 0 ;
+wd.Nevents = 0;
+wd.BatchData = {0};
+
+
+[stackedWDtable,mainMS,mainObsData] = marvinFP.getMSDateTgt(str2double(Tab.TelescopeID(i,9:10)),str2double(Tab.TelescopeID(i,end-1:end)), Tab.Year(i),Tab.Month(i),Tab.Day(i), 60,'CropID',Tab.CropID(i),'getMS',true,'FieldID',Tab.FieldID{i},'TgtCoord',[Tab.RA(i),Tab.Dec(i)],'WD',wd)
+end
+
+
+%% plot for the entire available lc:

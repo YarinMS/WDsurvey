@@ -27,6 +27,9 @@ function Data = SSHunpackFitsFilesMarv(Data)
     % Command to create the newY directory if it doesn't exist
     createNewYDirCommand = sprintf('sshpass -p "physics" ssh ocs@%s "mkdir -p %s"', ipAddress, newYPath);
     s = system(createNewYDirCommand);  % Create the directory if it doesn't exist
+
+    createGitPullCommand = sprintf('sshpass -p "physics" ssh ocs@%s "cd Documents/WDsurvey/ && git pull"', ipAddress, newYPath);
+    s = system(createGitPullCommand); 
     
     % New command to list all .fits.fz files
     listFilesCommand = sprintf( ...

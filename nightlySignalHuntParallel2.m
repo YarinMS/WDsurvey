@@ -1,4 +1,4 @@
-function MetaTable = nightlySignalHuntParallel(MetaTable, year, month, day, Args)
+function MetaTable = nightlySignalHuntParallel2(MetaTable, year, month, day, Args)
 
 arguments
     MetaTable % Initial input table (can be empty)
@@ -66,7 +66,5 @@ end
 % Concatenate all individual tables into the final MetaTable
 MetaTable = vertcat(MetaTables{:});
 
-%% Save Results
-save(sprintf('/media/yarinms/Data2/Projects/NightlyRun1/%s/Results_Table_LAST.%04d.%02d.%02d_%s.mat', ...
-    Args.ID, year, month, day, Args.ID), 'MetaTable', '-v7.3');
+
 end

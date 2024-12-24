@@ -1,4 +1,4 @@
-function MetaTable = nightlySignalHuntParallel(MetaTable, year, month, day, Args)
+function MetaTable = nightlySignalHuntParallel2(MetaTable, year, month, day, Args)
 
 arguments
     MetaTable % Initial input table (can be empty)
@@ -50,8 +50,7 @@ parfor taskIdx = 1:numTasks
         fprintf('Processing: Mount %i, Tel %i\n', Imount, Itel);
         try
             % Each worker creates its own table
-            MetaTables{taskIdx} = SignalHunter2(table(), Imount, Itel, year, month, day, Args.Nvisits, ...
-                                               'PlotNSave', false, 'ID', Args.ID);
+            
         catch ME
             % Handle errors gracefully
             warning('Error on Mount %i, Tel %i: %s', Imount, Itel, ME.message);

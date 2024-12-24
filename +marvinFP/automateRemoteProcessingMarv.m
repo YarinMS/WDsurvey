@@ -1,4 +1,4 @@
-function automateRemoteProcessingMarv(Data)
+function [formattedName] = automateRemoteProcessingMarv(Data)
     % Inputs:
     % r - structure containing eventInfo and remotePath
     
@@ -58,19 +58,19 @@ function automateRemoteProcessingMarv(Data)
     system(createDirCommand);  % Create Temp directory if it doesn't exist
     
     % Define the save filename format
-    formattedName = sprintf('%.6f_%.6f_%s_%s_%d_%s', ra, dec, computerID, dateStr, cropID, Data.fieldID);
+    formattedName = sprintf('%.6f_%.6f_%s_%s_%d_%s_Row%i', ra, dec, computerID, dateStr, cropID, Data.fieldID{:},Data.tabID);
     matFilePath = fullfile(saveDir, [formattedName, '.mat']);
     pngFilePath = fullfile(saveDir, [formattedName, '.png']);
 
 
-        marvinFP.generateForcedPhotometryScriptMarv(rePath, cropID, ra, dec, matFilePath, removePath);
+    marvinFP.generateForcedPhotometryScriptMarv(rePath, cropID, ra, dec, matFilePath, removePath);
         
     
     % Push the script to the remote machine
     marvinFP.ensureRemoteForcedPhotometryScriptExistsMarv(ipAddress);
 
     % Build the MATLAB command to run the forced photometry script remotely
-    isWD([],ra,dec)
+    %isWD([],ra,dec)
     matlabCommand = sprintf('ForcedPhotometryRemote(%d, %f, %f); exit;', cropID, ra, dec);
     
     % SSH command to execute the MATLAB script remotely
@@ -83,8 +83,27 @@ status = system(remoteMatlabCommand);
     % Check for execution success
     if status == 0
         fprintf('Forced photometry executed successfully on remote machine %s.\n', ipAddress);
+        % Command to synchronize results from the remote machine to your local machine
+    
     else
         fprintf('Failed to execute forced photometry on remote machine %s.\n', ipAddress);
+    end
+
+
+    localResultsDir = '~/Projects/MarvinRunRes/';
+    remoteResultsDir = '/home/ocs/Documents/WD_survey/TempMarvinRun/';
+    bringHomeCommand = sprintf('sshpass -p "physics" rsync -avzr ocs@%s:%s %s', ipAddress, remoteResultsDir, localResultsDir);
+    
+    % Execute the rsync command
+    rsyncStatus = system(bringHomeCommand);
+    % YOU SHOULD DELETE ALL
+    % cleanLastComputer = sprintf('sshpass -p "physics" cd &s && rm -f *.mat',remoteResultsDir )
+    % cleanStatus = system(cleanLastComputer);
+    % Check for rsync success
+    if rsyncStatus == 0
+        fprintf('Results successfully synced from %s to %s.\n', ipAddress, localResultsDir);
+    else
+        error('Failed to sync results from the remote machine.');
     end
 end
 

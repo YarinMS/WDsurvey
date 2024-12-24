@@ -5,7 +5,7 @@ function plotLightCurve3(results, Iwd, Ibatch, LC, Methods,flux, FluxMethods,WD)
     c = LC.Ctrl.CtrlStar(sidx);
     C = LC.Ctrl.medLc(sidx);
    
-    [lmt,sidx] = sort(datetime(LC.catJD(sidx), 'ConvertFrom', 'jd'));
+    [lmt,sidx] = sort(datetime(LC.catJD, 'ConvertFrom', 'jd'));
      lm = LC.limMag(sidx);
     
     plot(t, y, 'O-','Color', [0.25, 0.25, 0.25], 'LineWidth', 1.5,'DisplayName', sprintf('$\\sigma =$ %.3f',std(y,'omitnan')));

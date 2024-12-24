@@ -1,0 +1,388 @@
+%% New analysis.
+% top 50 WDs (with contminators)
+
+
+%% Load gaia data;
+gaiaData = load('~/Documents/WDsurvey/gaia_bp_rp_mg.mat');
+
+
+%% Go over path load tables
+visID = '3Vis'
+resultTables = dir(sprintf('/media/yarinms/Data2/Projects/NightlyRun1/%s/*Results_Table_p*',visID));
+
+
+
+%% Only WDs
+gtab = table();
+
+for Itab = 77:82
+    tab = load(fullfile(resultTables(Itab).folder,resultTables(Itab).name));
+    if ~isempty(tab)
+     tab = tab.MetaTable;
+     gtab = vertcat(gtab,tab(tab.Pwd > 0 ,:)); %  onlyWDs
+    end
+end
+
+
+%% Analysis and plots
+% modifications to 03 Aug +
+
+
+disp(sprintf('%i WD events',sum(gtab.Pwd>0)))
+plts.plotNTabStat(gtab,'gaiaData',gaiaData,'Xfield','C_LimMag','Yfield','MaxPS')
+
+
+
+%%
+
+%% plot only WDS
+% Tab = gtab
+Tab = sortrows(gtab, 'maxRMF', 'descend');
+%%
+
+for i = 110%41:height(Tab)
+
+AC = catsHTM.cone_search('GAIADR3', Tab.RA(i) * pi / 180, Tab.Dec(i) * pi / 180, 3, 'OutType', 'AstroCatalog');
+AC = AC.Table;
+AC.RA = AC.RA *180/pi;
+AC.Dec = AC.Dec *180/pi;
+if ~isempty(AC)
+
+try
+
+wd2 = isWD([],AC.RA(1),AC.Dec(1)).Table;
+wd2.RA = wd2.RA * 180/pi;
+wd2.Dec = wd2.Dec *180/pi;
+
+
+   Dist = sqrt((wd2.RA(1)-AC.RA).^2 +(wd2.Dec(1)-AC.Dec).^2) *3600
+catch
+    if height(AC) > 1
+    wd2 = isWD([],AC.RA(2),AC.Dec(2)).Table;
+    wd2.RA = wd2.RA * 180/pi;
+wd2.Dec = wd2.Dec *180/pi;
+
+Dist = sqrt((wd2.RA(1)-AC.RA).^2 +(wd2.Dec(1)-AC.Dec).^2) *3600
+    else
+        wd2 =table();
+        wd2.BPmag = nan;
+        wd2.Gmag = nan;
+    end
+end
+
+
+[~,minIdx] = min(Dist);
+AC = AC(minIdx,:);
+wd2 = isWD([],AC.RA(1),AC.Dec(1)).Table;
+wd2.RA = wd2.RA * 180/pi;
+wd2.Dec = wd2.Dec *180/pi;
+Dist = sqrt((wd2.RA-AC.RA).^2 +(wd2.Dec-AC.Dec).^2) *3600
+
+if Dist > 5
+    %continue;
+end
+
+
+else
+    wd2 = table();
+    AC = table();
+    wd2.BPmag = nan;
+    AC.phot_g_mean_mag= nan;
+    wd2.Gmag = nan;
+end
+    figure()
+t = Tab.JD(i);
+t = datetime(t{1},'convertfrom','jd');
+y = Tab.MAG_PSF(i);
+plot(t,y{1},'k-o')
+
+title(sprintf('(%.4f,%.4f)  $P_{wd}$ -  %.2f; ID \\# %i  $B_p$ = %.3f GG = %.3f G =%.3f',Tab.RA(i),Tab.Dec(i), Tab.Pwd(i),i,wd2.BPmag,AC.phot_g_mean_mag,wd2.Gmag))
+xlabel(sprintf('Abs  $G$ = %.2f; $B_p-R_p$ = %.3f\n %s %04d-%02d-%02d %s',Tab.AbsMag(i),Tab.BpRp(i),Tab.TelescopeID(i,:),Tab.Year(i),Tab.Month(i),Tab.Day(i),Tab.FieldID{i}))
+set(gca,'YDir','reverse')
+
+
+ % Ask the user whether to keep the figure open
+    keepOpen = input('Would you like to leave this light curve open? (y/n): ', 's');
+    if lower(keepOpen) ~= 'y'
+        close(gcf); % Close the current figure
+    end
+end
+%
+
+%% plot single target full data
+ind = 19;
+
+AC = catsHTM.cone_search('GAIADR3', Tab.RA(i) * pi / 180, Tab.Dec(i) * pi / 180, 3, 'OutType', 'AstroCatalog');
+AC = AC.Table;
+AC.RA = AC.RA *180/pi;
+AC.Dec = AC.Dec *180/pi;
+
+if ~isempty(AC)
+
+try
+
+
+wd2 = isWD([],AC.RA(1),AC.Dec(1)).Table;
+wd2.RA = wd2.RA * 180/pi;
+wd2.Dec = wd2.Dec *180/pi;
+
+
+   Dist = sqrt((wd2.RA(1)-AC.RA).^2 +(wd2.Dec(1)-AC.Dec).^2) *3600
+catch
+    if height(AC) > 1
+    wd2 = isWD([],AC.RA(2),AC.Dec(2)).Table;
+    wd2.RA = wd2.RA * 180/pi;
+wd2.Dec = wd2.Dec *180/pi;
+
+Dist = sqrt((wd2.RA(1)-AC.RA).^2 +(wd2.Dec(1)-AC.Dec).^2) *3600
+    else
+        wd2 =table();
+        wd2.BPmag = nan;
+        wd2.Gmag = nan;
+    end
+end
+
+
+[~,minIdx] = min(Dist);
+AC = AC(minIdx,:);
+wd2 = isWD([],AC.RA(1),AC.Dec(1)).Table;
+wd2.RA = wd2.RA * 180/pi;
+wd2.Dec = wd2.Dec *180/pi;
+Dist = sqrt((wd2.RA-AC.RA).^2 +(wd2.Dec-AC.Dec).^2) *3600
+
+
+
+
+else
+    wd2 = table();
+    AC = table();
+    wd2.BPmag = nan;
+    AC.phot_g_mean_mag= nan;
+    wd2.Gmag = nan;
+end
+for i = ind
+figure()
+t = Tab.JD(i);
+t = datetime(t{1},'convertfrom','jd');
+y = Tab.MAG_PSF(i);
+plot(t,y{1},'k-o')
+
+title(sprintf('(%.4f,%.4f)  $P_{wd}$ -  %.2f; ID \\# %i',Tab.RA(i),Tab.Dec(i), Tab.Pwd(i),i))
+xlabel(sprintf('Abs  $G$ = %.2f; $B_p-R_p$ = %.3f\n %s %04d-%02d-%02d %s CropID %i',Tab.AbsMag(i),Tab.BpRp(i),Tab.TelescopeID(i,:),Tab.Year(i),Tab.Month(i),Tab.Day(i),Tab.FieldID{i},Tab.CropID(i)))
+set(gca,'YDir','reverse')
+
+wd = isWD([],Tab.RA(i),Tab.Dec(i));
+wd = wd.Table;
+wd.RA = wd.RA*180/pi;
+wd.Dec = wd.Dec*180/pi;
+wd.CropID = Tab.CropID(i);
+wd.FieldID = Tab.FieldID{i};
+wd.Detected = Tab.RMF(i);
+wd.Nvisits = Tab.totalVisits(i);
+wd.BatchSize = Tab.BatchSize(i);
+wd.Nbatch = Tab.Nbatch(i);
+wd.BatchDetections = 0 ;
+wd.Nevents = 0;
+wd.BatchData = {0};
+
+
+[stackedWDtable,mainMS,mainObsData] = marvinFP.getMSDateTgt(str2double(Tab.TelescopeID(i,9:10)),str2double(Tab.TelescopeID(i,end-1:end)), Tab.Year(i),Tab.Month(i),Tab.Day(i), 60,'CropID',Tab.CropID(i),'getMS',true,'FieldID',Tab.FieldID{i},'TgtCoord',[Tab.RA(i),Tab.Dec(i)],'WD',wd)
+end
+
+
+
+%% FP for candidates
+rowInd = ind % Some loop over Res.
+eventInfo = marvinFP.evenInfoTable(gtab,rowInd)
+eventInfo.rowID = rowInd;
+eventRow = gtab(rowInd,:);
+%%
+% funpack localy and run pipeline
+Data = marvinFP.SSHunpackFitsFilesMarv(eventInfo)
+% FP
+[fn] = marvinFP.automateRemoteProcessingMarv(Data);
+ms = dir(sprintf('~/Projects/MarvinRunRes/*Row%i.mat',eventInfo.tabID))
+ms= load(fullfile(ms.folder,ms.name));
+ms = ms.ms;
+figure()
+tcat = datetime(eventRow.JD{:},'ConvertFrom','jd');
+tfp = datetime(ms.JD,'ConvertFrom','jd');
+plot(tfp,ms.Data.MAG_PSF(:,1),'-ko','LineWidth',1.5)
+hold on
+plot(tcat,eventRow.MAG_PSF{:},'-o','LineWidth',1.5)
+set(gca,'Ydir','reverse')
+legend(sprintf('FP LC $\\sigma$ = %.4f',std(eventRow.MAG_PSF{:},'omitnan')),sprintf('Catalog LC $\\sigma$ = %.4f',std(ms.Data.MAG_PSF(:,1),'omitnan')),fontsize = 15)
+
+
+
+
+
+
+%% Loop over INDs
+INDs = [99, 93,238,104,65,34,1101,1156,246,110,12]
+Failed = []
+%%
+
+for ind = Gg(59:end)
+    i =ind;
+
+AC = catsHTM.cone_search('GAIADR3', Tab.RA(i) * pi / 180, Tab.Dec(i) * pi / 180, 3, 'OutType', 'AstroCatalog');
+AC = AC.Table;
+AC.RA = AC.RA *180/pi;
+AC.Dec = AC.Dec *180/pi;
+if ~isempty(AC)
+
+try
+
+wd2 = isWD([],AC.RA(1),AC.Dec(1)).Table;
+wd2.RA = wd2.RA * 180/pi;
+wd2.Dec = wd2.Dec *180/pi;
+
+
+   Dist = sqrt((wd2.RA(1)-AC.RA).^2 +(wd2.Dec(1)-AC.Dec).^2) *3600
+catch
+    if height(AC) > 1
+    wd2 = isWD([],AC.RA(2),AC.Dec(2)).Table;
+    wd2.RA = wd2.RA * 180/pi;
+wd2.Dec = wd2.Dec *180/pi;
+
+Dist = sqrt((wd2.RA(1)-AC.RA).^2 +(wd2.Dec(1)-AC.Dec).^2) *3600
+    else
+        wd2 =table();
+        wd2.BPmag = nan;
+        wd2.Gmag = nan;
+    end
+end
+
+
+[~,minIdx] = min(Dist);
+AC = AC(minIdx,:);
+wd2 = isWD([],AC.RA(1),AC.Dec(1)).Table;
+wd2.RA = wd2.RA * 180/pi;
+wd2.Dec = wd2.Dec *180/pi;
+Dist = sqrt((wd2.RA-AC.RA).^2 +(wd2.Dec-AC.Dec).^2) *3600
+
+
+
+
+else
+    wd2 = table();
+    AC = table();
+    wd2.BPmag = nan;
+    AC.phot_g_mean_mag= nan;
+    wd2.Gmag = nan;
+end
+for i = ind
+figure()
+t = Tab.JD(i);
+t = datetime(t{1},'convertfrom','jd');
+y = Tab.MAG_PSF(i);
+plot(t,y{1},'k-o')
+
+title(sprintf('(%.4f,%.4f)  $P_{wd}$ -  %.2f; ID \\# %i',Tab.RA(i),Tab.Dec(i), Tab.Pwd(i),i))
+xlabel(sprintf('Abs  $G$ = %.2f; $B_p-R_p$ = %.3f\n %s %04d-%02d-%02d %s CropID %i',Tab.AbsMag(i),Tab.BpRp(i),Tab.TelescopeID(i,:),Tab.Year(i),Tab.Month(i),Tab.Day(i),Tab.FieldID{i},Tab.CropID(i)))
+set(gca,'YDir','reverse')
+
+wd = isWD([],Tab.RA(i),Tab.Dec(i));
+wd = wd.Table;
+wd.RA = wd.RA*180/pi;
+wd.Dec = wd.Dec*180/pi;
+wd.CropID = Tab.CropID(i);
+wd.FieldID = Tab.FieldID{i};
+wd.Detected = Tab.RMF(i);
+wd.Nvisits = Tab.totalVisits(i);
+wd.BatchSize = Tab.BatchSize(i);
+wd.Nbatch = Tab.Nbatch(i);
+wd.BatchDetections = 0 ;
+wd.Nevents = 0;
+wd.BatchData = {0};
+
+
+[stackedWDtable,mainMS,mainObsData] = marvinFP.getMSDateTgt(str2double(Tab.TelescopeID(i,9:10)),str2double(Tab.TelescopeID(i,end-1:end)), Tab.Year(i),Tab.Month(i),Tab.Day(i), 60,'CropID',Tab.CropID(i),'getMS',true,'FieldID',Tab.FieldID{i},'TgtCoord',[Tab.RA(i),Tab.Dec(i)],'WD',wd)
+end
+
+
+rowInd = ind % Some loop over Res.
+eventInfo = marvinFP.evenInfoTable(Tab,rowInd)
+eventInfo.rowID = rowInd;
+eventRow = Tab(rowInd,:);
+
+% funpack localy and run pipeline
+try
+Data = marvinFP.SSHunpackFitsFilesMarv(eventInfo)
+% FP
+[fn] = marvinFP.automateRemoteProcessingMarv(Data);
+ms = dir(sprintf('~/Projects/MarvinRunRes/*Row%i.mat',eventInfo.tabID))
+ms= load(fullfile(ms.folder,ms.name));
+ms = ms.ms;
+figure()
+tcat = datetime(eventRow.JD{:},'ConvertFrom','jd');
+tfp = datetime(ms.JD,'ConvertFrom','jd');
+plot(tfp,ms.Data.MAG_PSF(:,1),'-ko','LineWidth',1.5)
+hold on
+plot(tcat,eventRow.MAG_PSF{:},'-o','LineWidth',1.5)
+set(gca,'Ydir','reverse')
+legend(sprintf('FP LC $\\sigma$ = %.4f',std(ms.Data.MAG_PSF(:,1),'omitnan')),sprintf('Catalog LC $\\sigma$ = %.4f',std(eventRow.MAG_PSF{:},'omitnan')),fontsize = 15)
+title(sprintf('Ind : %i',ind))
+catch
+    sprintf('FPFailed for row %i',ind)
+    Failed = [Failed; ind];
+end
+
+
+
+end
+
+
+
+
+%% Litreature search 
+
+
+apiKey = 'OZFyUx2QO0dKDdR2kaqfiDYEE0jK3Gv97bdMoBEj'; % Replace with your actual API token
+
+
+options = weboptions('HeaderFields', {'Authorization', ['Bearer ', apiKey]});
+
+
+
+
+adsURL = 'https://ui.adsabs.harvard.edu/v1/search/query';
+query = sprintf('abs:"RA=%f AND Dec=+%f"', 100,10);
+adsData = webread(adsURL, 'q', query, 'rows', '10', 'fl', 'title,author', options);
+disp(adsData);
+
+
+%%
+
+ra = RA;
+dec = Dec;% Define RA, Dec, and radius (in degrees)
+ % Replace with your desired Dec value
+radius = 0.01;   % Search radius in degrees (~36 arcseconds)
+
+% Create the query string with variables
+queryTemplate = "SELECT * FROM basic WHERE CONTAINS(POINT('ICRS', ra, dec), CIRCLE('ICRS', %f, %f, %f)) = 1";
+query = sprintf(queryTemplate, ra, dec, radius);
+
+% URL encode the query
+encodedQuery = urlencode(query);
+
+% Base URL for SIMBAD TAP
+baseURL = 'https://simbad.u-strasbg.fr/simbad/sim-tap/sync';
+
+% Construct the full URL
+fullURL = [baseURL, '?query=', encodedQuery];
+
+% Set web options
+options = weboptions('ContentType', 'json'); % Adjust 'json' if the response is plain text
+
+% Send the request and retrieve the response
+try
+    response = webread(fullURL, options);
+    disp('Response received:');
+    disp(response);
+catch ME
+    disp('Error encountered:');
+    disp(ME.message);
+end
+

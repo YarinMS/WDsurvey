@@ -24,7 +24,11 @@ function obsData = extractObservationData(AH)
 
         % Airmass
         if isfield(AH(i).Key, 'AIRMASS')
+
+            if ~isempty(AH(i).Key.AIRMASS)
+     
             obsData.airmass(i) = AH(i).Key.AIRMASS;
+            end
         end
 
         % Julian Date

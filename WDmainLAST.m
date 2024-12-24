@@ -197,8 +197,14 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
      
                         % [FPms,FPresults,lcDataFP] = applyFPlast(AI,WD,1,50);
                         % 
-                        [FPms,FPresults,lcDataFP] = applyFPlastNOPSF(AI,WD,1,50);
+                        try
+                            [FPms,FPresults,lcDataFP] = applyFPlastNOPSF(AI,WD,1,50);
                       
+                        catch
+                            lcDataFP =[];
+
+                        end
+
                         if isfield(lcDataFP,'lc')
                             if sum(lcDataFP.limMag-lcDataFP.lc < 0) > 0.3*length(lcDataFP.lc)  
 

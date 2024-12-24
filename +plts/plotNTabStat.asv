@@ -20,8 +20,8 @@ scatter(xT, yT, 25, 'MarkerEdgeColor',[0.85, 0.33, 0.1], ...
         'MarkerFaceColor', 'none','MarkerFaceAlpha', 0.7);
 hold on;
 plot(xW, yW, 'ok');
-xlabel(Args.Xfield);
-ylabel(Args.Yfield);
+xlabel();
+ylabel('SD from mean (RMF)');
 
 % Enable data cursor mode
 dcm = datacursormode(gcf);

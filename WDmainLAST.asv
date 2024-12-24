@@ -195,7 +195,14 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                         AI = AstroImage(imagesFP,'Mask',maskFP,'PSF',psfFP);
                         
      
-                        [FPms,FPresults,lcDataFP] = applyFPlast(AI,WD,1,50);
+                        % [FPms,FPresults,lcDataFP] = applyFPlast(AI,WD,1,50);
+                        % 
+                        try
+                            [FPms,FPresults,lcDataFP] = applyFPlastNOPSF(AI,WD,1,50);
+                      
+                        catch
+
+                        end
                         
                         if isfield(lcDataFP,'lc')
                             if sum(lcDataFP.limMag-lcDataFP.lc < 0) > 0.3*length(lcDataFP.lc)  
@@ -358,7 +365,11 @@ function stackedWDtable = WDmainLAST(mount, telescope, year, month, day, batchSi
                                     eventMetrics = processDetectedEvents3(results, lcData);
                                     batchData.eventMetrics = eventMetrics;
                                     mms.bestMag;
-                                    batchData.RMS=getRMS2(mms);
+                                    try
+                                        batchData.RMS=getRMS2(mms);
+                                    catch
+                                        batchData.RMS = [];
+                                    end
                                         
                                     batchData.Event = true;
                                     WD.Nevents = WD.Nevents + 1;

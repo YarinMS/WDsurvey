@@ -77,7 +77,7 @@ function automateRemoteProcessing(r)
         ipAddress, matlabCommand);
     
     % Execute the remote MATLAB command via SSH
-status = system(remoteMatlabCommand);
+    status = system(remoteMatlabCommand);
     
     % Check for execution success
     if status == 0
