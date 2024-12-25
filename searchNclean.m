@@ -19,7 +19,7 @@ else
     return
 end
                     
-[mms,nanIdx] =  c(ms, args);
+[mms,nanIdx] =  cleanMatchedSources3(ms, args);
 
 
 
