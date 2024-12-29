@@ -1,7 +1,7 @@
 function S = insertRow2Scheduler(S,FieldName,RA,Dec,MountNum,StartJD,StopJD)
 
 
-exRow = S.searchFieldName('31UDR191');
+exRow = S.searchFieldName('31UDR19');
 
 S.List.Catalog(end+1,:) = S.List.Catlaog(exRow,:);
 
