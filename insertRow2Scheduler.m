@@ -1,4 +1,4 @@
-function S = insertRow2Scheduler(S,FieldName,RA,Dec,MountNum,StartJD,StopJD)
+function S = insertRow2Scheduler(S,FieldName,RA,Dec,MountNum,StartJD,StopJD,Priority)
 
 
 exRow = S.searchFieldName('31UDR19');
@@ -17,5 +17,7 @@ S.List.Catalog.MountNum(end) = MountNum;
 S.List.Catalog.StartJD(end) = StartJD;
 
 S.List.Catalog.StopJD(end) = StopJD;
+
+S.List.Catalog.BasePriority(end) = Priority;
 
 end
