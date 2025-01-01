@@ -3,7 +3,7 @@ function S = insertRow2Scheduler(S,FieldName,RA,Dec,MountNum,StartJD,StopJD,Prio
 
 exRow = S.searchFieldName('919.WD');
 
-S.List.Catalog(end+1,:) = S.List.Catalog(exRow,:);
+S.List.Catalog(end+1,:) = S.List.Catalog(exRow(1),:);
 
 %
 S.List.Catalog.FieldName(end) = FieldName;
