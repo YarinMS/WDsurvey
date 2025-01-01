@@ -25,7 +25,7 @@ function [Cand, WDcand, WDtable] = findVariableCandidatesTable(ms, Args)
         Args.ObsData = [];
     end
 
-    Obj = pipeline.last.SearchMatchedSources;
+    Obj = pipeline.last.variability.SearchMatchedSources;
   %  ms.bestMag;
     Obj.MS = ms;
     

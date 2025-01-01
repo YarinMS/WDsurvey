@@ -58,7 +58,7 @@ function plotLightCurve3(results, Iwd, Ibatch, LC, Methods,flux, FluxMethods,WD)
 
     ylabel('Magnitude');
     xlim([min(t), max(t)]);
-    ylim([min(y)-5*std(y,'omitnan'), max(y)+5*std(y,'omitnan')]);
+    ylim([min(y)-10*std(y,'omitnan'), max(y)+10*std(y,'omitnan')]);
 
 
 end

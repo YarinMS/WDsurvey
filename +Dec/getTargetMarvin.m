@@ -1,0 +1,115 @@
+
+%% get target local
+
+Mount = 4;
+Camera = 2;
+year = 2024;
+month = 12;
+day = 25;
+
+targetFieldID = 'Wdcand15222';
+% targetFieldID = '1191bWDM5' ;
+
+tgtRA =151.4962 ; tgtDec = 22.8254;
+
+if mod(Camera,2)
+    dataDir = 'data1';
+else
+    dataDir = 'data2';
+end
+
+if Camera <=2
+    computer = sprintf('last%02de',Mount);
+else
+    computer = sprintf('last%02dw',Mount);
+end
+
+
+
+% pathForTgt = sprintf('/%s/%s/archive/LAST.01.%02d.%02d/%04d/%02d/%02d/proc/*v0/*.hdf5',computer,dataDir,Mount,Camera,year,month,day)
+
+pathForTgt  = sprintf('~/marvin/LAST.01.%02d.%02d/%04d/%02d/%02d/proc/*v0/*.hdf5',Mount,Camera,year,month,day)
+
+
+
+
+
+allMerged = dir(pathForTgt);
+
+allFN = {allMerged.name}';
+
+% fieldPat   = regexp(allFN,'clear_(.*?)_000','tokens'); For all fieldIDs
+
+% filedsIDs  = cellfun(@(x) x{1}, fieldPat(~cellfun('isempty',fieldPat)))
+
+matches = ~cellfun('isempty',regexp(allFN,['clear_' targetFieldID '_000']));
+
+
+
+mergedField = allMerged(matches);
+
+
+%%
+
+%%
+allMS = [];
+for Ivis = 1 : numel(mergedField)
+    MS = MatchedSources.read(fullfile(mergedField(Ivis).folder,mergedField(Ivis).name));
+    
+    source = MS.coneSearch(tgtRA,tgtDec,5);
+    if ~isempty(source.Ind)
+        allMS = [allMS  MS];
+        fprintf('\nSource Found in %s \n %s',mergedField(Ivis).folder,mergedField(Ivis).name)
+    else
+        meanRA = mean(mean(MS.Data.RA,'omitnan'));
+        meanDec = mean(mean(MS.Data.Dec,'omitnan'));
+        fprintf('\n Mean RA %.3f ; mean Dec %.3f',meanRA,meanDec)
+    end
+        
+    
+end
+
+%%
+
+allMS;
+
+MSU = mergeByCoo(allMS,allMS(1));
+MSU.bestMag;
+source = MSU.coneSearch(tgtRA,tgtDec,5)
+%MSU.plotLC(source.Ind)
+
+
+%%
+% Setting bad Photometry to NaN.
+args.BadFlags = {'Saturated', 'Negative', 'NaN', 'Spike', 'Hole', 'NearEdge'}; % Change to NaN all data points associated with these flags.
+mms = MSU.setBadPhotToNan('BadFlags', args.BadFlags, 'MagField', 'MAG_PSF', 'CreateNewObj', true);
+
+% Consider all sources with all nans sources with NdetPts > args.Ndet. 
+NdetGood = sum(~isnan(mms.Data.MAG_PSF), 1);
+Fndet = NdetGood > (mms.Nepoch-0.85*mms.Nepoch); % Allow for 15% no detections per source.
+mms = mms.selectBySrcIndex(Fndet, 'CreateNewObj', false);
+% use bestMag to get the best photometry for a source ( aper 3 / psf)
+mms.bestMag
+source = mms.coneSearch(tgtRA,tgtDec,5);
+meanMag = mean(mms.Data.MAG_PSF(:,source.Ind),'omitnan');
+
+r = lcUtil.zp_meddiff(mms, 'MagField', {'MAG_PSF'}, 'MagErrField', {'MAGERR_PSF'});
+[mms, ~] = applyZP(mms, r.FitZP, 'ApplyToMagField', 'MAG_PSF');
+
+
+%%
+GroupInd = (mean(mms.Data.MAG_PSF,'omitnan') < meanMag + 0.2) & (mean(mms.Data.MAG_PSF,'omitnan') > meanMag - 0.2);
+
+GroupInd = find(GroupInd>0);
+
+figure();
+
+t = datetime(mms.JD,'ConvertFrom','jd');
+[t,srtInd] = sort(t)
+
+plot(t,mms.Data.MAG_PSF(srtInd,source.Ind),'-ok')
+hold on 
+plot(t,mms.Data.MAG_PSF(srtInd,GroupInd(14)),'.')
+set(gca,'YDir','reverse')
+
+
