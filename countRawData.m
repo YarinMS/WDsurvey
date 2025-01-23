@@ -77,7 +77,7 @@ for i = 1:numel(telescopes)
                     
                     % Append to table
                     newRow = {dateTime, dateTime, telescopeID, fieldID, RA, DEC, ExpT, ...
-                              fileName, filePath, Year, Month, Day, MountNum, CameraNum};
+                              fileName, filePath, Year, Month, Day, MountNum, CameraNum}
 
                     data = [data; newRow];
                 end

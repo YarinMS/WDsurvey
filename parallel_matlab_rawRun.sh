@@ -46,6 +46,7 @@ for X in "${X_LIST[@]}"; do
     sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no ocs@10.23.1."$X" << EOF &
 cd ~/Documents/WDsurvey
 git pull
+git checkout Linux
 matlab -nosplash -nodesktop -r "addpath('~/Documents/WDsurvey/'); AllRawData = countRawData('$BASEDIR'); save('~/Documents/WD_survey/AllRawData_${COMPUTER}${SIDE}_data1.mat', 'AllRawData'); exit;"
 EOF
 
