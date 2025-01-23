@@ -1,16 +1,19 @@
+% Mount = 4;
+% Camera = 2;
+% year = 2024;
+% month = 12;
+% day = 25;
+% 
+% targetFieldID = 'Wdcand15222';
+% % targetFieldID = '1191bWDM5' ;
+% 
+% tgtRA =151.4962 ; tgtDec = 22.8254;
 
-%% get target local
 
-Mount = 4;
-Camera = 2;
-year = 2024;
-month = 12;
-day = 25;
 
-targetFieldID = 'Wdcand15222';
-% targetFieldID = '1191bWDM5' ;
 
-tgtRA =151.4962 ; tgtDec = 22.8254;
+
+function [RES] = getTargetDataMarvin(Mount,Camera,year,month,day,ra,dec,targetFieldID)
 
 if mod(Camera,2)
     dataDir = 'data1';
@@ -56,7 +59,7 @@ allMS = [];
 for Ivis = 1 : numel(mergedField)
     MS = MatchedSources.read(fullfile(mergedField(Ivis).folder,mergedField(Ivis).name));
     
-    source = MS.coneSearch(tgtRA,tgtDec,5);
+    source = MS.coneSearch(ra,dec,5);
     if ~isempty(source.Ind)
         allMS = [allMS  MS];
         fprintf('\nSource Found in %s \n %s',mergedField(Ivis).folder,mergedField(Ivis).name)
@@ -75,7 +78,7 @@ allMS;
 
 MSU = mergeByCoo(allMS,allMS(1));
 MSU.bestMag;
-source = MSU.coneSearch(tgtRA,tgtDec,5)
+source = MSU.coneSearch(ra,dec,3)
 %MSU.plotLC(source.Ind)
 
 
@@ -90,7 +93,7 @@ Fndet = NdetGood > (mms.Nepoch-0.85*mms.Nepoch); % Allow for 15% no detections p
 mms = mms.selectBySrcIndex(Fndet, 'CreateNewObj', false);
 % use bestMag to get the best photometry for a source ( aper 3 / psf)
 mms.bestMag
-source = mms.coneSearch(tgtRA,tgtDec,5);
+source = mms.coneSearch(ra,dec,3);
 meanMag = mean(mms.Data.MAG_PSF(:,source.Ind),'omitnan');
 
 r = lcUtil.zp_meddiff(mms, 'MagField', {'MAG_PSF'}, 'MagErrField', {'MAGERR_PSF'});
@@ -101,7 +104,13 @@ r = lcUtil.zp_meddiff(mms, 'MagField', {'MAG_PSF'}, 'MagErrField', {'MAGERR_PSF'
 GroupInd = (mean(mms.Data.MAG_PSF,'omitnan') < meanMag + 0.1) & (mean(mms.Data.MAG_PSF,'omitnan') > meanMag - 0.1);
 
 GroupInd = find(GroupInd>0);
-Ind = 2;
+if ~isempty(GroupInd)
+GroupInd = (mean(mms.Data.MAG_PSF,'omitnan') < meanMag + 0.2) & (mean(mms.Data.MAG_PSF,'omitnan') > meanMag - 0.2);
+
+GroupInd = find(GroupInd>0);
+
+end
+Ind = 1;
 figure();
 
 t = datetime(mms.JD,'ConvertFrom','jd');
@@ -121,7 +130,27 @@ RelFlux = fluxTarget./fluxRef;
 figure();  plot(t,RelFlux,'.')
 
 
+%%
+gRow   = Util.gaiaConeSearch(ra,dec);
+if ~isempty(gRow)
+    gRow = gRow(1,:);
+else
+        gRow = table();
+
+end
+
+RES.GAIAID = gRow.designation;
+RES.JD = mms.JD;
+RES.targetLC = mms.Data.MAG_PSF(srtInd,source.Ind);
+RES.RefLC    = mms.Data.MAG_PSF(srtInd,source.Ind);
+RES.RelLC    = RelFlux ;
+WD = isWD(mms, ra,dec);
+if ~isempty(WD.Table)
+    RES.WDEDRtable = WD.Table(1,:);
+end
+
+RES.GaiaTable = gRow;
+RES.Pwd = WD.Table.Pwd(1);
 
 
-
-
+end
