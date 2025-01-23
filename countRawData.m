@@ -24,7 +24,7 @@ for i = 1:numel(telescopes)
     years = dir(fullfile(telescopeDir, '202*')); % Year directories
     years = years([years.isdir]);
     
-    for j = 3 %1:numel(years)
+    for j = 1:numel(years)
         yearDir = fullfile(years(j).folder, years(j).name);
         months = dir(fullfile(yearDir, '*')); % Month directories
         months = months(~ismember({months.name}, {'.', '..'}));
@@ -77,7 +77,7 @@ for i = 1:numel(telescopes)
                     
                     % Append to table
                     newRow = {dateTime, dateTime, telescopeID, fieldID, RA, DEC, ExpT, ...
-                              fileName, filePath, Year, Month, Day, MountNum, CameraNum}
+                              fileName, filePath, Year, Month, Day, MountNum, CameraNum};
 
                     data = [data; newRow];
                 end

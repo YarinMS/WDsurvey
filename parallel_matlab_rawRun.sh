@@ -1,53 +1,65 @@
 #!/bin/bash
 
-X_LIST=(1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 10 10)
-LOCAL_RESULTS_DIR="~/Documents/WD_survey"
+# ================================================
+# Script: run_matlab_parallel.sh
+# Description: Executes MATLAB routines on multiple
+#              remote machines in parallel, with
+#              automated password handling.
+# ================================================
 
-BASEDIRS=(
-    '/last01e/data1/archive/' '/last01e/data2/archive/'
-    '/last01w/data1/archive/' '/last01w/data2/archive/'
-    '/last02e/data1/archive/' '/last02e/data2/archive/'
-    '/last02w/data1/archive/' '/last02w/data2/archive/'
-    '/last03e/data1/archive/' '/last03e/data2/archive/'
-    '/last03w/data1/archive/' '/last03w/data2/archive/'
-    '/last04e/data1/archive/' '/last04e/data2/archive/'
-    '/last04w/data1/archive/' '/last04w/data2/archive/'
-    '/last05e/data1/archive/' '/last05e/data2/archive/'
-    '/last05w/data1/archive/' '/last05w/data2/archive/'
-    '/last06e/data1/archive/' '/last06e/data2/archive/'
-    '/last06w/data1/archive/' '/last06w/data2/archive/'
-    '/last07e/data1/archive/' '/last07e/data2/archive/'
-    '/last07w/data1/archive/' '/last07w/data2/archive/'
-    '/last08e/data1/archive/' '/last08e/data2/archive/'
-    '/last08w/data1/archive/' '/last08w/data2/archive/'
-    '/last09e/data1/archive/' '/last09e/data2/archive/'
-    '/last09w/data1/archive/' '/last09w/data2/archive/'
-    '/last10e/data1/archive/' '/last10e/data2/archive/'
-    '/last10w/data1/archive/' '/last10w/data2/archive/'
-)
+# Define the list of X values (last octet of the IP addresses)
+X_LIST=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
 
-mkdir -p "$LOCAL_RESULTS_DIR"
+# SSH password
+PASSWORD="physics"
 
-for ((i=0; i<${#X_LIST[@]}; i++)); do
-    COMPUTER=${X_LIST[i]}
-    BASE_DIR=${BASEDIRS[i]}
+# Function to calculate ceil(X/2)
+ceil_division() {
+    local x=$1
+    echo $(( (x + 1) / 2 ))
+}
 
- echo "Preparing to connect to 10.23.1.$X_LIST[i]..."
+# Function to determine Side based on X
+determine_side() {
+    local x=$1
+    if (( x % 2 == 1 )); then
+        echo "e"
+    else
+        echo "w"
+    fi
+}
 
-    
-    sshpass -p 'physics' ssh -o StrictHostKeyChecking=no ocs@10.23.1.$((COMPUTER)) << EOF_INNER &
+# Loop through each X and execute commands in parallel
+for X in "${X_LIST[@]}"; do
+    echo "Preparing to connect to 10.23.1.$X..."
+
+    # Determine 'computer' and 'Side' based on X
+    COMPUTER=$(ceil_division "$X")
+    SIDE=$(determine_side "$X")
+
+    # Determine base directory
+    BASEDIR="/last${COMPUTER}${SIDE}/data1/archive/"
+
+    echo "Computer: $COMPUTER, Side: $SIDE, BaseDir: $BASEDIR"
+
+    # Execute SSH commands in the background
+    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no ocs@10.23.1."$X" << EOF &
 cd ~/Documents/WDsurvey
 git pull
+matlab -nosplash -nodesktop -r "addpath('~/Documents/WDsurvey/'); AllRawData = countRawData('$BASEDIR'); save('~/Documents/WD_survey/AllRawData_${COMPUTER}${SIDE}_data1.mat', 'AllRawData'); exit;"
+EOF
 
-matlab -nosplash -nodesktop -r "
-addpath('~/Documents/WDsurvey/');
-fprintf('$BASE_DIR') 
-AllRawData = countRawData('$BASE_DIR');
-save('~/Documents/WD_survey/AllRawData_last$(printf "%02d" $COMPUTER)_$(basename "$BASE_DIR").mat', 'AllRawData');
-exit;"
-EOF_INNER
+    # Also check and process for data2
+    BASEDIR="/last${COMPUTER}${SIDE}/data2/archive/"
+    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no ocs@10.23.1."$X" << EOF &
+cd ~/Documents/WDsurvey
+git pull
+matlab -nosplash -nodesktop -r "addpath('~/Documents/WDsurvey/'); AllRawData = countRawData('$BASEDIR'); save('~/Documents/WD_survey/AllRawData_${COMPUTER}${SIDE}_data2.mat', 'AllRawData'); exit;"
+EOF
 
-  ##  sshpass -p 'physics' scp -o StrictHostKeyChecking=no ocs@10.23.1.$((COMPUTER)):~/Documents/WD_survey/AllRawData_last$(printf "%02d" $COMPUTER)_$(basename "$BASE_DIR").mat "$LOCAL_RESULTS_DIR/"
 done
 
-echo "All MATLAB routines executed and results imported."
+# Wait for all background SSH processes to finish
+wait
+
+echo "All MATLAB routines have been executed on the remote machines."
