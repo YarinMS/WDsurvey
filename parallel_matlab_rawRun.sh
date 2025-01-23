@@ -31,6 +31,9 @@ mkdir -p "$LOCAL_RESULTS_DIR"
 for ((i=0; i<${#X_LIST[@]}; i++)); do
     COMPUTER=${X_LIST[i]}
     BASE_DIR=${BASEDIRS[i]}
+
+ echo "Preparing to connect to 10.23.1.$X_LIST[i]..."
+
     
     sshpass -p 'physics' ssh -o StrictHostKeyChecking=no ocs@10.23.1.$((COMPUTER)) << EOF_INNER &
 cd ~/Documents/WDsurvey

@@ -3,6 +3,7 @@ function data = countRawData(baseDir)
 telescopes = dir(fullfile(baseDir, 'LAST.*')); % Find telescope directories
 telescopes = telescopes([telescopes.isdir]); % Keep only directories
 telescopes = telescopes(~endsWith({telescopes.name}, '_re'));
+fprintf('\n Start to count raw images for %s',baseDir)
 
 % Initialize table for data
 data = table('Size', [0, 14], ...
@@ -77,7 +78,7 @@ for i = 1:numel(telescopes)
                     % Append to table
                     newRow = {dateTime, dateTime, telescopeID, fieldID, RA, DEC, ExpT, ...
                               fileName, filePath, Year, Month, Day, MountNum, CameraNum}
-                    
+
                     data = [data; newRow];
                 end
             end
