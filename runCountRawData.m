@@ -7,7 +7,7 @@
 addpath(genpath('~/Documents/WDsurvey/'));
 
 % Retrieve the base directory from the environment variable
-baseDir = getenv('BASEDIR');
+baseDir = getenv('BASEDIR')
 if isempty(baseDir)
     error('BASEDIR environment variable is not set.');
 end
