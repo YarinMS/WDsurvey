@@ -7,7 +7,7 @@
 addpath(genpath('~/Documents/WDsurvey/'));
 
 % Retrieve the base directory from the environment variable
-baseDir = getenv('BASEDIR')
+baseDir = getenv('BASEDIR');
 if isempty(baseDir)
     error('BASEDIR environment variable is not set.');
 end
@@ -17,9 +17,9 @@ disp(['Running countRawData for: ', baseDir]);
 
 % Call the countRawData function
 try
-    AllRawData = countRawData(baseDir); % Call your function
+    AllRawData = countRawData(baseDir) % Call your function
     % Define output file name based on baseDir
-    outputFile = ['~/Documents/WD_survey/AllRawData_', strrep(baseDir(end-12:end), '/', '_'), '.mat'];
+    outputFile = ['~/Documents/WD_survey/',baseDir,'_', strrep(baseDir(end-11:end), '/', '_'), '.mat'];
     % Save results
     save(outputFile, 'AllRawData');
     disp(['Results saved to: ', outputFile]);
