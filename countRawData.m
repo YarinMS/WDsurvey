@@ -80,7 +80,7 @@ for i = 1:numel(telescopes)
                               fileName, filePath, Year, Month, Day, MountNum, CameraNum};
 
                     data = [data; newRow];
-                    fprintf('\n Table Size %i %s %s',size(data,1))
+                    %fprintf('\n Table Size %i %s %s',size(data,1))
                 end
             end
         end

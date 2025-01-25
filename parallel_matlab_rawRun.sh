@@ -31,31 +31,76 @@ determine_side() {
 
 # Loop through each X and execute commands in parallel
 for X in "${X_LIST[@]}"; do
-    echo "Preparing to connect to 10.23.1.$X..."
+#!/bin/bash
+
+# ================================================
+# Script: parallel_matlab_countRawData.sh
+# Description: Executes `countRawData` MATLAB function
+#              on multiple remote machines and gathers results.
+# ================================================
+
+# Define the list of X values (last octet of the IP addresses)
+X_LIST=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
+
+# SSH password
+PASSWORD="physics"
+
+# Local directory to store gathered results
+LOCAL_DIR=~/Projects/ObservationsStat
+mkdir -p "$LOCAL_DIR" # Create the directory if it doesn't exist
+
+# Function to calculate ceil(X/2)
+ceil_division() {
+    local x=$1
+    echo $(( (x + 1) / 2 ))
+}
+
+# Function to determine Side based on X
+determine_side() {
+    local x=$1
+    if (( x % 2 == 1 )); then
+        echo "e"
+    else
+        echo "w"
+    fi
+}
+
+# Loop through each X and execute commands in parallel
+for X in "${X_LIST[@]}"; do
+    echo "Connecting to 10.23.1.$X..."
 
     # Determine 'computer' and 'Side' based on X
     COMPUTER=$(ceil_division "$X")
     SIDE=$(determine_side "$X")
 
-    # Determine base directory
-    BASEDIR="/last${COMPUTER}${SIDE}/data1/archive/"
+    # Correct formatting for `COMPUTER`
+    if (( COMPUTER < 10 )); then
+        COMPUTER="0$COMPUTER"
+    fi
 
-    echo "Computer: $COMPUTER, Side: $SIDE, BaseDir: $BASEDIR"
+    # Construct the computer name
+    COMPUTER_NAME="last${COMPUTER}${SIDE}"
 
-    # Execute SSH commands in the background
+    # Process data1
+    BASEDIR="/${COMPUTER_NAME}/data1/archive/"
     sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no ocs@10.23.1."$X" << EOF &
 cd ~/Documents/WDsurvey
+echo "Pulling the latest code..."
 git pull
-git checkout Linux
-matlab -nosplash -nodesktop  "addpath('/home/ocs/Documents/WDsurvey/'); try, AllRawData = countRawData('$BASEDIR'); catch ME, disp(ME.message), end; disp(AllRawData); save('~/Documents/WD_survey/AllRawData_${COMPUTER}${SIDE}_data1.mat', 'AllRawData'); exit;"
+
+echo "Running MATLAB for $BASEDIR..."
+matlab -nosplash -nodesktop -r "addpath(genpath('~/Documents/WDsurvey/')); AllRawData = countRawData('$BASEDIR'); disp(['Size of AllRawData: ', num2str(size(AllRawData, 1))]); save('~/Documents/WD_survey/${COMPUTER_NAME}_data1.mat', 'AllRawData'); exit;"
 EOF
 
-    # Also check and process for data2
-    BASEDIR="/last${COMPUTER}${SIDE}/data2/archive/"
+    # Process data2
+    BASEDIR="/${COMPUTER_NAME}/data2/archive/"
     sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no ocs@10.23.1."$X" << EOF &
 cd ~/Documents/WDsurvey
+echo "Pulling the latest code..."
 git pull
-matlab -nosplash -nodesktop  "addpath('/home/ocs/Documents/WDsurvey/'); AllRawData = countRawData('$BASEDIR'); save('~/Documents/WD_survey/AllRawData_${COMPUTER}${SIDE}_data2.mat', 'AllRawData'); exit;"
+
+echo "Running MATLAB for $BASEDIR..."
+matlab -nosplash -nodesktop -r "addpath(genpath('~/Documents/WDsurvey/')); AllRawData = countRawData('$BASEDIR'); disp(['Size of AllRawData: ', num2str(size(AllRawData, 1))]); save('~/Documents/WD_survey/${COMPUTER_NAME}_data2.mat', 'AllRawData'); exit;"
 EOF
 
 done
@@ -64,3 +109,34 @@ done
 wait
 
 echo "All MATLAB routines have been executed on the remote machines."
+
+# ================================================
+# Step: Gather Results into Local Directory
+# ================================================
+for X in "${X_LIST[@]}"; do
+    # Determine 'computer' and 'Side' based on X
+    COMPUTER=$(ceil_division "$X")
+    SIDE=$(determine_side "$X")
+
+    if (( COMPUTER < 10 )); then
+        COMPUTER="0$COMPUTER"
+    fi
+
+    # Construct the computer name
+    COMPUTER_NAME="last${COMPUTER}${SIDE}"
+
+    # Define remote file paths for data1 and data2 results
+    REMOTE_FILE1="~/Documents/WD_survey/${COMPUTER_NAME}_data1.mat"
+    REMOTE_FILE2="~/Documents/WD_survey/${COMPUTER_NAME}_data2.mat"
+
+    # Copy files to the local directory
+    sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no ocs@10.23.1."$X":"$REMOTE_FILE1" "$LOCAL_DIR/" 2>/dev/null && \
+    echo "Collected: ${COMPUTER_NAME}_data1.mat" || \
+    echo "Failed to collect: ${COMPUTER_NAME}_data1.mat"
+
+    sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no ocs@10.23.1."$X":"$REMOTE_FILE2" "$LOCAL_DIR/" 2>/dev/null && \
+    echo "Collected: ${COMPUTER_NAME}_data2.mat" || \
+    echo "Failed to collect: ${COMPUTER_NAME}_data2.mat"
+done
+
+echo "All results have been gathered into $LOCAL_DIR."
