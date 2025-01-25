@@ -8,7 +8,7 @@
 # ================================================
 
 # Define the list of X values (last octet of the IP addresses)
-X_LIST=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
+X_LIST=(7 8)
 
 # SSH password
 PASSWORD="physics"
@@ -47,7 +47,7 @@ for X in "${X_LIST[@]}"; do
 cd ~/Documents/WDsurvey
 git pull
 git checkout Linux
-matlab -nosplash -nodesktop -r "addpath('~/Documents/WDsurvey/'); AllRawData = countRawData('$BASEDIR'); save('~/Documents/WD_survey/AllRawData_${COMPUTER}${SIDE}_data1.mat', 'AllRawData'); exit;"
+matlab -nosplash -nodesktop  "addpath('/home/ocs/Documents/WDsurvey/'); try, AllRawData = countRawData('$BASEDIR'); catch ME, disp(ME.message), end; disp(AllRawData); save('~/Documents/WD_survey/AllRawData_${COMPUTER}${SIDE}_data1.mat', 'AllRawData'); exit;"
 EOF
 
     # Also check and process for data2
@@ -55,7 +55,7 @@ EOF
     sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no ocs@10.23.1."$X" << EOF &
 cd ~/Documents/WDsurvey
 git pull
-matlab -nosplash -nodesktop -r "addpath('~/Documents/WDsurvey/'); AllRawData = countRawData('$BASEDIR'); save('~/Documents/WD_survey/AllRawData_${COMPUTER}${SIDE}_data2.mat', 'AllRawData'); exit;"
+matlab -nosplash -nodesktop  "addpath('/home/ocs/Documents/WDsurvey/'); AllRawData = countRawData('$BASEDIR'); save('~/Documents/WD_survey/AllRawData_${COMPUTER}${SIDE}_data2.mat', 'AllRawData'); exit;"
 EOF
 
 done
