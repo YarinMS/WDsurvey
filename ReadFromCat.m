@@ -207,6 +207,8 @@ elseif Args.Header
         
         % Extract what you are looking for
         for Iimage = 1 : numel(Cats)
+
+            try
             
             AH = AstroHeader(Cats(Iimage).name,3); 
             
@@ -237,6 +239,9 @@ elseif Args.Header
              
             RA    = [RA; mean(alpha)];
             DEC   = [DEC ; mean(delta) ] ;
+            catch
+                %no data
+            end
             
 
                   

@@ -1,39 +1,6 @@
 #!/bin/bash
 
 # ================================================
-# Script: run_matlab_parallel.sh
-# Description: Executes MATLAB routines on multiple
-#              remote machines in parallel, with
-#              automated password handling.
-# ================================================
-
-# Define the list of X values (last octet of the IP addresses)
-X_LIST=(7 8)
-
-# SSH password
-PASSWORD="physics"
-
-# Function to calculate ceil(X/2)
-ceil_division() {
-    local x=$1
-    echo $(( (x + 1) / 2 ))
-}
-
-# Function to determine Side based on X
-determine_side() {
-    local x=$1
-    if (( x % 2 == 1 )); then
-        echo "e"
-    else
-        echo "w"
-    fi
-}
-
-# Loop through each X and execute commands in parallel
-for X in "${X_LIST[@]}"; do
-#!/bin/bash
-
-# ================================================
 # Script: parallel_matlab_countRawData.sh
 # Description: Executes `countRawData` MATLAB function
 #              on multiple remote machines and gathers results.

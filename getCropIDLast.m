@@ -1,15 +1,4 @@
-
-%% get target local
-
-Mount = 4;
-Camera = 2;
-year = 2024;
-month = 12;
-day = 25;
-
-targetFieldID = 'Wdcand15222';
-
-tgtRA =151.4962 ; tgtDec = 22.8254;
+function [RES] = getCropIDLast(Mount,Camera,year,month,day,targetFieldID)
 
 if mod(Camera,2)
     dataDir = 'data1';
@@ -51,21 +40,27 @@ mergedField = allMerged(matches);
 %%
 
 %%
-allMS = [];
+allMS = {};
+MScoords = {};
+cropIDs ={};
+h = waitbar(0);
 for Ivis = 1 : numel(mergedField)
     MS = MatchedSources.read(fullfile(mergedField(Ivis).folder,mergedField(Ivis).name));
+
     
-    source = MS.coneSearch(tgtRA,tgtDec,5);
-    if ~isempty(source.Ind)
-        allMS = [allMS  MS];
-        fprintf('\nSource Found in %s \n %s',mergedField(Ivis).folder,mergedField(Ivis).name)
-    else
-        meanRA = mean(mean(MS.Data.RA,'omitnan'));
-        meanDec = mean(mean(MS.Data.Dec,'omitnan'));
-        fprintf('\n Mean RA %.3f ; mean Dec %.3f',meanRA,meanDec)
-    end
-        
-    
+    allMS{end+1,1} = {MS};
+    meanRA = mean(mean(MS.Data.RA,'omitnan'));
+    meanDec = mean(mean(MS.Data.Dec,'omitnan'));
+    MScoords{end+1,1} = {[meanRA meanDec]};
+    s = regexp(MS.FileName, '.*_(?<cropID>.+?)_sci_merged', 'names');
+
+    % Retrieve the cropID from the structure
+    cropID  = str2num(s.cropID);
+
+    cropIDs{end+1,1} = cropID; 
 end
 
-%%
+RES.MSall = allMS;
+RES.MScoords = MScoords;
+RES.IDs = cropIDs;
+end

@@ -9,13 +9,13 @@ telescopes = telescopes([telescopes.isdir]); % Filter directories only
 
 
 % Outer loop over days
-year = 2024;
-month = [1:8];
+year = 2025;
+month = [1];
 startDay = 1;
 endDay = 31;
 Nvis = 3;
 ID = '3Vis';
-for m = 6:1:12
+for m = 1
 for day = startDay:endDay
 
    
@@ -71,7 +71,7 @@ end
        
         %% Save Results
         if ~isempty(MetaTable)
-            save(        sprintf('/media/yarinms/Data2/Projects/NightlyRun1/%s/Results_Table_p_%04d_%02d_%02d_%s.mat',...
+            save(        sprintf('/media/yarinms/Data2/Projects/NightlyRun2/%s/Results_Table_p_%04d_%02d_%02d_%s.mat',...
                 ID, year, m, day,ID), 'MetaTable', '-v7.3');
             MetaTables = {};
             MetaTable ={};
