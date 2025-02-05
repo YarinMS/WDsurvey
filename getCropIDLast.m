@@ -14,9 +14,9 @@ end
 
 
 
-% pathForTgt = sprintf('/%s/%s/archive/LAST.01.%02d.%02d/%04d/%02d/%02d/proc/*v0/*.hdf5',computer,dataDir,Mount,Camera,year,month,day)
+pathForTgt = sprintf('/%s/%s/archive/LAST.01.%02d.%02d/%04d/%02d/%02d/proc/*v0/*.hdf5',computer,dataDir,Mount,Camera,year,month,day)
 
-pathForTgt  = sprintf('~/marvin/LAST.01.%02d.%02d/%04d/%02d/%02d/proc/*v0/*.hdf5',Mount,Camera,year,month,day)
+%pathForTgt  = sprintf('~/marvin/LAST.01.%02d.%02d/%04d/%02d/%02d/proc/*v0/*.hdf5',Mount,Camera,year,month,day)
 
 
 
