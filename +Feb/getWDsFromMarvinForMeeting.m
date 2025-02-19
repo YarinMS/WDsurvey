@@ -51,8 +51,8 @@ MainTable2vis = table();
  %%
 f = waitbar(0)
 counter = 0;
- for D = [29]
-     for T = [1:4]
+ for D = [22]
+     for T = [1]
          counter = counter+1;
             
          ObsID = sprintf('LAST.01.%02d.%02d.%04d%02d%02d-%s',Mount,T,Year,Month,D,FieldID)
